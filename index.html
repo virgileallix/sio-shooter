@@ -58,7 +58,7 @@
             <div class="menu-header">
                 <div class="logo">SIO SHOOTER 2D</div>
                 <div class="user-info">
-                    <div class="user-avatar">
+                    <div class="user-avatar" onclick="showProfileScreen()">
                         <i class="fas fa-user"></i>
                     </div>
                     <div class="user-details">
@@ -220,6 +220,43 @@
                               </div>
                           </div>
                       </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Screen -->
+        <div id="profile-screen" class="profile-screen hidden">
+            <div class="profile-container">
+                <button class="close-profile" onclick="showMainMenu()">&times;</button>
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h2 id="profile-name" style="text-align:center;">Profil</h2>
+
+                <div class="profile-stats">
+                    <h3>Statistiques</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">Kills: <span id="stat-kills">0</span></div>
+                        <div class="stat-item">Deaths: <span id="stat-deaths">0</span></div>
+                        <div class="stat-item">Parties: <span id="stat-games">0</span></div>
+                    </div>
+                </div>
+
+                <div class="profile-edit">
+                    <h3>Modifier le profil</h3>
+                    <div class="setting-item">
+                        <label>Pseudo</label>
+                        <input type="text" id="profile-page-username">
+                    </div>
+                    <div class="setting-item">
+                        <label>Email</label>
+                        <input type="email" id="profile-page-email">
+                    </div>
+                    <div class="setting-item">
+                        <label>Nouveau mot de passe</label>
+                        <input type="password" id="profile-page-password">
+                    </div>
+                    <button id="profile-page-save-btn" class="save-profile-btn">Enregistrer</button>
                 </div>
             </div>
         </div>

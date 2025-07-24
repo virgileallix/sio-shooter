@@ -77,12 +77,16 @@ function showAuthScreen() {
     document.getElementById('auth-screen').classList.remove('hidden');
     document.getElementById('main-menu').classList.add('hidden');
     document.getElementById('game-screen').classList.add('hidden');
+    const profile = document.getElementById('profile-screen');
+    if (profile) profile.classList.add('hidden');
 }
 
 function showMainMenu() {
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('main-menu').classList.remove('hidden');
     document.getElementById('game-screen').classList.add('hidden');
+    const profile = document.getElementById('profile-screen');
+    if (profile) profile.classList.add('hidden');
     
     if (currentUser) {
         document.getElementById('current-username').textContent =
@@ -98,6 +102,24 @@ function showGameScreen() {
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('main-menu').classList.add('hidden');
     document.getElementById('game-screen').classList.remove('hidden');
+    const profile = document.getElementById('profile-screen');
+    if (profile) profile.classList.add('hidden');
+}
+
+function showProfileScreen() {
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('main-menu').classList.add('hidden');
+    document.getElementById('game-screen').classList.add('hidden');
+    const profile = document.getElementById('profile-screen');
+    if (profile) {
+        profile.classList.remove('hidden');
+    }
+    if (typeof loadProfileStats === 'function') {
+        loadProfileStats();
+    }
+    if (typeof initializeProfilePage === 'function') {
+        initializeProfilePage();
+    }
 }
 
 // Chargement des données utilisateur
