@@ -207,7 +207,7 @@ function showNotification(title, message, actions = []) {
     if (actions.length === 0) {
         setTimeout(() => {
             if (notification.parentNode) {
-                notation.remove();
+                notification.remove();
             }
         }, 10000);
     }
