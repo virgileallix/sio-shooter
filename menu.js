@@ -26,6 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saveProfileBtn) {
         saveProfileBtn.addEventListener('click', saveProfile);
     }
+
+    const avatar = document.querySelector('.user-avatar');
+    if (avatar) {
+        avatar.addEventListener('click', () => openProfilePage());
+    }
 });
 
 // Configuration des écouteurs d'événements
@@ -425,6 +430,7 @@ async function saveProfile() {
         showMessage('Erreur lors de la mise à jour du profil', 'error');
     }
 }
+
 
 // CSS supplémentaire pour les nouvelles fonctionnalités
 const additionalStyles = document.createElement('style');

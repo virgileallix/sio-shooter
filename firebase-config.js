@@ -100,6 +100,11 @@ function showGameScreen() {
     document.getElementById('game-screen').classList.remove('hidden');
 }
 
+function openProfilePage(uid) {
+    const target = uid ? `profile.html?uid=${uid}` : 'profile.html';
+    window.location.href = target;
+}
+
 // Chargement des données utilisateur
 async function loadUserData() {
     if (!currentUser) return;
