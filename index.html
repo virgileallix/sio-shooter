@@ -58,12 +58,12 @@
             <div class="menu-header">
                 <div class="logo">SIO SHOOTER 2D</div>
                 <div class="user-info">
-                    <div class="user-avatar">
-                        <i class="fas fa-user"></i>
+                    <div class="user-avatar" onclick="openPlayerProfile()" title="Cliquez pour voir votre profil" style="cursor: pointer;">
+                        <i class="fas fa-user" id="user-avatar-icon"></i>
                     </div>
                     <div class="user-details">
                         <div class="username" id="current-username">Joueur</div>
-                        <div class="user-rank">Rang: Fer I</div>
+                        <div class="user-rank" id="current-user-rank">Rang: Fer I</div>
                     </div>
                     <button class="logout-btn" onclick="logout()">
                         <i class="fas fa-sign-out-alt"></i>
@@ -79,6 +79,9 @@
                         </button>
                         <button class="nav-btn" onclick="showMenuSection('friends')">
                             <i class="fas fa-users"></i> Amis
+                        </button>
+                        <button class="nav-btn" onclick="showMenuSection('leaderboard')">
+                            <i class="fas fa-trophy"></i> Classements
                         </button>
                         <button class="nav-btn" onclick="showMenuSection('arsenal')">
                             <i class="fas fa-crosshairs"></i> Arsenal
@@ -154,6 +157,22 @@
                         </div>
                     </div>
 
+                    <!-- Leaderboard Section -->
+                    <div id="leaderboard-section" class="menu-section hidden">
+                        <h2>Classements</h2>
+                        <div class="leaderboard-tabs">
+                            <button class="leaderboard-tab active" onclick="switchLeaderboardTab('kills')">Éliminations</button>
+                            <button class="leaderboard-tab" onclick="switchLeaderboardTab('wins')">Victoires</button>
+                            <button class="leaderboard-tab" onclick="switchLeaderboardTab('kd')">K/D Ratio</button>
+                            <button class="leaderboard-tab" onclick="switchLeaderboardTab('level')">Niveau</button>
+                        </div>
+                        <div class="leaderboard-content" id="leaderboard-content">
+                            <div class="loading">
+                                <i class="fas fa-spinner fa-spin"></i> Chargement du classement...
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Arsenal Section -->
                     <div id="arsenal-section" class="menu-section hidden">
                         <h2>Arsenal</h2>
@@ -207,6 +226,211 @@
             </div>
         </div>
 
+        <!-- Profile Modal -->
+        <div id="profile-modal" class="modal-overlay hidden">
+            <div class="profile-modal">
+                <div class="profile-header">
+                    <div class="profile-avatar-container">
+                        <div class="profile-avatar">
+                            <i class="fas fa-user" id="profile-avatar-icon"></i>
+                        </div>
+                        <div class="profile-status" id="profile-status">
+                            <i class="fas fa-circle"></i> En ligne
+                        </div>
+                    </div>
+                    <div class="profile-info">
+                        <h2 id="profile-username">Nom d'utilisateur</h2>
+                        <div class="profile-rank" id="profile-rank">Rang: Fer I</div>
+                        <div class="profile-level" id="profile-level">Niveau 1 (0/1000 XP)</div>
+                    </div>
+                    <button class="modal-close" onclick="closeProfileModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="profile-content">
+                    <div class="profile-tabs">
+                        <button class="profile-tab active" onclick="switchProfileTab('stats')">
+                            <i class="fas fa-chart-bar"></i> Statistiques
+                        </button>
+                        <button class="profile-tab" onclick="switchProfileTab('achievements')">
+                            <i class="fas fa-trophy"></i> Succès
+                        </button>
+                        <button class="profile-tab" onclick="switchProfileTab('matches')" id="profile-matches-tab">
+                            <i class="fas fa-history"></i> Historique
+                        </button>
+                        <button class="profile-tab" onclick="switchProfileTab('settings')" id="profile-settings-tab" style="display: none;">
+                            <i class="fas fa-cog"></i> Paramètres
+                        </button>
+                    </div>
+
+                    <!-- Stats Tab -->
+                    <div id="profile-stats-content" class="profile-tab-content">
+                        <div class="stats-overview">
+                            <div class="stat-card highlight">
+                                <div class="stat-icon"><i class="fas fa-crosshairs"></i></div>
+                                <div class="stat-info">
+                                    <div class="stat-value" id="stat-kills">0</div>
+                                    <div class="stat-label">Éliminations</div>
+                                </div>
+                            </div>
+                            <div class="stat-card highlight">
+                                <div class="stat-icon"><i class="fas fa-skull"></i></div>
+                                <div class="stat-info">
+                                    <div class="stat-value" id="stat-deaths">0</div>
+                                    <div class="stat-label">Morts</div>
+                                </div>
+                            </div>
+                            <div class="stat-card highlight">
+                                <div class="stat-icon"><i class="fas fa-trophy"></i></div>
+                                <div class="stat-info">
+                                    <div class="stat-value" id="stat-wins">0</div>
+                                    <div class="stat-label">Victoires</div>
+                                </div>
+                            </div>
+                            <div class="stat-card highlight">
+                                <div class="stat-icon"><i class="fas fa-target"></i></div>
+                                <div class="stat-info">
+                                    <div class="stat-value" id="stat-accuracy">0%</div>
+                                    <div class="stat-label">Précision</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stats-detailed">
+                            <h3>Statistiques détaillées</h3>
+                            <div class="stats-grid">
+                                <div class="stat-row">
+                                    <span class="stat-name">Ratio K/D</span>
+                                    <span class="stat-value" id="stat-kd-ratio">0.00</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-name">Ratio Victoires</span>
+                                    <span class="stat-value" id="stat-win-ratio">0%</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-name">Parties jouées</span>
+                                    <span class="stat-value" id="stat-games-played">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-name">Temps de jeu</span>
+                                    <span class="stat-value" id="stat-playtime">0h 0m</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-name">Tirs effectués</span>
+                                    <span class="stat-value" id="stat-shots-fired">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-name">Tirs réussis</span>
+                                    <span class="stat-value" id="stat-shots-hit">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-name">Headshots</span>
+                                    <span class="stat-value" id="stat-headshots">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-name">Défaites</span>
+                                    <span class="stat-value" id="stat-losses">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Achievements Tab -->
+                    <div id="profile-achievements-content" class="profile-tab-content hidden">
+                        <div class="achievements-header">
+                            <h3>Succès débloqués</h3>
+                            <div class="achievements-progress">
+                                <span id="achievements-count">0/0</span>
+                            </div>
+                        </div>
+                        <div class="achievements-grid" id="achievements-grid">
+                            <!-- Achievements will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Match History Tab -->
+                    <div id="profile-matches-content" class="profile-tab-content hidden">
+                        <div class="match-history">
+                            <h3>Historique des parties</h3>
+                            <div class="matches-list" id="matches-list">
+                                <!-- Match history will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profile Settings Tab -->
+                    <div id="profile-settings-content" class="profile-tab-content hidden">
+                        <div class="profile-settings">
+                            <h3>Modifier le profil</h3>
+                            
+                            <div class="setting-group">
+                                <label>Nom d'utilisateur</label>
+                                <div class="username-edit">
+                                    <input type="text" id="edit-username" placeholder="Nouveau nom d'utilisateur" maxlength="20">
+                                    <button onclick="updateUsername()" class="update-btn">
+                                        <i class="fas fa-save"></i> Sauvegarder
+                                    </button>
+                                </div>
+                                <small>Le nom doit contenir entre 3 et 20 caractères</small>
+                            </div>
+
+                            <div class="setting-group">
+                                <label>Avatar</label>
+                                <div class="avatar-selection">
+                                    <div class="avatar-option active" data-avatar="user" onclick="selectAvatar('user')">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="avatar-option" data-avatar="user-ninja" onclick="selectAvatar('user-ninja')">
+                                        <i class="fas fa-user-ninja"></i>
+                                    </div>
+                                    <div class="avatar-option" data-avatar="user-tie" onclick="selectAvatar('user-tie')">
+                                        <i class="fas fa-user-tie"></i>
+                                    </div>
+                                    <div class="avatar-option" data-avatar="user-astronaut" onclick="selectAvatar('user-astronaut')">
+                                        <i class="fas fa-user-astronaut"></i>
+                                    </div>
+                                    <div class="avatar-option" data-avatar="user-secret" onclick="selectAvatar('user-secret')">
+                                        <i class="fas fa-user-secret"></i>
+                                    </div>
+                                    <div class="avatar-option" data-avatar="robot" onclick="selectAvatar('robot')">
+                                        <i class="fas fa-robot"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="setting-group">
+                                <label>Confidentialité</label>
+                                <div class="privacy-settings">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="public-stats" checked>
+                                        <label for="public-stats">Statistiques publiques</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="show-online" checked>
+                                        <label for="show-online">Afficher le statut en ligne</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="allow-friend-requests" checked>
+                                        <label for="allow-friend-requests">Autoriser les demandes d'amis</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="setting-group">
+                                <label>Actions</label>
+                                <div class="profile-actions">
+                                    <button onclick="resetStats()" class="danger-btn">
+                                        <i class="fas fa-refresh"></i> Réinitialiser les statistiques
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Game Screen -->
         <div id="game-screen" class="game-screen hidden">
             <div class="game-hud">
@@ -252,6 +476,25 @@
                 <div class="minimap">
                     <canvas id="minimap-canvas" width="150" height="150"></canvas>
                 </div>
+
+                <!-- Scoreboard (Tab to show) -->
+                <div class="scoreboard hidden" id="scoreboard">
+                    <div class="scoreboard-content">
+                        <div class="scoreboard-header">
+                            <h3>Tableau des scores</h3>
+                        </div>
+                        <div class="teams-container">
+                            <div class="team-section">
+                                <h4>Attaquants</h4>
+                                <div class="players-list" id="attackers-list"></div>
+                            </div>
+                            <div class="team-section">
+                                <h4>Défenseurs</h4>
+                                <div class="players-list" id="defenders-list"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <canvas id="game-canvas" width="1200" height="800"></canvas>
@@ -274,6 +517,7 @@
     <!-- Game Scripts -->
     <script src="firebase-config.js"></script>
     <script src="auth.js"></script>
+    <script src="profile.js"></script>
     <script src="menu.js"></script>
     <script src="gameplay.js"></script>
     <script src="game.js"></script>

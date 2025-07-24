@@ -1,4 +1,5 @@
-// Configuration Firebase
+// Configuration Firebase avec système de profils
+
 const firebaseConfig = {
     apiKey: "AIzaSyDVR6PulRxYb4BYBwglmy-uw1sc-JMIbzo",
     authDomain: "csweb-428eb.firebaseapp.com",
@@ -58,16 +59,28 @@ let gameState = {
     }
 };
 
-// Gestion des événements de connection
-auth.onAuthStateChanged((user) => {
+// Gestion des événements de connection avec création automatique de profil
+auth.onAuthStateChanged(async (user) => {
     if (user) {
         currentUser = user;
         console.log('Utilisateur connecté:', user.email);
-        loadUserData();
+        
+        // Charger ou créer le profil utilisateur
+        await loadOrCreateUserProfile();
+        
+        // Initialiser le statut en ligne
+        await setUserOnlineStatus();
+        
+        // Afficher le menu principal
         showMainMenu();
     } else {
         currentUser = null;
         console.log('Utilisateur déconnecté');
+        
+        // Nettoyer les listeners en temps réel
+        cleanupRealtimeListeners();
+        
+        // Afficher l'écran d'authentification
         showAuthScreen();
     }
 });
@@ -77,16 +90,18 @@ function showAuthScreen() {
     document.getElementById('auth-screen').classList.remove('hidden');
     document.getElementById('main-menu').classList.add('hidden');
     document.getElementById('game-screen').classList.add('hidden');
+    document.getElementById('profile-modal').classList.add('hidden');
 }
 
 function showMainMenu() {
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('main-menu').classList.remove('hidden');
     document.getElementById('game-screen').classList.add('hidden');
+    document.getElementById('profile-modal').classList.add('hidden');
     
     if (currentUser) {
-        document.getElementById('current-username').textContent = 
-            currentUser.displayName || currentUser.email.split('@')[0];
+        // Charger les informations utilisateur dans l'interface
+        updateUserInterface();
     }
 }
 
@@ -94,10 +109,11 @@ function showGameScreen() {
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('main-menu').classList.add('hidden');
     document.getElementById('game-screen').classList.remove('hidden');
+    document.getElementById('profile-modal').classList.add('hidden');
 }
 
-// Chargement des données utilisateur
-async function loadUserData() {
+// Chargement ou création du profil utilisateur
+async function loadOrCreateUserProfile() {
     if (!currentUser) return;
     
     try {
@@ -106,31 +122,192 @@ async function loadUserData() {
         const userData = snapshot.val();
         
         if (!userData) {
-            // Créer un nouveau profil utilisateur
-            await userRef.set({
+            // Créer un nouveau profil utilisateur complet
+            const newUserProfile = {
+                // Informations de base
                 email: currentUser.email,
                 displayName: currentUser.displayName || currentUser.email.split('@')[0],
-                rank: 'Fer I',
-                level: 1,
+                avatar: 'user',
+                status: 'online',
+                
+                // Progression et niveau
                 experience: 0,
-                money: 800,
-                friends: {},
+                level: 1,
+                rank: 'Fer I',
+                
+                // Statistiques de jeu
                 stats: {
                     kills: 0,
                     deaths: 0,
                     wins: 0,
                     losses: 0,
-                    gamesPlayed: 0
+                    gamesPlayed: 0,
+                    shotsFired: 0,
+                    shotsHit: 0,
+                    headshots: 0,
+                    playtime: 0, // en minutes
+                    aces: 0,
+                    winStreak: 0,
+                    currentWinStreak: 0,
+                    awpKills: 0,
+                    clutchesWon: 0,
+                    bombsDefused: 0,
+                    bombsPlanted: 0
                 },
-                createdAt: firebase.database.ServerValue.TIMESTAMP
-            });
+                
+                // Paramètres de confidentialité
+                privacy: {
+                    publicStats: true,
+                    showOnline: true,
+                    allowFriendRequests: true
+                },
+                
+                // Économie du jeu
+                money: 800,
+                
+                // Métadonnées
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
+                lastLogin: firebase.database.ServerValue.TIMESTAMP
+            };
+            
+            await userRef.set(newUserProfile);
+            console.log('Nouveau profil utilisateur créé');
+            
         } else {
-            // Charger les données existantes
-            gameState.friends = Object.values(userData.friends || {});
-            updateFriendsList();
+            // Mettre à jour la dernière connexion
+            await userRef.child('lastLogin').set(firebase.database.ServerValue.TIMESTAMP);
+            
+            // Vérifier et ajouter les nouveaux champs si nécessaire
+            await updateUserProfileStructure(userData);
         }
+        
     } catch (error) {
-        console.error('Erreur lors du chargement des données utilisateur:', error);
+        console.error('Erreur lors du chargement/création du profil:', error);
+    }
+}
+
+// Mise à jour de la structure du profil utilisateur (pour la compatibilité)
+async function updateUserProfileStructure(userData) {
+    const userRef = database.ref(`users/${currentUser.uid}`);
+    const updates = {};
+    
+    // Ajouter les champs manquants
+    if (!userData.privacy) {
+        updates['privacy'] = {
+            publicStats: true,
+            showOnline: true,
+            allowFriendRequests: true
+        };
+    }
+    
+    if (!userData.avatar) {
+        updates['avatar'] = 'user';
+    }
+    
+    if (!userData.stats) {
+        updates['stats'] = {
+            kills: 0,
+            deaths: 0,
+            wins: 0,
+            losses: 0,
+            gamesPlayed: 0,
+            shotsFired: 0,
+            shotsHit: 0,
+            headshots: 0,
+            playtime: 0,
+            aces: 0,
+            winStreak: 0,
+            currentWinStreak: 0,
+            awpKills: 0,
+            clutchesWon: 0,
+            bombsDefused: 0,
+            bombsPlanted: 0
+        };
+    } else {
+        // Ajouter les nouvelles statistiques si elles n'existent pas
+        const newStats = ['aces', 'winStreak', 'currentWinStreak', 'awpKills', 'clutchesWon', 'bombsDefused', 'bombsPlanted'];
+        newStats.forEach(stat => {
+            if (userData.stats[stat] === undefined) {
+                updates[`stats/${stat}`] = 0;
+            }
+        });
+    }
+    
+    if (!userData.experience) {
+        updates['experience'] = 0;
+    }
+    
+    if (!userData.level) {
+        updates['level'] = 1;
+    }
+    
+    if (!userData.rank) {
+        updates['rank'] = 'Fer I';
+    }
+    
+    // Appliquer les mises à jour si nécessaire
+    if (Object.keys(updates).length > 0) {
+        await userRef.update(updates);
+        console.log('Structure du profil mise à jour');
+    }
+}
+
+// Mise à jour de l'interface utilisateur
+async function updateUserInterface() {
+    try {
+        const userRef = database.ref(`users/${currentUser.uid}`);
+        const snapshot = await userRef.once('value');
+        const userData = snapshot.val();
+        
+        if (userData) {
+            // Mettre à jour le nom d'utilisateur
+            const usernameElement = document.getElementById('current-username');
+            if (usernameElement) {
+                usernameElement.textContent = userData.displayName || 'Joueur';
+            }
+            
+            // Mettre à jour le rang
+            const rankElement = document.getElementById('current-user-rank');
+            if (rankElement) {
+                rankElement.textContent = `Rang: ${userData.rank || 'Fer I'}`;
+            }
+            
+            // Mettre à jour l'avatar
+            const avatarElement = document.getElementById('user-avatar-icon');
+            if (avatarElement) {
+                avatarElement.className = `fas fa-${userData.avatar || 'user'}`;
+            }
+        }
+        
+    } catch (error) {
+        console.error('Erreur mise à jour interface:', error);
+    }
+}
+
+// Définir le statut en ligne de l'utilisateur
+async function setUserOnlineStatus() {
+    if (!currentUser) return;
+    
+    const statusRef = database.ref(`users/${currentUser.uid}/status`);
+    
+    try {
+        // Définir comme en ligne
+        await statusRef.set('online');
+        
+        // Définir automatiquement hors ligne lors de la déconnexion
+        statusRef.onDisconnect().set('offline');
+        
+        // Gérer les changements de visibilité de la page
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                statusRef.set('away');
+            } else {
+                statusRef.set('online');
+            }
+        });
+        
+    } catch (error) {
+        console.error('Erreur définition statut:', error);
     }
 }
 
@@ -146,24 +323,38 @@ async function saveUserData(data) {
     }
 }
 
-// Système de matchmaking simple
+// Système de matchmaking simple avec données de profil
 async function findMatch(mode, map) {
     try {
         const matchmakingRef = database.ref('matchmaking');
         const newMatchRef = matchmakingRef.push();
         
+        // Récupérer les données du joueur pour le matchmaking
+        const userRef = database.ref(`users/${currentUser.uid}`);
+        const userSnapshot = await userRef.once('value');
+        const userData = userSnapshot.val();
+        
         await newMatchRef.set({
             host: currentUser.uid,
-            hostName: currentUser.displayName || currentUser.email.split('@')[0],
+            hostName: userData.displayName || currentUser.email.split('@')[0],
+            hostLevel: userData.level || 1,
+            hostRank: userData.rank || 'Fer I',
             mode: mode,
             map: map,
             players: {
                 [currentUser.uid]: {
-                    name: currentUser.displayName || currentUser.email.split('@')[0],
-                    ready: true
+                    name: userData.displayName || currentUser.email.split('@')[0],
+                    level: userData.level || 1,
+                    rank: userData.rank || 'Fer I',
+                    avatar: userData.avatar || 'user',
+                    ready: true,
+                    kills: 0,
+                    deaths: 0,
+                    score: 0
                 }
             },
             status: 'waiting',
+            maxPlayers: mode === 'deathmatch' ? 10 : 10,
             createdAt: firebase.database.ServerValue.TIMESTAMP
         });
         
@@ -182,7 +373,51 @@ async function findMatch(mode, map) {
     }
 }
 
-// Gestion des parties en temps réel
+// Rejoindre une partie existante
+async function joinMatch(matchId) {
+    if (!currentUser) return false;
+    
+    try {
+        const matchRef = database.ref(`matchmaking/${matchId}`);
+        const snapshot = await matchRef.once('value');
+        const matchData = snapshot.val();
+        
+        if (!matchData || matchData.status !== 'waiting') {
+            throw new Error('Partie non disponible');
+        }
+        
+        // Vérifier le nombre de joueurs
+        const currentPlayers = Object.keys(matchData.players || {}).length;
+        if (currentPlayers >= matchData.maxPlayers) {
+            throw new Error('Partie complète');
+        }
+        
+        // Récupérer les données du joueur
+        const userRef = database.ref(`users/${currentUser.uid}`);
+        const userSnapshot = await userRef.once('value');
+        const userData = userSnapshot.val();
+        
+        // Ajouter le joueur à la partie
+        await matchRef.child(`players/${currentUser.uid}`).set({
+            name: userData.displayName || currentUser.email.split('@')[0],
+            level: userData.level || 1,
+            rank: userData.rank || 'Fer I',
+            avatar: userData.avatar || 'user',
+            ready: false,
+            kills: 0,
+            deaths: 0,
+            score: 0,
+            joinedAt: firebase.database.ServerValue.TIMESTAMP
+        });
+        
+        return true;
+    } catch (error) {
+        console.error('Erreur rejoindre partie:', error);
+        return false;
+    }
+}
+
+// Gestion des parties en temps réel avec profils
 function setupGameRealtimeListeners(matchId) {
     const gameRef = database.ref(`games/${matchId}`);
     
@@ -201,9 +436,17 @@ function setupGameRealtimeListeners(matchId) {
         const event = snapshot.val();
         handleGameEvent(event);
     });
+    
+    // Écouter les changements de score
+    gameRef.child('score').on('value', (snapshot) => {
+        const scoreData = snapshot.val();
+        if (scoreData) {
+            updateGameScore(scoreData);
+        }
+    });
 }
 
-// Mise à jour de la position du joueur
+// Mise à jour de la position du joueur avec données de profil
 async function updatePlayerPosition(matchId, x, y, angle) {
     if (!currentUser) return;
     
@@ -220,16 +463,22 @@ async function updatePlayerPosition(matchId, x, y, angle) {
     }
 }
 
-// Envoi d'événements de jeu
+// Envoi d'événements de jeu avec profil joueur
 async function sendGameEvent(matchId, eventType, data) {
     if (!currentUser) return;
     
     try {
+        // Récupérer les informations du joueur
+        const userRef = database.ref(`users/${currentUser.uid}`);
+        const userSnapshot = await userRef.once('value');
+        const userData = userSnapshot.val();
+        
         const eventsRef = database.ref(`games/${matchId}/events`);
         await eventsRef.push({
             type: eventType,
             playerId: currentUser.uid,
-            playerName: currentUser.displayName || currentUser.email.split('@')[0],
+            playerName: userData.displayName || currentUser.email.split('@')[0],
+            playerAvatar: userData.avatar || 'user',
             data: data,
             timestamp: firebase.database.ServerValue.TIMESTAMP
         });
@@ -238,9 +487,129 @@ async function sendGameEvent(matchId, eventType, data) {
     }
 }
 
-// Nettoyage des connexions
-function cleanupRealtimeListeners() {
-    database.ref().off();
+// Mise à jour des statistiques en fin de partie
+async function updateGameStatistics(matchResult) {
+    if (!currentUser) return;
+    
+    try {
+        const statsRef = database.ref(`users/${currentUser.uid}/stats`);
+        const snapshot = await statsRef.once('value');
+        const currentStats = snapshot.val() || {};
+        
+        // Calculer les nouvelles statistiques
+        const updates = {
+            kills: (currentStats.kills || 0) + (matchResult.kills || 0),
+            deaths: (currentStats.deaths || 0) + (matchResult.deaths || 0),
+            shotsFired: (currentStats.shotsFired || 0) + (matchResult.shotsFired || 0),
+            shotsHit: (currentStats.shotsHit || 0) + (matchResult.shotsHit || 0),
+            headshots: (currentStats.headshots || 0) + (matchResult.headshots || 0),
+            gamesPlayed: (currentStats.gamesPlayed || 0) + 1,
+            playtime: (currentStats.playtime || 0) + (matchResult.playtime || 0)
+        };
+        
+        // Gérer les victoires/défaites et les séries
+        if (matchResult.won) {
+            updates.wins = (currentStats.wins || 0) + 1;
+            updates.currentWinStreak = (currentStats.currentWinStreak || 0) + 1;
+            updates.winStreak = Math.max(currentStats.winStreak || 0, updates.currentWinStreak);
+        } else {
+            updates.losses = (currentStats.losses || 0) + 1;
+            updates.currentWinStreak = 0;
+        }
+        
+        // Autres statistiques spéciales
+        if (matchResult.aces) {
+            updates.aces = (currentStats.aces || 0) + matchResult.aces;
+        }
+        
+        if (matchResult.awpKills) {
+            updates.awpKills = (currentStats.awpKills || 0) + matchResult.awpKills;
+        }
+        
+        if (matchResult.clutchesWon) {
+            updates.clutchesWon = (currentStats.clutchesWon || 0) + matchResult.clutchesWon;
+        }
+        
+        if (matchResult.bombsDefused) {
+            updates.bombsDefused = (currentStats.bombsDefused || 0) + matchResult.bombsDefused;
+        }
+        
+        if (matchResult.bombsPlanted) {
+            updates.bombsPlanted = (currentStats.bombsPlanted || 0) + matchResult.bombsPlanted;
+        }
+        
+        // Calculer l'expérience gagnée
+        const baseXP = matchResult.won ? 100 : 50;
+        const killXP = (matchResult.kills || 0) * 10;
+        const bonusXP = (matchResult.aces || 0) * 50 + (matchResult.clutchesWon || 0) * 25;
+        const totalXP = baseXP + killXP + bonusXP;
+        
+        updates.experience = (currentStats.experience || 0) + totalXP;
+        
+        // Sauvegarder les statistiques
+        await statsRef.update(updates);
+        
+        // Mettre à jour le niveau et le rang
+        await updatePlayerLevelAndRank(updates.experience);
+        
+        // Ajouter la partie à l'historique
+        await addMatchToHistory({
+            mode: matchResult.mode,
+            map: matchResult.map,
+            result: matchResult.won ? 'Victoire' : 'Défaite',
+            score: matchResult.score,
+            kills: matchResult.kills || 0,
+            deaths: matchResult.deaths || 0,
+            assists: matchResult.assists || 0,
+            playtime: matchResult.playtime || 0
+        });
+        
+        // Vérifier les nouveaux succès
+        await checkAndUnlockAchievements(updates);
+        
+        console.log('Statistiques mises à jour:', updates);
+        
+    } catch (error) {
+        console.error('Erreur mise à jour statistiques:', error);
+    }
 }
 
-console.log('Firebase configuré et prêt!');
+// Mise à jour du niveau et du rang
+async function updatePlayerLevelAndRank(experience) {
+    if (!currentUser) return;
+    
+    try {
+        // Calculer le nouveau niveau et rang (utilise les fonctions du profil.js)
+        const newLevel = calculateLevel(experience);
+        const newRank = calculateRank(experience);
+        
+        // Mettre à jour dans Firebase
+        const userRef = database.ref(`users/${currentUser.uid}`);
+        await userRef.update({
+            level: newLevel,
+            rank: newRank,
+            experience: experience
+        });
+        
+        // Mettre à jour l'interface
+        const rankElement = document.getElementById('current-user-rank');
+        if (rankElement) {
+            rankElement.textContent = `Rang: ${newRank}`;
+        }
+        
+    } catch (error) {
+        console.error('Erreur mise à jour niveau/rang:', error);
+    }
+}
+
+// Nettoyage des connexions en temps réel
+function cleanupRealtimeListeners() {
+    // Arrêter tous les listeners Firebase
+    database.ref().off();
+    
+    // Nettoyer les références spécifiques si nécessaire
+    if (currentUser) {
+        database.ref(`users/${currentUser.uid}/friends`).off();
+        database.ref(`users/${currentUser.uid}/invitations`).off();
+    }
+}
