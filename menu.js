@@ -27,6 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
         saveProfileBtn.addEventListener('click', saveProfile);
     }
 
+
+    const avatar = document.querySelector('.user-avatar');
+    if (avatar) {
+        avatar.addEventListener('click', () => openProfilePage());
+
     const pageSaveBtn = document.getElementById('profile-page-save-btn');
     if (pageSaveBtn) {
         pageSaveBtn.addEventListener('click', saveProfilePage);
