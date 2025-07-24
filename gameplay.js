@@ -8,6 +8,7 @@ let minimapContext;
 let gameLoop;
 let keys = {};
 let mouse = { x: 0, y: 0, pressed: false };
+let camera = { x: 0, y: 0 }; // Décalage de la caméra
 
 // État du joueur
 let player = {
@@ -41,58 +42,8 @@ let game = {
     matchId: null
 };
 
-// Cartes du jeu
-const maps = {
-    dust2: {
-        name: 'Dust2',
-        spawnPoints: {
-            attackers: [{ x: 100, y: 700 }, { x: 150, y: 700 }, { x: 200, y: 700 }],
-            defenders: [{ x: 1000, y: 100 }, { x: 1050, y: 100 }, { x: 1100, y: 100 }]
-        },
-        walls: [
-            // Murs extérieurs
-            { x: 0, y: 0, width: 1200, height: 20 },
-            { x: 0, y: 780, width: 1200, height: 20 },
-            { x: 0, y: 0, width: 20, height: 800 },
-            { x: 1180, y: 0, width: 20, height: 800 },
-            
-            // Structures internes
-            { x: 200, y: 200, width: 300, height: 20 },
-            { x: 700, y: 200, width: 300, height: 20 },
-            { x: 400, y: 300, width: 20, height: 200 },
-            { x: 600, y: 300, width: 20, height: 200 },
-            { x: 300, y: 550, width: 200, height: 20 },
-            { x: 700, y: 550, width: 200, height: 20 }
-        ],
-        bombSites: [
-            { name: 'A', x: 900, y: 200, width: 150, height: 100 },
-            { name: 'B', x: 200, y: 600, width: 150, height: 100 }
-        ]
-    },
-    mirage: {
-        name: 'Mirage',
-        spawnPoints: {
-            attackers: [{ x: 100, y: 400 }, { x: 150, y: 400 }, { x: 200, y: 400 }],
-            defenders: [{ x: 1000, y: 400 }, { x: 1050, y: 400 }, { x: 1100, y: 400 }]
-        },
-        walls: [
-            { x: 0, y: 0, width: 1200, height: 20 },
-            { x: 0, y: 780, width: 1200, height: 20 },
-            { x: 0, y: 0, width: 20, height: 800 },
-            { x: 1180, y: 0, width: 20, height: 800 },
-            
-            { x: 250, y: 150, width: 20, height: 200 },
-            { x: 930, y: 150, width: 20, height: 200 },
-            { x: 250, y: 450, width: 20, height: 200 },
-            { x: 930, y: 450, width: 20, height: 200 },
-            { x: 500, y: 350, width: 200, height: 100 }
-        ],
-        bombSites: [
-            { name: 'A', x: 850, y: 100, width: 200, height: 150 },
-            { name: 'B', x: 150, y: 550, width: 200, height: 150 }
-        ]
-    }
-};
+// Cartes du jeu chargées depuis des fichiers séparés
+const maps = window.MAPS || {};
 
 // Autres joueurs
 let otherPlayers = {};
@@ -181,8 +132,9 @@ function handleKeyUp(e) {
 // Gestion de la souris
 function handleMouseMove(e) {
     const rect = gameCanvas.getBoundingClientRect();
-    mouse.x = e.clientX - rect.left;
-    mouse.y = e.clientY - rect.top;
+    // Position de la souris dans le monde
+    mouse.x = e.clientX - rect.left + camera.x;
+    mouse.y = e.clientY - rect.top + camera.y;
     
     // Calculer l'angle de visée
     const dx = mouse.x - player.x;
@@ -228,6 +180,7 @@ function startGameLoop() {
 // Mise à jour du jeu
 function update() {
     updatePlayer();
+    updateCamera();
     updateBullets();
     updateParticles();
     updateOtherPlayers();
@@ -267,9 +220,21 @@ function updatePlayer() {
         player.y = newY;
     }
     
-    // Maintenir le joueur dans les limites
-    player.x = Math.max(25, Math.min(gameCanvas.width - 25, player.x));
-    player.y = Math.max(25, Math.min(gameCanvas.height - 25, player.y));
+    // Maintenir le joueur dans les limites de la carte
+    const currentMapData = maps[game.currentMap];
+    player.x = Math.max(25, Math.min(currentMapData.width - 25, player.x));
+    player.y = Math.max(25, Math.min(currentMapData.height - 25, player.y));
+}
+
+// Mise à jour de la caméra pour suivre le joueur
+function updateCamera() {
+    const mapData = maps[game.currentMap];
+    camera.x = player.x - gameCanvas.width / 2;
+    camera.y = player.y - gameCanvas.height / 2;
+
+    // Limiter le déplacement de la caméra aux bords de la carte
+    camera.x = Math.max(0, Math.min(mapData.width - gameCanvas.width, camera.x));
+    camera.y = Math.max(0, Math.min(mapData.height - gameCanvas.height, camera.y));
 }
 
 // Vérification des collisions avec les murs
@@ -472,22 +437,28 @@ function render() {
     // Effacer le canvas
     gameContext.fillStyle = '#1a1a1a';
     gameContext.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
-    
+
+    // Appliquer la translation de caméra
+    gameContext.save();
+    gameContext.translate(-camera.x, -camera.y);
+
     // Dessiner la carte
     renderMap();
-    
+
     // Dessiner les autres joueurs
     renderOtherPlayers();
-    
+
     // Dessiner le joueur
     renderPlayer();
-    
+
     // Dessiner les projectiles
     renderBullets();
-    
+
     // Dessiner les particules
     renderParticles();
-    
+
+    gameContext.restore();
+
     // Dessiner la minimap
     renderMinimap();
 }
@@ -610,14 +581,14 @@ function renderParticles() {
 
 // Rendu de la minimap
 function renderMinimap() {
-    const scale = 0.15;
+    const currentMapData = maps[game.currentMap];
+    const scale = minimapCanvas.width / currentMapData.width;
     
     // Effacer la minimap
     minimapContext.fillStyle = '#000000';
     minimapContext.fillRect(0, 0, 150, 150);
     
     // Dessiner la carte
-    const currentMapData = maps[game.currentMap];
     minimapContext.fillStyle = '#444444';
     currentMapData.walls.forEach(wall => {
         minimapContext.fillRect(

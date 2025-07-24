@@ -11,6 +11,16 @@ document.addEventListener('DOMContentLoaded', () => {
     loadWeapons();
     loadFriends();
     setupMenuEventListeners();
+
+    // Ajout rapide d'amis avec la touche Entrée
+    const friendInput = document.getElementById('friend-username');
+    if (friendInput) {
+        friendInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                addFriend();
+            }
+        });
+    }
 });
 
 // Configuration des écouteurs d'événements
