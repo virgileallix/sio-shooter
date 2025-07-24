@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Valorant 2D - Tactical Shooter</title>
+    <title>SIO SHOOTER 2D - Tactical Shooter</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -12,7 +12,7 @@
         <!-- Auth Screen -->
         <div id="auth-screen" class="auth-screen">
             <div class="auth-card">
-                <div class="auth-title">VALORANT 2D</div>
+                <div class="auth-title">SIO SHOOTER 2D</div>
                 <div class="auth-tabs">
                     <button class="auth-tab active" onclick="switchAuthTab('login')">Connexion</button>
                     <button class="auth-tab" onclick="switchAuthTab('register')">Inscription</button>
@@ -56,7 +56,7 @@
         <!-- Main Menu -->
         <div id="main-menu" class="main-menu hidden">
             <div class="menu-header">
-                <div class="logo">VALORANT 2D</div>
+                <div class="logo">SIO SHOOTER 2D</div>
                 <div class="user-info">
                     <div class="user-avatar">
                         <i class="fas fa-user"></i>
@@ -194,15 +194,32 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="setting-group">
-                                <h3>Contrôles</h3>
-                                <div class="setting-item">
-                                    <label>Sensibilité Souris</label>
-                                    <input type="range" min="1" max="10" value="5">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                              <div class="setting-group">
+                                  <h3>Contrôles</h3>
+                                  <div class="setting-item">
+                                      <label>Sensibilité Souris</label>
+                                      <input type="range" min="1" max="10" value="5">
+                                  </div>
+                              </div>
+
+                              <div class="setting-group" id="profile-settings">
+                                  <h3>Profil</h3>
+                                  <div class="setting-item">
+                                      <label>Pseudo</label>
+                                      <input type="text" id="profile-username">
+                                  </div>
+                                  <div class="setting-item">
+                                      <label>Email</label>
+                                      <input type="email" id="profile-email">
+                                  </div>
+                                  <div class="setting-item">
+                                      <label>Mot de passe</label>
+                                      <input type="password" id="profile-password">
+                                  </div>
+                                  <button id="save-profile-btn" class="save-profile-btn">Enregistrer</button>
+                              </div>
+                          </div>
+                      </div>
                 </div>
             </div>
         </div>

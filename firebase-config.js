@@ -85,8 +85,12 @@ function showMainMenu() {
     document.getElementById('game-screen').classList.add('hidden');
     
     if (currentUser) {
-        document.getElementById('current-username').textContent = 
+        document.getElementById('current-username').textContent =
             currentUser.displayName || currentUser.email.split('@')[0];
+
+        if (typeof initializeProfileSettings === 'function') {
+            initializeProfileSettings();
+        }
     }
 }
 
