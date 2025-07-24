@@ -17,7 +17,7 @@ const AppState = {
 document.addEventListener('DOMContentLoaded', initializeApp);
 
 function initializeApp() {
-    console.log('🚀 Initialisation de Valorant 2D...');
+    console.log('🚀 Initialisation de SIO SHOOTER 2D...');
     
     // Vérifier si Firebase est chargé
     if (typeof firebase === 'undefined') {
@@ -701,6 +701,6 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
     console.log('🛠️ Mode debug activé. Utilisez window.DEBUG pour accéder aux outils.');
 }
 
-console.log('🎮 Valorant 2D - Prêt à jouer !');
+console.log('🎮 SIO SHOOTER 2D - Prêt à jouer !');
 console.log('📱 Version: 1.0.0');
 console.log('🔧 Développé avec Firebase, HTML5 Canvas et beaucoup d\'amour ❤️');

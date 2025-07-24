@@ -21,6 +21,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    const saveProfileBtn = document.getElementById('save-profile-btn');
+    if (saveProfileBtn) {
+        saveProfileBtn.addEventListener('click', saveProfile);
+    }
 });
 
 // Configuration des écouteurs d'événements
@@ -362,6 +367,65 @@ function updateOnlineStatus() {
     statusRef.onDisconnect().set('offline');
 }
 
+function initializeProfileSettings() {
+    if (!currentUser) return;
+
+    const usernameInput = document.getElementById('profile-username');
+    const emailInput = document.getElementById('profile-email');
+    const passwordInput = document.getElementById('profile-password');
+    const saveBtn = document.getElementById('save-profile-btn');
+
+    if (!usernameInput || !emailInput || !passwordInput || !saveBtn) return;
+
+    usernameInput.value = currentUser.displayName || '';
+    emailInput.value = currentUser.email || '';
+
+    const isGoogle = currentUser.providerData.some(p => p.providerId === 'google.com');
+
+    [usernameInput, emailInput, passwordInput, saveBtn].forEach(el => {
+        el.disabled = isGoogle;
+    });
+}
+
+async function saveProfile() {
+    if (!currentUser) return;
+
+    const username = document.getElementById('profile-username').value.trim();
+    const email = document.getElementById('profile-email').value.trim();
+    const password = document.getElementById('profile-password').value;
+
+    const isGoogle = currentUser.providerData.some(p => p.providerId === 'google.com');
+    if (isGoogle) {
+        showMessage('Modification désactivée pour les comptes Google', 'error');
+        return;
+    }
+
+    try {
+        if (username && username !== currentUser.displayName) {
+            await currentUser.updateProfile({ displayName: username });
+            await saveUserData({ displayName: username });
+        }
+
+        if (email && email !== currentUser.email) {
+            await currentUser.updateEmail(email);
+            await saveUserData({ email: email });
+        }
+
+        if (password) {
+            await currentUser.updatePassword(password);
+            document.getElementById('profile-password').value = '';
+        }
+
+        document.getElementById('current-username').textContent =
+            currentUser.displayName || currentUser.email.split('@')[0];
+
+        showMessage('Profil mis à jour', 'success');
+    } catch (error) {
+        console.error('Erreur mise à jour profil:', error);
+        showMessage('Erreur lors de la mise à jour du profil', 'error');
+    }
+}
+
 // CSS supplémentaire pour les nouvelles fonctionnalités
 const additionalStyles = document.createElement('style');
 additionalStyles.textContent = `
@@ -461,6 +525,7 @@ document.head.appendChild(additionalStyles);
 auth.onAuthStateChanged((user) => {
     if (user) {
         updateOnlineStatus();
+        initializeProfileSettings();
     }
 });
 
