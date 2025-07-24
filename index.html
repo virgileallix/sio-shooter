@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valorant 2D - Tactical Shooter</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Auth Screen -->
+        <div id="auth-screen" class="auth-screen">
+            <div class="auth-card">
+                <div class="auth-title">VALORANT 2D</div>
+                <div class="auth-tabs">
+                    <button class="auth-tab active" onclick="switchAuthTab('login')">Connexion</button>
+                    <button class="auth-tab" onclick="switchAuthTab('register')">Inscription</button>
+                </div>
+                
+                <form id="login-form" class="auth-form">
+                    <div class="form-group">
+                        <input type="email" id="login-email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="login-password" placeholder="Mot de passe" required>
+                    </div>
+                    <button type="submit" class="auth-btn">
+                        <i class="fas fa-sign-in-alt"></i> Se connecter
+                    </button>
+                </form>
+
+                <form id="register-form" class="auth-form hidden">
+                    <div class="form-group">
+                        <input type="text" id="register-username" placeholder="Nom d'utilisateur" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" id="register-email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="register-password" placeholder="Mot de passe" required>
+                    </div>
+                    <button type="submit" class="auth-btn">
+                        <i class="fas fa-user-plus"></i> S'inscrire
+                    </button>
+                </form>
+
+                <div class="social-auth">
+                    <button class="google-btn" onclick="signInWithGoogle()">
+                        <i class="fab fa-google"></i> Continuer avec Google
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Menu -->
+        <div id="main-menu" class="main-menu hidden">
+            <div class="menu-header">
+                <div class="logo">VALORANT 2D</div>
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <div class="username" id="current-username">Joueur</div>
+                        <div class="user-rank">Rang: Fer I</div>
+                    </div>
+                    <button class="logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="menu-content">
+                <div class="sidebar">
+                    <nav class="menu-nav">
+                        <button class="nav-btn active" onclick="showMenuSection('play')">
+                            <i class="fas fa-play"></i> Jouer
+                        </button>
+                        <button class="nav-btn" onclick="showMenuSection('friends')">
+                            <i class="fas fa-users"></i> Amis
+                        </button>
+                        <button class="nav-btn" onclick="showMenuSection('arsenal')">
+                            <i class="fas fa-crosshairs"></i> Arsenal
+                        </button>
+                        <button class="nav-btn" onclick="showMenuSection('settings')">
+                            <i class="fas fa-cog"></i> Paramètres
+                        </button>
+                    </nav>
+                </div>
+
+                <div class="main-content">
+                    <!-- Play Section -->
+                    <div id="play-section" class="menu-section">
+                        <h2>Modes de Jeu</h2>
+                        <div class="game-modes">
+                            <div class="game-mode" onclick="selectGameMode('deathmatch')">
+                                <div class="mode-icon"><i class="fas fa-crosshairs"></i></div>
+                                <div class="mode-info">
+                                    <h3>Deathmatch</h3>
+                                    <p>Combat libre - 10 joueurs</p>
+                                </div>
+                            </div>
+                            <div class="game-mode" onclick="selectGameMode('spike-rush')">
+                                <div class="mode-icon"><i class="fas fa-bomb"></i></div>
+                                <div class="mode-info">
+                                    <h3>Spike Rush</h3>
+                                    <p>5v5 - Rounds rapides</p>
+                                </div>
+                            </div>
+                            <div class="game-mode" onclick="selectGameMode('competitive')">
+                                <div class="mode-icon"><i class="fas fa-trophy"></i></div>
+                                <div class="mode-info">
+                                    <h3>Compétitif</h3>
+                                    <p>5v5 - Classé</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="map-selection">
+                            <h3>Sélection de Carte</h3>
+                            <div class="maps-grid">
+                                <div class="map-card active" onclick="selectMap('dust2')">
+                                    <div class="map-preview dust2"></div>
+                                    <div class="map-name">Dust2</div>
+                                </div>
+                                <div class="map-card" onclick="selectMap('mirage')">
+                                    <div class="map-preview mirage"></div>
+                                    <div class="map-name">Mirage</div>
+                                </div>
+                                <div class="map-card" onclick="selectMap('inferno')">
+                                    <div class="map-preview inferno"></div>
+                                    <div class="map-name">Inferno</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="launch-game-btn" onclick="launchGame()">
+                            <i class="fas fa-rocket"></i> LANCER LA PARTIE
+                        </button>
+                    </div>
+
+                    <!-- Friends Section -->
+                    <div id="friends-section" class="menu-section hidden">
+                        <h2>Liste d'Amis</h2>
+                        <div class="friends-actions">
+                            <div class="add-friend">
+                                <input type="text" id="friend-username" placeholder="Nom d'utilisateur">
+                                <button onclick="addFriend()"><i class="fas fa-user-plus"></i></button>
+                            </div>
+                        </div>
+                        <div class="friends-list" id="friends-list">
+                            <!-- Friends will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Arsenal Section -->
+                    <div id="arsenal-section" class="menu-section hidden">
+                        <h2>Arsenal</h2>
+                        <div class="weapon-categories">
+                            <button class="weapon-cat active" onclick="showWeaponCategory('rifles')">Fusils</button>
+                            <button class="weapon-cat" onclick="showWeaponCategory('pistols')">Pistolets</button>
+                            <button class="weapon-cat" onclick="showWeaponCategory('smgs')">SMG</button>
+                            <button class="weapon-cat" onclick="showWeaponCategory('snipers')">Snipers</button>
+                        </div>
+                        <div class="weapons-grid" id="weapons-grid">
+                            <!-- Weapons will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Settings Section -->
+                    <div id="settings-section" class="menu-section hidden">
+                        <h2>Paramètres</h2>
+                        <div class="settings-categories">
+                            <div class="setting-group">
+                                <h3>Audio</h3>
+                                <div class="setting-item">
+                                    <label>Volume Principal</label>
+                                    <input type="range" min="0" max="100" value="50">
+                                </div>
+                                <div class="setting-item">
+                                    <label>Effets Sonores</label>
+                                    <input type="range" min="0" max="100" value="70">
+                                </div>
+                            </div>
+                            <div class="setting-group">
+                                <h3>Graphiques</h3>
+                                <div class="setting-item">
+                                    <label>Qualité</label>
+                                    <select>
+                                        <option>Basse</option>
+                                        <option selected>Moyenne</option>
+                                        <option>Haute</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="setting-group">
+                                <h3>Contrôles</h3>
+                                <div class="setting-item">
+                                    <label>Sensibilité Souris</label>
+                                    <input type="range" min="1" max="10" value="5">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="game-screen hidden">
+            <div class="game-hud">
+                <div class="hud-top">
+                    <div class="team-score">
+                        <div class="team-score-item">
+                            <span class="team-name">Attaquants</span>
+                            <span class="score" id="attackers-score">0</span>
+                        </div>
+                        <div class="round-timer" id="round-timer">1:40</div>
+                        <div class="team-score-item">
+                            <span class="score" id="defenders-score">0</span>
+                            <span class="team-name">Défenseurs</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hud-bottom">
+                    <div class="player-stats">
+                        <div class="health-armor">
+                            <div class="health">
+                                <i class="fas fa-heart"></i>
+                                <span id="player-health">100</span>
+                            </div>
+                            <div class="armor">
+                                <i class="fas fa-shield-alt"></i>
+                                <span id="player-armor">100</span>
+                            </div>
+                        </div>
+                        <div class="weapon-info">
+                            <div class="weapon-name" id="current-weapon">AK-47</div>
+                            <div class="ammo">
+                                <span id="current-ammo">30</span> / <span id="total-ammo">90</span>
+                            </div>
+                        </div>
+                        <div class="money">
+                            <i class="fas fa-coins"></i>
+                            <span id="player-money">800</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="minimap">
+                    <canvas id="minimap-canvas" width="150" height="150"></canvas>
+                </div>
+            </div>
+
+            <canvas id="game-canvas" width="1200" height="800"></canvas>
+            
+            <div class="game-menu-overlay hidden" id="game-menu-overlay">
+                <div class="game-menu">
+                    <button onclick="resumeGame()">Reprendre</button>
+                    <button onclick="showSettings()">Paramètres</button>
+                    <button onclick="leaveGame()">Quitter la Partie</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+
+    <!-- Game Scripts -->
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="menu.js"></script>
+    <script src="gameplay.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
