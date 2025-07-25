@@ -1,4 +1,4 @@
-// Système de navigation des menus
+// Système de navigation des menus avec intégration profils
 
 // Variables globales pour les menus
 let currentMenuSection = 'play';
@@ -9,7 +9,6 @@ let selectedWeaponCategory = 'rifles';
 // Initialisation des menus
 document.addEventListener('DOMContentLoaded', () => {
     loadWeapons();
-    loadFriends();
     setupMenuEventListeners();
 });
 
@@ -51,6 +50,10 @@ function showMenuSection(section) {
             break;
         case 'arsenal':
             loadWeapons();
+            break;
+        case 'leaderboard':
+            // Charger le classement par défaut (kills)
+            switchLeaderboardTab('kills');
             break;
     }
 }
@@ -126,7 +129,7 @@ async function launchGame() {
     }
 }
 
-// Gestion du système d'amis
+// Gestion du système d'amis amélioré
 async function addFriend() {
     const usernameInput = document.getElementById('friend-username');
     const username = usernameInput.value.trim();
@@ -159,6 +162,13 @@ async function addFriend() {
             return;
         }
         
+        // Vérifier les paramètres de confidentialité de l'ami
+        const privacy = userData.privacy || {};
+        if (privacy.allowFriendRequests === false) {
+            showMessage('Cet utilisateur n\'accepte pas les demandes d\'amis', 'error');
+            return;
+        }
+        
         // Vérifier si l'ami n'est pas déjà ajouté
         const currentUserRef = database.ref(`users/${currentUser.uid}/friends/${friendId}`);
         const existingFriend = await currentUserRef.once('value');
@@ -169,17 +179,26 @@ async function addFriend() {
         }
         
         // Ajouter l'ami
-        await currentUserRef.set({
+        const friendPayload = {
             displayName: userData.displayName,
-            email: userData.email,
-            status: 'offline',
+            avatar: userData.avatar || 'user',
+            status: userData.status || 'offline',
             addedAt: firebase.database.ServerValue.TIMESTAMP
-        });
+        };
+
+        if (userData.email) {
+            friendPayload.email = userData.email;
+        }
+
+        await currentUserRef.set(friendPayload);
+
+
         
         // Ajouter réciproquement
         await database.ref(`users/${friendId}/friends/${currentUser.uid}`).set({
             displayName: currentUser.displayName || currentUser.email.split('@')[0],
             email: currentUser.email,
+            avatar: 'user', // Récupérer l'avatar de l'utilisateur actuel
             status: 'online',
             addedAt: firebase.database.ServerValue.TIMESTAMP
         });
@@ -194,7 +213,7 @@ async function addFriend() {
     }
 }
 
-// Chargement de la liste d'amis
+// Chargement de la liste d'amis amélioré
 async function loadFriends() {
     if (!currentUser) return;
     
@@ -218,10 +237,19 @@ async function loadFriends() {
         }
         
         const friends = snapshot.val();
-        Object.keys(friends).forEach(friendId => {
+        
+        // Récupérer le statut en temps réel des amis
+        for (const friendId of Object.keys(friends)) {
             const friend = friends[friendId];
+            
+            // Écouter les changements de statut
+            database.ref(`users/${friendId}/status`).on('value', (statusSnapshot) => {
+                const status = statusSnapshot.val() || 'offline';
+                updateFriendStatus(friendId, status);
+            });
+            
             createFriendCard(friendId, friend);
-        });
+        }
         
     } catch (error) {
         console.error('Erreur lors du chargement des amis:', error);
@@ -229,27 +257,41 @@ async function loadFriends() {
     }
 }
 
-// Création d'une carte d'ami
+// Création d'une carte d'ami améliorée
 function createFriendCard(friendId, friendData) {
     const friendsList = document.getElementById('friends-list');
     
     const friendCard = document.createElement('div');
     friendCard.className = 'friend-card';
+    friendCard.id = `friend-${friendId}`;
+    
+    // Faire que la carte soit cliquable pour ouvrir le profil
+    friendCard.style.cursor = 'pointer';
+    friendCard.addEventListener('click', (e) => {
+        // Éviter d'ouvrir le profil si on clique sur les boutons d'action
+        if (!e.target.closest('.friend-actions')) {
+            openProfileModal(friendId);
+        }
+    });
+    
     friendCard.innerHTML = `
         <div class="friend-avatar">
-            <i class="fas fa-user"></i>
+            <i class="fas fa-${friendData.avatar || 'user'}"></i>
         </div>
         <div class="friend-info">
             <div class="friend-name">${friendData.displayName}</div>
-            <div class="friend-status ${friendData.status || 'offline'}">
-                <i class="fas fa-circle"></i> ${friendData.status === 'online' ? 'En ligne' : 'Hors ligne'}
+            <div class="friend-status ${friendData.status || 'offline'}" id="status-${friendId}">
+                <i class="fas fa-circle"></i> ${getStatusText(friendData.status || 'offline')}
             </div>
         </div>
         <div class="friend-actions">
-            <button onclick="inviteFriend('${friendId}')" class="invite-btn" ${friendData.status !== 'online' ? 'disabled' : ''}>
+            <button onclick="openProfileModal('${friendId}')" class="profile-btn" title="Voir le profil">
+                <i class="fas fa-user"></i>
+            </button>
+            <button onclick="inviteFriend('${friendId}')" class="invite-btn" ${(friendData.status || 'offline') !== 'online' ? 'disabled' : ''} title="Inviter en partie">
                 <i class="fas fa-gamepad"></i>
             </button>
-            <button onclick="removeFriend('${friendId}')" class="remove-btn">
+            <button onclick="removeFriend('${friendId}')" class="remove-btn" title="Supprimer ami">
                 <i class="fas fa-trash"></i>
             </button>
         </div>
@@ -258,10 +300,63 @@ function createFriendCard(friendId, friendData) {
     friendsList.appendChild(friendCard);
 }
 
+// Mise à jour du statut d'un ami
+function updateFriendStatus(friendId, status) {
+    const statusElement = document.getElementById(`status-${friendId}`);
+    if (statusElement) {
+        statusElement.className = `friend-status ${status}`;
+        statusElement.innerHTML = `<i class="fas fa-circle"></i> ${getStatusText(status)}`;
+    }
+    
+    // Activer/désactiver le bouton d'invitation
+    const inviteButton = document.querySelector(`#friend-${friendId} .invite-btn`);
+    if (inviteButton) {
+        inviteButton.disabled = status !== 'online';
+    }
+}
+
+// Obtenir le texte du statut
+function getStatusText(status) {
+    switch(status) {
+        case 'online': return 'En ligne';
+        case 'playing': return 'En partie';
+        case 'away': return 'Absent';
+        default: return 'Hors ligne';
+    }
+}
+
 // Invitation d'un ami
 async function inviteFriend(friendId) {
-    // TODO: Implémenter le système d'invitation
-    showMessage('Invitation envoyée !', 'success');
+    if (!currentUser) return;
+    
+    try {
+        // Vérifier si l'utilisateur est en ligne
+        const friendRef = database.ref(`users/${friendId}/status`);
+        const statusSnapshot = await friendRef.once('value');
+        const status = statusSnapshot.val();
+        
+        if (status !== 'online') {
+            showMessage('Cet ami n\'est pas en ligne', 'error');
+            return;
+        }
+        
+        // Créer une invitation de partie
+        const invitationRef = database.ref(`users/${friendId}/invitations`).push();
+        await invitationRef.set({
+            from: currentUser.uid,
+            fromName: currentUser.displayName || currentUser.email.split('@')[0],
+            type: 'game_invite',
+            gameMode: selectedGameMode,
+            map: selectedMap,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+        
+        showMessage('Invitation envoyée !', 'success');
+        
+    } catch (error) {
+        console.error('Erreur invitation ami:', error);
+        showMessage('Erreur lors de l\'envoi de l\'invitation', 'error');
+    }
 }
 
 // Suppression d'un ami
@@ -274,6 +369,9 @@ async function removeFriend(friendId) {
         
         // Supprimer de sa liste
         await database.ref(`users/${friendId}/friends/${currentUser.uid}`).remove();
+        
+        // Arrêter d'écouter les changements de statut
+        database.ref(`users/${friendId}/status`).off();
         
         showMessage('Ami supprimé', 'success');
         loadFriends();
@@ -314,9 +412,18 @@ function loadWeapons() {
             </div>
             <div class="weapon-name">${weapon.name}</div>
             <div class="weapon-stats">
-                <div>DMG: ${weapon.damage}</div>
-                <div>ACC: ${weapon.accuracy}%</div>
-                <div>$${weapon.price}</div>
+                <div class="weapon-stat">
+                    <span class="stat-label">DMG</span>
+                    <span class="stat-value">${weapon.damage}</span>
+                </div>
+                <div class="weapon-stat">
+                    <span class="stat-label">ACC</span>
+                    <span class="stat-value">${weapon.accuracy}%</span>
+                </div>
+                <div class="weapon-stat">
+                    <span class="stat-label">Prix</span>
+                    <span class="stat-value">$${weapon.price}</span>
+                </div>
             </div>
         `;
         
@@ -339,7 +446,7 @@ function selectWeapon(weapon) {
     event.target.closest('.weapon-card').classList.add('selected');
 }
 
-// Mise à jour du statut en ligne
+// Mise à jour du statut en ligne amélioré
 function updateOnlineStatus() {
     if (!currentUser) return;
     
@@ -350,11 +457,128 @@ function updateOnlineStatus() {
     
     // Marquer comme hors ligne lors de la déconnexion
     statusRef.onDisconnect().set('offline');
+    
+    // Mettre à jour le statut quand l'utilisateur change d'onglet
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            statusRef.set('away');
+        } else {
+            statusRef.set('online');
+        }
+    });
+}
+
+// Recherche d'amis par nom
+async function searchFriends(searchTerm) {
+    if (!searchTerm.trim()) {
+        loadFriends();
+        return;
+    }
+    
+    try {
+        const usersRef = database.ref('users');
+        const snapshot = await usersRef.orderByChild('displayName')
+            .startAt(searchTerm)
+            .endAt(searchTerm + '\uf8ff')
+            .once('value');
+        
+        const users = snapshot.val() || {};
+        const friendsList = document.getElementById('friends-list');
+        friendsList.innerHTML = '';
+        
+        Object.entries(users).forEach(([userId, userData]) => {
+            if (userId !== currentUser.uid) {
+                const userCard = document.createElement('div');
+                userCard.className = 'friend-card search-result';
+                userCard.innerHTML = `
+                    <div class="friend-avatar">
+                        <i class="fas fa-${userData.avatar || 'user'}"></i>
+                    </div>
+                    <div class="friend-info">
+                        <div class="friend-name">${userData.displayName}</div>
+                        <div class="friend-status ${userData.status || 'offline'}">
+                            <i class="fas fa-circle"></i> ${getStatusText(userData.status || 'offline')}
+                        </div>
+                    </div>
+                    <div class="friend-actions">
+                        <button onclick="openProfileModal('${userId}')" class="profile-btn">
+                            <i class="fas fa-user"></i>
+                        </button>
+                        <button onclick="addSpecificFriend('${userId}')" class="add-btn">
+                            <i class="fas fa-user-plus"></i>
+                        </button>
+                    </div>
+                `;
+                friendsList.appendChild(userCard);
+            }
+        });
+        
+        if (Object.keys(users).length <= 1) {
+            friendsList.innerHTML = '<div class="no-results">Aucun utilisateur trouvé</div>';
+        }
+        
+    } catch (error) {
+        console.error('Erreur recherche amis:', error);
+    }
+}
+
+// Ajouter un ami spécifique trouvé par la recherche
+async function addSpecificFriend(friendId) {
+    try {
+        const friendRef = database.ref(`users/${friendId}`);
+        const snapshot = await friendRef.once('value');
+        const friendData = snapshot.val();
+        
+        if (!friendData) {
+            showMessage('Utilisateur introuvable', 'error');
+            return;
+        }
+        
+        // Vérifier si pas déjà ami
+        const currentUserFriendsRef = database.ref(`users/${currentUser.uid}/friends/${friendId}`);
+        const existingFriend = await currentUserFriendsRef.once('value');
+        
+        if (existingFriend.exists()) {
+            showMessage('Cet utilisateur est déjà votre ami', 'error');
+            return;
+        }
+        
+        // Ajouter l'ami
+        if (!friendData.email) {
+            console.error("❌ Email manquant pour le contact.");
+            showMessage("L'utilisateur ne possède pas d'adresse email valide.", "error");
+            return;
+        }
+
+        await currentUserFriendsRef.set({
+            displayName: friendData.displayName,
+            avatar: friendData.avatar || 'user',
+            status: friendData.status || 'offline',
+            addedAt: firebase.database.ServerValue.TIMESTAMP
+        });
+
+        
+        // Ajouter réciproquement
+        await database.ref(`users/${friendId}/friends/${currentUser.uid}`).set({
+            displayName: currentUser.displayName || currentUser.email.split('@')[0],
+            email: currentUser.email,
+            avatar: 'user',
+            status: 'online',
+            addedAt: firebase.database.ServerValue.TIMESTAMP
+        });
+        
+        showMessage('Ami ajouté avec succès !', 'success');
+        loadFriends();
+        
+    } catch (error) {
+        console.error('Erreur ajout ami:', error);
+        showMessage('Erreur lors de l\'ajout', 'error');
+    }
 }
 
 // CSS supplémentaire pour les nouvelles fonctionnalités
-const additionalStyles = document.createElement('style');
-additionalStyles.textContent = `
+const additionalMenuStyles = document.createElement('style');
+additionalMenuStyles.textContent = `
     .game-mode.selected {
         background: rgba(0, 212, 255, 0.2);
         border-color: #00d4ff;
@@ -367,6 +591,30 @@ additionalStyles.textContent = `
         box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
     }
     
+    .weapon-stats {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+    }
+    
+    .weapon-stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 12px;
+    }
+    
+    .stat-label {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 10px;
+        margin-bottom: 2px;
+    }
+    
+    .stat-value {
+        color: #00d4ff;
+        font-weight: bold;
+    }
+    
     .no-friends {
         text-align: center;
         padding: 60px 20px;
@@ -375,35 +623,58 @@ additionalStyles.textContent = `
     
     .friend-actions {
         display: flex;
-        gap: 10px;
+        gap: 8px;
     }
     
-    .invite-btn, .remove-btn {
-        width: 40px;
-        height: 40px;
+    .profile-btn, .invite-btn, .remove-btn, .add-btn {
+        width: 35px;
+        height: 35px;
         border: none;
-        border-radius: 8px;
+        border-radius: 6px;
         cursor: pointer;
         transition: all 0.3s ease;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-size: 14px;
     }
     
-    .invite-btn {
+    .profile-btn {
         background: rgba(0, 212, 255, 0.2);
         color: #00d4ff;
         border: 1px solid #00d4ff;
     }
     
-    .invite-btn:hover:not(:disabled) {
+    .profile-btn:hover {
         background: #00d4ff;
+        color: white;
+    }
+    
+    .invite-btn {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        border: 1px solid #22c55e;
+    }
+    
+    .invite-btn:hover:not(:disabled) {
+        background: #22c55e;
         color: white;
     }
     
     .invite-btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+    }
+    
+    .add-btn {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        border: 1px solid #22c55e;
+    }
+    
+    .add-btn:hover {
+        background: #22c55e;
+        color: white;
     }
     
     .remove-btn {
@@ -428,12 +699,31 @@ additionalStyles.textContent = `
         color: #4ade80;
     }
     
+    .friend-status.playing {
+        color: #f59e0b;
+    }
+    
+    .friend-status.away {
+        color: #f97316;
+    }
+    
     .friend-status.offline {
         color: rgba(255, 255, 255, 0.5);
     }
     
     .friend-status i {
         font-size: 8px;
+    }
+    
+    .search-result {
+        border-left: 3px solid #00d4ff;
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 40px 20px;
+        color: rgba(255, 255, 255, 0.7);
+        grid-column: 1 / -1;
     }
     
     @keyframes buttonSuccess {
@@ -445,7 +735,7 @@ additionalStyles.textContent = `
         animation: buttonSuccess 0.3s ease;
     }
 `;
-document.head.appendChild(additionalStyles);
+document.head.appendChild(additionalMenuStyles);
 
 // Initialiser le statut en ligne quand l'utilisateur se connecte
 auth.onAuthStateChanged((user) => {
@@ -453,5 +743,3 @@ auth.onAuthStateChanged((user) => {
         updateOnlineStatus();
     }
 });
-
-console.log('Système de menus initialisé');
