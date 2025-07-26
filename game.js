@@ -1,4 +1,4 @@
-// Fichier principal d'orchestration du jeu avec système de profils complet
+// Orchestrateur principal du jeu avec logique Valorant complète - VERSION CORRIGÉE
 
 // État global de l'application
 const AppState = {
@@ -9,7 +9,11 @@ const AppState = {
         masterVolume: 0.5,
         effectsVolume: 0.7,
         graphics: 'medium',
-        mouseSensitivity: 5
+        mouseSensitivity: 5,
+        targetFPS: 60,
+        showDamage: true,
+        extendedKillFeed: true,
+        aimMode: 'hold'
     },
     profileSystem: {
         loaded: false,
@@ -19,7 +23,10 @@ const AppState = {
     }
 };
 
-// Système de notifications avancé
+// Rendre AppState accessible globalement
+window.AppState = AppState;
+
+// Système de notifications avancé pour le jeu
 const NotificationSystem = {
     queue: [],
     showing: false,
@@ -43,7 +50,7 @@ const NotificationSystem = {
         if (this.showing || this.queue.length === 0) return;
         
         const notification = this.queue.shift();
-        this.displaying = true;
+        this.showing = true;
         this.displayNotification(notification);
     },
     
@@ -67,7 +74,7 @@ const NotificationSystem = {
     
     createNotificationElement(notification) {
         const element = document.createElement('div');
-        element.className = `notification notification-${notification.type}`;
+        element.className = `game-notification notification-${notification.type}`;
         element.style.cssText = `
             background: rgba(15, 20, 25, 0.95);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -82,7 +89,22 @@ const NotificationSystem = {
             transition: all 0.5s ease;
             min-width: 350px;
             max-width: 450px;
+            pointer-events: all;
         `;
+        
+        const actionsHtml = notification.actions.length > 0 ? `
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
+                ${notification.actions.map(action => `
+                    <button onclick="${action.callback}" style="
+                        padding: 8px 16px; border: none; border-radius: 6px;
+                        background: ${action.primary ? this.getTypeColor(notification.type) : 'rgba(255, 255, 255, 0.1)'};
+                        color: white; cursor: pointer; font-size: 14px; transition: all 0.3s ease;
+                    ">
+                        ${action.text}
+                    </button>
+                `).join('')}
+            </div>
+        ` : '';
         
         element.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
@@ -97,22 +119,10 @@ const NotificationSystem = {
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <p style="margin: 0 0 15px 0; color: rgba(255, 255, 255, 0.9); line-height: 1.4;">
+            <p style="margin: 0; color: rgba(255, 255, 255, 0.9); line-height: 1.4;">
                 ${notification.message}
             </p>
-            ${notification.actions.length > 0 ? `
-                <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                    ${notification.actions.map(action => `
-                        <button onclick="${action.callback}" style="
-                            padding: 8px 16px; border: none; border-radius: 6px;
-                            background: ${action.primary ? this.getTypeColor(notification.type) : 'rgba(255, 255, 255, 0.1)'};
-                            color: white; cursor: pointer; font-size: 14px; transition: all 0.3s ease;
-                        ">
-                            ${action.text}
-                        </button>
-                    `).join('')}
-                </div>
-            ` : ''}
+            ${actionsHtml}
         `;
         
         return element;
@@ -153,7 +163,9 @@ const NotificationSystem = {
             error: '#ef4444',
             warning: '#f59e0b',
             info: '#00d4ff',
-            achievement: '#ffd700'
+            achievement: '#ffd700',
+            kill: '#ff4655',
+            round: '#ffd700'
         };
         return colors[type] || colors.info;
     },
@@ -164,95 +176,16 @@ const NotificationSystem = {
             error: 'exclamation-triangle',
             warning: 'exclamation-circle',
             info: 'info-circle',
-            achievement: 'trophy'
+            achievement: 'trophy',
+            kill: 'crosshairs',
+            round: 'clock'
         };
         return icons[type] || icons.info;
     }
 };
 
-// Système de gestion des succès en temps réel
-const AchievementManager = {
-    unlockedThisSession: new Set(),
-    
-    async checkAchievement(achievementId, currentStats) {
-        if (this.unlockedThisSession.has(achievementId)) return;
-        
-        const achievement = achievements[achievementId];
-        if (!achievement) return;
-        
-        // Vérifier si le succès est déjà débloqué
-        try {
-            const achievementsRef = database.ref(`users/${currentUser.uid}/achievements/${achievementId}`);
-            const snapshot = await achievementsRef.once('value');
-            
-            if (snapshot.exists()) return; // Déjà débloqué
-            
-            // Vérifier les conditions
-            if (this.isAchievementUnlocked(achievement, currentStats)) {
-                await this.unlockAchievement(achievementId, achievement);
-            }
-        } catch (error) {
-            console.error('Erreur vérification succès:', error);
-        }
-    },
-    
-    isAchievementUnlocked(achievement, stats) {
-        const req = achievement.requirement;
-        const value = stats[req.stat] || 0;
-        
-        switch (req.stat) {
-            case 'accuracy':
-                const shotsFired = stats.shotsFired || 0;
-                const shotsHit = stats.shotsHit || 0;
-                if (shotsFired < 100) return false;
-                return (shotsHit / shotsFired * 100) >= req.value;
-            
-            case 'rank':
-                return value === req.value;
-            
-            default:
-                return value >= req.value;
-        }
-    },
-    
-    async unlockAchievement(achievementId, achievement) {
-        try {
-            // Sauvegarder en base
-            await database.ref(`users/${currentUser.uid}/achievements/${achievementId}`)
-                .set(Date.now());
-            
-            // Marquer comme débloqué cette session
-            this.unlockedThisSession.add(achievementId);
-            
-            // Afficher la notification
-            this.showAchievementNotification(achievement);
-            
-            // Jouer un son (si activé)
-            playAchievementSound();
-            
-            console.log(`🏆 Succès débloqué: ${achievement.name}`);
-            
-        } catch (error) {
-            console.error('Erreur débloquage succès:', error);
-        }
-    },
-    
-    showAchievementNotification(achievement) {
-        NotificationSystem.show(
-            'Succès débloqué !',
-            `🏆 ${achievement.name}: ${achievement.description}`,
-            'achievement',
-            8000,
-            [
-                {
-                    text: 'Voir profil',
-                    primary: true,
-                    callback: 'openPlayerProfile()'
-                }
-            ]
-        );
-    }
-};
+// Rendre NotificationSystem accessible globalement
+window.NotificationSystem = NotificationSystem;
 
 // Système de statistiques en temps réel
 const StatsTracker = {
@@ -265,102 +198,173 @@ const StatsTracker = {
         headshots: 0,
         gamesPlayed: 0,
         wins: 0,
-        losses: 0
+        losses: 0,
+        roundsPlayed: 0,
+        roundsWon: 0,
+        bombPlants: 0,
+        bombDefuses: 0,
+        aces: 0,
+        clutches: 0,
+        damageDealt: 0,
+        damageReceived: 0,
+        firstKills: 0,
+        multiKills: 0
     },
     
     trackEvent(eventType, data = {}) {
-        switch (eventType) {
-            case 'kill':
-                this.sessionStats.kills++;
-                if (data.headshot) this.sessionStats.headshots++;
-                this.checkAchievementsAfterKill(data);
-                break;
-                
-            case 'death':
-                this.sessionStats.deaths++;
-                break;
-                
-            case 'shot':
-                this.sessionStats.shots++;
-                break;
-                
-            case 'hit':
-                this.sessionStats.hits++;
-                break;
-                
-            case 'gameEnd':
-                this.sessionStats.gamesPlayed++;
-                if (data.won) {
-                    this.sessionStats.wins++;
-                } else {
-                    this.sessionStats.losses++;
-                }
-                this.saveSessionStats();
-                break;
-        }
-        
-        // Vérifier les succès après chaque événement
-        this.checkRealtimeAchievements();
-    },
-    
-    async checkAchievementsAfterKill(data) {
-        // Vérifier le succès "Premier sang"
-        if (this.sessionStats.kills === 1) {
-            await AchievementManager.checkAchievement('first_kill', { kills: 1 });
-        }
-        
-        // Vérifier "Machine de guerre" (10 kills en une partie)
-        if (this.sessionStats.kills === 10) {
-            await AchievementManager.checkAchievement('kill_spree', { killsInMatch: 10 });
-        }
-        
-        // Vérifier les headshots
-        if (data.headshot) {
-            const currentStats = await this.getCurrentStats();
-            const totalHeadshots = (currentStats.headshots || 0) + this.sessionStats.headshots;
-            await AchievementManager.checkAchievement('headshot_master', { headshots: totalHeadshots });
-        }
-    },
-    
-    async checkRealtimeAchievements() {
-        if (!currentUser) return;
-        
         try {
-            const currentStats = await this.getCurrentStats();
-            const combinedStats = this.combineStats(currentStats);
+            switch (eventType) {
+                case 'kill':
+                    this.sessionStats.kills++;
+                    if (data.headshot) this.sessionStats.headshots++;
+                    if (data.firstKill) this.sessionStats.firstKills++;
+                    if (data.multiKill > 1) this.sessionStats.multiKills++;
+                    
+                    this.checkKillAchievements(data);
+                    
+                    // Notification de kill
+                    if (AppState.gameSettings.extendedKillFeed) {
+                        NotificationSystem.show(
+                            'Élimination',
+                            `+${data.headshot ? '2x' : '1x'} ${data.headshot ? 'Headshot!' : 'Kill'}`,
+                            'kill',
+                            2000
+                        );
+                    }
+                    break;
+                    
+                case 'death':
+                    this.sessionStats.deaths++;
+                    break;
+                    
+                case 'shot':
+                    this.sessionStats.shots++;
+                    break;
+                    
+                case 'hit':
+                    this.sessionStats.hits++;
+                    if (data.damage) {
+                        this.sessionStats.damageDealt += data.damage;
+                    }
+                    break;
+                    
+                case 'damage_received':
+                    this.sessionStats.damageReceived += data.damage || 0;
+                    break;
+                    
+                case 'bomb_plant':
+                    this.sessionStats.bombPlants++;
+                    NotificationSystem.show(
+                        'Spike plantée',
+                        'Bombe plantée avec succès!',
+                        'success',
+                        3000
+                    );
+                    break;
+                    
+                case 'bomb_defuse':
+                    this.sessionStats.bombDefuses++;
+                    NotificationSystem.show(
+                        'Spike désamorcée',
+                        'Bombe désamorcée avec succès!',
+                        'success',
+                        3000
+                    );
+                    break;
+                    
+                case 'ace':
+                    this.sessionStats.aces++;
+                    NotificationSystem.show(
+                        'ACE!',
+                        'Toute l\'équipe adverse éliminée!',
+                        'achievement',
+                        5000
+                    );
+                    this.playAchievementSound();
+                    break;
+                    
+                case 'clutch':
+                    this.sessionStats.clutches++;
+                    NotificationSystem.show(
+                        'Clutch!',
+                        `1v${data.enemyCount} remporté!`,
+                        'achievement',
+                        4000
+                    );
+                    break;
+                    
+                case 'round_end':
+                    this.sessionStats.roundsPlayed++;
+                    if (data.won) {
+                        this.sessionStats.roundsWon++;
+                    }
+                    break;
+                    
+                case 'game_end':
+                    this.sessionStats.gamesPlayed++;
+                    if (data.won) {
+                        this.sessionStats.wins++;
+                    } else {
+                        this.sessionStats.losses++;
+                    }
+                    this.saveSessionStats();
+                    break;
+            }
             
-            // Vérifier tous les succès
-            for (const achievementId of Object.keys(achievements)) {
-                await AchievementManager.checkAchievement(achievementId, combinedStats);
+            // Vérifier les succès après chaque événement
+            this.checkRealtimeAchievements();
+        } catch (error) {
+            console.error('Erreur tracking événement:', error);
+        }
+    },
+    
+    async checkKillAchievements(data) {
+        try {
+            // Premier kill de la partie
+            if (this.sessionStats.kills === 1 && window.AchievementManager) {
+                await window.AchievementManager.checkAchievement('first_kill', { kills: 1 });
+            }
+            
+            // Machine de guerre (10 kills en une partie)
+            if (this.sessionStats.kills === 10 && window.AchievementManager) {
+                await window.AchievementManager.checkAchievement('kill_spree', { killsInMatch: 10 });
+            }
+            
+            // Vérifier les headshots
+            if (data.headshot && window.AchievementManager) {
+                const currentStats = await this.getCurrentStats();
+                const totalHeadshots = (currentStats.headshots || 0) + this.sessionStats.headshots;
+                await window.AchievementManager.checkAchievement('headshot_master', { headshots: totalHeadshots });
             }
         } catch (error) {
-            console.error('Erreur vérification succès temps réel:', error);
+            console.error('Erreur vérification succès kills:', error);
         }
     },
     
     async getCurrentStats() {
-        const statsRef = database.ref(`users/${currentUser.uid}/stats`);
-        const snapshot = await statsRef.once('value');
-        return snapshot.val() || {};
-    },
-    
-    combineStats(dbStats) {
-        return {
-            kills: (dbStats.kills || 0) + this.sessionStats.kills,
-            deaths: (dbStats.deaths || 0) + this.sessionStats.deaths,
-            headshots: (dbStats.headshots || 0) + this.sessionStats.headshots,
-            shotsFired: (dbStats.shotsFired || 0) + this.sessionStats.shots,
-            shotsHit: (dbStats.shotsHit || 0) + this.sessionStats.hits,
-            gamesPlayed: (dbStats.gamesPlayed || 0) + this.sessionStats.gamesPlayed,
-            wins: (dbStats.wins || 0) + this.sessionStats.wins,
-            losses: (dbStats.losses || 0) + this.sessionStats.losses
-        };
+        if (!currentUser) return {};
+        
+        try {
+            if (!database || !database.ref) return {};
+            
+            const statsRef = database.ref(`users/${currentUser.uid}/stats`);
+            const snapshot = await statsRef.once('value');
+            return snapshot.val() || {};
+        } catch (error) {
+            console.error('Erreur récupération stats:', error);
+            return {};
+        }
     },
     
     async saveSessionStats() {
         if (!currentUser) return;
         
         try {
+            if (!database || !database.ref) {
+                console.warn('Database non disponible pour sauvegarder les stats');
+                return;
+            }
+            
             const currentStats = await this.getCurrentStats();
             const updates = {};
             
@@ -375,6 +379,12 @@ const StatsTracker = {
             const xpGained = this.calculateXPGain();
             updates.experience = (currentStats.experience || 0) + xpGained;
             
+            // Calculer les nouvelles statistiques dérivées
+            updates.accuracy = updates.shotsFired > 0 ? (updates.shotsHit / updates.shotsFired) * 100 : 0;
+            updates.kdRatio = updates.deaths > 0 ? updates.kills / updates.deaths : updates.kills;
+            updates.winRate = updates.gamesPlayed > 0 ? (updates.wins / updates.gamesPlayed) * 100 : 0;
+            updates.headshotPercentage = updates.kills > 0 ? (updates.headshots / updates.kills) * 100 : 0;
+            
             // Sauvegarder
             await database.ref(`users/${currentUser.uid}/stats`).update(updates);
             
@@ -384,7 +394,10 @@ const StatsTracker = {
             // Réinitialiser les stats de session
             this.resetSessionStats();
             
-            console.log('Statistiques de session sauvegardées:', updates);
+            console.log('📊 Statistiques de session sauvegardées:', updates);
+            
+            // Afficher un résumé
+            this.showSessionSummary(updates, xpGained);
             
         } catch (error) {
             console.error('Erreur sauvegarde stats session:', error);
@@ -393,25 +406,70 @@ const StatsTracker = {
     
     calculateXPGain() {
         let xp = 0;
+        
+        // XP pour les actions
         xp += this.sessionStats.kills * 100;
         xp += this.sessionStats.headshots * 50;
         xp += this.sessionStats.wins * 500;
         xp += this.sessionStats.gamesPlayed * 50;
-        return xp;
+        xp += this.sessionStats.bombPlants * 200;
+        xp += this.sessionStats.bombDefuses * 300;
+        xp += this.sessionStats.aces * 1000;
+        xp += this.sessionStats.clutches * 500;
+        xp += this.sessionStats.firstKills * 150;
+        
+        // Bonus de performance
+        const accuracy = this.sessionStats.shots > 0 ? (this.sessionStats.hits / this.sessionStats.shots) : 0;
+        if (accuracy > 0.7) xp += 200; // Bonus précision
+        
+        const kd = this.sessionStats.deaths > 0 ? (this.sessionStats.kills / this.sessionStats.deaths) : this.sessionStats.kills;
+        if (kd >= 2) xp += 300; // Bonus K/D
+        
+        return Math.round(xp);
     },
     
     async updateLevelAndRank(experience) {
-        const newLevel = calculateLevel(experience);
-        const newRank = calculateRank(experience);
+        if (!window.calculateLevel || !window.calculateRank) {
+            console.warn('Fonctions de calcul niveau/rang non disponibles');
+            return;
+        }
+
+        try {
+            const newLevel = window.calculateLevel(experience);
+            const newRank = window.calculateRank(experience);
+            
+            if (database && database.ref) {
+                await database.ref(`users/${currentUser.uid}`).update({
+                    level: newLevel,
+                    rank: newRank,
+                    experience: experience
+                });
+            }
+            
+            // Mettre à jour l'interface si la fonction existe
+            if (window.updateUserRankDisplay) {
+                window.updateUserRankDisplay();
+            }
+        } catch (error) {
+            console.error('Erreur mise à jour niveau/rang:', error);
+        }
+    },
+    
+    showSessionSummary(stats, xpGained) {
+        const summary = `
+            Session terminée:
+            • ${this.sessionStats.kills} éliminations
+            • ${this.sessionStats.deaths} morts
+            • ${this.sessionStats.headshots} headshots
+            • +${xpGained} XP
+        `;
         
-        await database.ref(`users/${currentUser.uid}`).update({
-            level: newLevel,
-            rank: newRank,
-            experience: experience
-        });
-        
-        // Mettre à jour l'interface
-        updateUserRankDisplay();
+        NotificationSystem.show(
+            'Session terminée',
+            summary,
+            'info',
+            6000
+        );
     },
     
     resetSessionStats() {
@@ -421,7 +479,49 @@ const StatsTracker = {
             }
         });
         this.sessionStats.sessionStart = Date.now();
+    },
+    
+    playAchievementSound() {
+        if (AppState.gameSettings.effectsVolume === 0) return;
+        
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // Do
+            oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // Mi
+            oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // Sol
+            
+            gainNode.gain.setValueAtTime(AppState.gameSettings.effectsVolume * 0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        } catch (error) {
+            console.error('Erreur lecture son:', error);
+        }
+    },
+
+    async checkRealtimeAchievements() {
+        // Placeholder pour la vérification des succès en temps réel
+        // Sera complété quand le système de succès sera initialisé
     }
+};
+
+// Rendre StatsTracker accessible globalement
+window.StatsTracker = StatsTracker;
+
+// Services en ligne
+let onlineServices = {
+    heartbeat: null,
+    matchmaking: null,
+    friendsListener: null,
+    invitationsListener: null,
+    achievementListener: null
 };
 
 // Initialisation de l'application
@@ -437,24 +537,46 @@ function initializeApp() {
         return;
     }
     
-    // Initialiser les modules
-    initializeFirebase();
-    initializeUI();
-    initializeSettings();
-    initializeProfileSystem();
+    // Initialiser les modules de base
+    try {
+        initializeCore();
+        initializeUI();
+        initializeSettings();
+        
+        // Attendre que Firebase soit prêt
+        setTimeout(() => {
+            initializeFirebase();
+        }, 500);
+        
+        // Marquer comme initialisé
+        AppState.initialized = true;
+        console.log('✅ Application initialisée avec succès');
+        
+        // Animation d'entrée
+        playEntryAnimation();
+    } catch (error) {
+        console.error('❌ Erreur initialisation:', error);
+        showErrorMessage('Erreur lors de l\'initialisation');
+    }
+}
+
+// Initialisation du core
+function initializeCore() {
+    // Précharger les ressources
+    preloadAssets();
     
-    // Marquer comme initialisé
-    AppState.initialized = true;
-    console.log('✅ Application initialisée avec succès');
-    
-    // Animation d'entrée
-    playEntryAnimation();
+    // Initialiser les systèmes de base
+    console.log('🔧 Systèmes de base initialisés');
 }
 
 // Initialisation de Firebase
 function initializeFirebase() {
     try {
-        // Firebase est déjà initialisé dans firebase-config.js
+        if (typeof auth === 'undefined' || typeof database === 'undefined') {
+            console.warn('⚠️ Firebase services non disponibles');
+            return;
+        }
+        
         console.log('🔥 Firebase connecté');
         
         // Écouter les changements d'authentification
@@ -466,23 +588,27 @@ function initializeFirebase() {
     }
 }
 
-// Gestion des changements d'authentification avec profils
-function handleAuthStateChange(user) {
-    if (user) {
-        AppState.user = user;
-        AppState.currentScreen = 'menu';
-        console.log('👤 Utilisateur connecté:', user.email);
-        
-        // Initialiser les systèmes utilisateur
-        initializeUserSystems();
-        
-    } else {
-        AppState.user = null;
-        AppState.currentScreen = 'auth';
-        console.log('👤 Utilisateur déconnecté');
-        
-        // Arrêter les services
-        stopUserSystems();
+// Gestion des changements d'authentification
+async function handleAuthStateChange(user) {
+    try {
+        if (user) {
+            AppState.user = user;
+            AppState.currentScreen = 'menu';
+            console.log('👤 Utilisateur connecté:', user.email);
+            
+            // Initialiser les systèmes utilisateur
+            await initializeUserSystems();
+            
+        } else {
+            AppState.user = null;
+            AppState.currentScreen = 'auth';
+            console.log('👤 Utilisateur déconnecté');
+            
+            // Arrêter les services
+            stopUserSystems();
+        }
+    } catch (error) {
+        console.error('❌ Erreur gestion auth state:', error);
     }
 }
 
@@ -501,6 +627,11 @@ async function initializeUserSystems() {
         // Démarrer le tracking des statistiques
         StatsTracker.resetSessionStats();
         
+        // Vérifier s'il y a un match actif (si le système est disponible)
+        if (window.MatchmakingSystem && typeof window.MatchmakingSystem.handleReconnection === 'function') {
+            await window.MatchmakingSystem.handleReconnection();
+        }
+        
         console.log('✅ Systèmes utilisateur initialisés');
         
     } catch (error) {
@@ -512,6 +643,11 @@ async function initializeUserSystems() {
 async function initializeUserProfile() {
     try {
         AppState.profileSystem.loaded = false;
+        
+        if (!database || !database.ref) {
+            console.warn('Database non disponible pour le profil');
+            return;
+        }
         
         // Charger le profil utilisateur
         const userRef = database.ref(`users/${currentUser.uid}`);
@@ -532,35 +668,27 @@ async function initializeUserProfile() {
     }
 }
 
-// Services en ligne améliorés
-let onlineServices = {
-    heartbeat: null,
-    matchmaking: null,
-    friendsListener: null,
-    invitationsListener: null,
-    achievementListener: null
-};
-
+// Services en ligne
 function startOnlineServices() {
-    // Heartbeat pour maintenir la connexion
-    onlineServices.heartbeat = setInterval(() => {
-        if (currentUser) {
-            database.ref(`users/${currentUser.uid}/lastSeen`)
-                .set(firebase.database.ServerValue.TIMESTAMP);
-        }
-    }, 30000);
-    
-    // Écouter les invitations d'amis
-    if (currentUser) {
-        onlineServices.invitationsListener = database.ref(`users/${currentUser.uid}/invitations`)
-            .on('child_added', handleFriendInvitation);
+    try {
+        // Heartbeat pour maintenir la connexion
+        onlineServices.heartbeat = setInterval(() => {
+            if (currentUser && database && database.ref) {
+                database.ref(`users/${currentUser.uid}/lastSeen`)
+                    .set(firebase.database.ServerValue.TIMESTAMP);
+            }
+        }, 30000);
         
-        // Écouter les nouveaux succès (en cas de déconnexion/reconnexion)
-        onlineServices.achievementListener = database.ref(`users/${currentUser.uid}/achievements`)
-            .on('child_added', handleNewAchievement);
+        // Écouter les invitations d'amis
+        if (currentUser && database && database.ref) {
+            onlineServices.invitationsListener = database.ref(`users/${currentUser.uid}/invitations`)
+                .on('child_added', handleFriendInvitation);
+        }
+        
+        console.log('🌐 Services en ligne démarrés');
+    } catch (error) {
+        console.error('❌ Erreur démarrage services en ligne:', error);
     }
-    
-    console.log('🌐 Services en ligne démarrés');
 }
 
 function stopUserSystems() {
@@ -570,14 +698,9 @@ function stopUserSystems() {
         onlineServices.heartbeat = null;
     }
     
-    if (onlineServices.invitationsListener) {
+    if (onlineServices.invitationsListener && database && database.ref) {
         database.ref(`users/${currentUser.uid}/invitations`).off();
         onlineServices.invitationsListener = null;
-    }
-    
-    if (onlineServices.achievementListener) {
-        database.ref(`users/${currentUser.uid}/achievements`).off();
-        onlineServices.achievementListener = null;
     }
     
     // Nettoyer les données du profil
@@ -596,44 +719,41 @@ function stopUserSystems() {
     console.log('🌐 Systèmes utilisateur arrêtés');
 }
 
-// Gestion des invitations d'amis améliorée
+// Gestion des invitations d'amis
 function handleFriendInvitation(snapshot) {
-    const invitation = snapshot.val();
-    const invitationId = snapshot.key;
-    
-    NotificationSystem.show(
-        'Invitation de partie',
-        `${invitation.fromName} vous invite à rejoindre une partie ${invitation.gameMode} sur ${invitation.map}`,
-        'info',
-        10000,
-        [
-            {
-                text: 'Accepter',
-                primary: true,
-                callback: `acceptGameInvitation('${invitationId}', '${JSON.stringify(invitation).replace(/'/g, "\\'")}');`
-            },
-            {
-                text: 'Refuser',
-                primary: false,
-                callback: `declineGameInvitation('${invitationId}');`
-            }
-        ]
-    );
-}
-
-// Gestion des nouveaux succès
-function handleNewAchievement(snapshot) {
-    const achievementId = snapshot.key;
-    const timestamp = snapshot.val();
-    
-    // Éviter les notifications pour les anciens succès
-    const now = Date.now();
-    if (now - timestamp > 60000) return; // Plus de 1 minute = ancien
-    
-    const achievement = achievements[achievementId];
-    if (achievement && !AchievementManager.unlockedThisSession.has(achievementId)) {
-        AchievementManager.showAchievementNotification(achievement);
-        AchievementManager.unlockedThisSession.add(achievementId);
+    try {
+        const invitation = snapshot.val();
+        const invitationId = snapshot.key;
+        
+        if (!window.gameModes) {
+            console.warn('Modes de jeu non disponibles pour l\'invitation');
+            return;
+        }
+        
+        const gameMode = window.gameModes[invitation.gameMode];
+        const modeText = gameMode ? gameMode.name : invitation.gameMode;
+        const mapText = invitation.map || 'carte aléatoire';
+        
+        NotificationSystem.show(
+            'Invitation de partie',
+            `${invitation.fromName} vous invite à jouer en ${modeText} sur ${mapText}`,
+            'info',
+            10000,
+            [
+                {
+                    text: 'Accepter',
+                    primary: true,
+                    callback: `acceptGameInvitation('${invitationId}', '${JSON.stringify(invitation).replace(/'/g, "\\'")}');`
+                },
+                {
+                    text: 'Refuser',
+                    primary: false,
+                    callback: `declineGameInvitation('${invitationId}');`
+                }
+            ]
+        );
+    } catch (error) {
+        console.error('❌ Erreur gestion invitation ami:', error);
     }
 }
 
@@ -643,27 +763,28 @@ async function acceptGameInvitation(invitationId, invitation) {
         const inv = JSON.parse(invitation);
         
         // Supprimer l'invitation
-        await database.ref(`users/${currentUser.uid}/invitations/${invitationId}`).remove();
+        if (database && database.ref) {
+            await database.ref(`users/${currentUser.uid}/invitations/${invitationId}`).remove();
+        }
         
-        // Rejoindre la partie ou créer une nouvelle partie avec l'ami
+        // Rejoindre la file avec l'ami
         NotificationSystem.show(
             'Invitation acceptée',
-            'Recherche de partie en cours...',
+            'Recherche de partie avec votre ami...',
             'success',
             3000
         );
         
-        // Lancer le matchmaking avec l'ami
-        const matchId = await findMatch(inv.gameMode, inv.map);
-        if (matchId) {
-            // Notifier l'ami que l'invitation a été acceptée
-            await database.ref(`users/${inv.from}/notifications`).push({
-                type: 'invitation_accepted',
-                from: currentUser.uid,
-                fromName: currentUser.displayName || 'Joueur',
-                matchId: matchId,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            });
+        // Démarrer le matchmaking avec les paramètres de l'invitation
+        if (window.selectedGameMode !== undefined) {
+            window.selectedGameMode = inv.gameMode;
+        }
+        if (window.selectedMap !== undefined) {
+            window.selectedMap = inv.map || 'auto';
+        }
+        
+        if (window.launchGame && typeof window.launchGame === 'function') {
+            await window.launchGame();
         }
         
     } catch (error) {
@@ -674,12 +795,18 @@ async function acceptGameInvitation(invitationId, invitation) {
 
 async function declineGameInvitation(invitationId) {
     try {
-        await database.ref(`users/${currentUser.uid}/invitations/${invitationId}`).remove();
+        if (database && database.ref) {
+            await database.ref(`users/${currentUser.uid}/invitations/${invitationId}`).remove();
+        }
         NotificationSystem.show('Invitation refusée', '', 'info', 2000);
     } catch (error) {
         console.error('Erreur refus invitation:', error);
     }
 }
+
+// Rendre ces fonctions accessibles globalement
+window.acceptGameInvitation = acceptGameInvitation;
+window.declineGameInvitation = declineGameInvitation;
 
 // Initialisation de l'interface utilisateur
 function initializeUI() {
@@ -689,8 +816,8 @@ function initializeUI() {
     // Initialiser les tooltips
     initializeTooltips();
     
-    // Précharger les ressources
-    preloadAssets();
+    // Ajouter les styles pour les animations
+    addCustomStyles();
 }
 
 function setupGlobalEventListeners() {
@@ -702,31 +829,30 @@ function setupGlobalEventListeners() {
     
     // Gestion des raccourcis clavier globaux
     document.addEventListener('keydown', handleGlobalKeyboard);
-    
-    // Gestion des invitations en jeu (touche Y pour accepter, N pour refuser)
-    document.addEventListener('keydown', handleInvitationShortcuts);
 }
 
 function handleWindowResize() {
-    if (AppState.currentScreen === 'game' && gameCanvas) {
-        resizeCanvas();
+    if (AppState.currentScreen === 'game' && window.gameCanvas) {
+        if (window.resizeCanvas && typeof window.resizeCanvas === 'function') {
+            window.resizeCanvas();
+        }
     }
 }
 
 function handleVisibilityChange() {
     if (document.hidden) {
-        // Page cachée - pausser le jeu si nécessaire
-        if (AppState.currentScreen === 'game' && game.gameStarted) {
-            game.gamePaused = true;
+        // Page cachée - pauser le jeu si nécessaire
+        if (AppState.currentScreen === 'game' && window.game && window.game.gameStarted) {
+            window.game.gamePaused = true;
         }
         
         // Changer le statut à "away"
-        if (currentUser) {
+        if (currentUser && database && database.ref) {
             database.ref(`users/${currentUser.uid}/status`).set('away');
         }
     } else {
         // Page visible - reprendre le jeu
-        if (currentUser) {
+        if (currentUser && database && database.ref) {
             database.ref(`users/${currentUser.uid}/status`).set('online');
         }
     }
@@ -746,45 +872,44 @@ function handleGlobalKeyboard(e) {
                 break;
             case 'p': // Ctrl+P pour ouvrir le profil
                 e.preventDefault();
-                if (currentUser) openPlayerProfile();
+                if (currentUser && window.openPlayerProfile) {
+                    window.openPlayerProfile();
+                }
                 break;
         }
     }
-}
-
-function handleInvitationShortcuts(e) {
-    // Raccourcis pour les invitations (seulement si une notification est visible)
-    const activeNotification = document.querySelector('.notification');
-    if (!activeNotification) return;
     
+    // Raccourcis pour les invitations
     if (e.key.toLowerCase() === 'y') {
-        // Accepter l'invitation
-        const acceptBtn = activeNotification.querySelector('button[onclick*="accept"]');
+        const acceptBtn = document.querySelector('.game-notification button[onclick*="accept"]');
         if (acceptBtn) acceptBtn.click();
     } else if (e.key.toLowerCase() === 'n') {
-        // Refuser l'invitation
-        const declineBtn = activeNotification.querySelector('button[onclick*="decline"]');
+        const declineBtn = document.querySelector('.game-notification button[onclick*="decline"]');
         if (declineBtn) declineBtn.click();
     }
 }
 
-// Système de tooltips amélioré
+// Système de tooltips
 function initializeTooltips() {
-    const tooltipElements = document.querySelectorAll('[data-tooltip]');
+    document.addEventListener('mouseover', (e) => {
+        const tooltipText = e.target.getAttribute('data-tooltip');
+        if (tooltipText) {
+            showTooltip(e, tooltipText);
+        }
+    });
     
-    tooltipElements.forEach(element => {
-        element.addEventListener('mouseenter', showTooltip);
-        element.addEventListener('mouseleave', hideTooltip);
-        element.addEventListener('mousemove', updateTooltipPosition);
+    document.addEventListener('mouseout', (e) => {
+        if (e.target.getAttribute('data-tooltip')) {
+            hideTooltip();
+        }
     });
 }
 
-function showTooltip(e) {
-    const text = e.target.getAttribute('data-tooltip');
-    if (!text) return;
+function showTooltip(e, text) {
+    hideTooltip(); // Supprimer l'ancien tooltip
     
     const tooltip = document.createElement('div');
-    tooltip.className = 'tooltip';
+    tooltip.id = 'game-tooltip';
     tooltip.textContent = text;
     tooltip.style.cssText = `
         position: fixed;
@@ -798,28 +923,28 @@ function showTooltip(e) {
         white-space: nowrap;
         border: 1px solid rgba(255, 255, 255, 0.2);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        transition: opacity 0.2s ease;
     `;
     
     document.body.appendChild(tooltip);
-    updateTooltipPosition(e, tooltip);
-    e.target._tooltip = tooltip;
-}
-
-function updateTooltipPosition(e, tooltip = null) {
-    const tooltipElement = tooltip || e.target._tooltip;
-    if (!tooltipElement) return;
     
+    // Positionner le tooltip
     const x = e.clientX + 10;
     const y = e.clientY - 30;
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
     
-    tooltipElement.style.left = x + 'px';
-    tooltipElement.style.top = y + 'px';
+    // Faire apparaître
+    requestAnimationFrame(() => {
+        tooltip.style.opacity = '1';
+    });
 }
 
-function hideTooltip(e) {
-    if (e.target._tooltip) {
-        e.target._tooltip.remove();
-        e.target._tooltip = null;
+function hideTooltip() {
+    const tooltip = document.getElementById('game-tooltip');
+    if (tooltip) {
+        tooltip.remove();
     }
 }
 
@@ -828,16 +953,19 @@ function preloadAssets() {
     console.log('📦 Chargement des ressources...');
     
     const assets = [
+        'Système de matchmaking',
         'Profils utilisateur',
         'Système de succès', 
-        'Statistiques de jeu',
-        'Interface graphique'
+        'Statistiques avancées',
+        'Interface de jeu',
+        'Économie Valorant',
+        'Modes de jeu'
     ];
     
     assets.forEach((asset, index) => {
         setTimeout(() => {
             updateLoadingProgress(index + 1, assets.length, asset);
-        }, (index + 1) * 200);
+        }, (index + 1) * 300);
     });
 }
 
@@ -850,37 +978,10 @@ function updateLoadingProgress(loaded, total, currentAsset) {
     }
 }
 
-// Gestion des paramètres améliorée
+// Gestion des paramètres
 function initializeSettings() {
     loadSettingsFromStorage();
     applySettings();
-    setupSettingsListeners();
-}
-
-function setupSettingsListeners() {
-    // Écouter les changements de volume
-    const volumeSliders = document.querySelectorAll('input[type="range"]');
-    volumeSliders.forEach(slider => {
-        slider.addEventListener('input', (e) => {
-            const setting = e.target.id || e.target.getAttribute('data-setting');
-            if (setting) {
-                AppState.gameSettings[setting] = e.target.value / 100;
-                applySettings();
-                saveSettingsToStorage();
-            }
-        });
-    });
-    
-    // Écouter les changements de qualité graphique
-    const graphicsSelect = document.querySelector('select');
-    if (graphicsSelect) {
-        graphicsSelect.addEventListener('change', (e) => {
-            AppState.gameSettings.graphics = e.target.value;
-            applySettings();
-            saveSettingsToStorage();
-            saveUserSettings();
-        });
-    }
 }
 
 function loadSettingsFromStorage() {
@@ -894,10 +995,6 @@ function loadSettingsFromStorage() {
     }
 }
 
-function saveSettingsToStorage() {
-    localStorage.setItem('sioshooter_settings', JSON.stringify(AppState.gameSettings));
-}
-
 function applySettings() {
     // Appliquer le volume
     document.documentElement.style.setProperty('--master-volume', AppState.gameSettings.masterVolume);
@@ -907,95 +1004,37 @@ function applySettings() {
     document.documentElement.classList.remove('graphics-low', 'graphics-medium', 'graphics-high');
     document.documentElement.classList.add(`graphics-${AppState.gameSettings.graphics}`);
     
-    // Appliquer la sensibilité de la souris (pour le jeu)
-    if (typeof player !== 'undefined') {
-        player.mouseSensitivity = AppState.gameSettings.mouseSensitivity;
+    // Appliquer la sensibilité de la souris
+    if (typeof window.player !== 'undefined') {
+        window.player.mouseSensitivity = AppState.gameSettings.mouseSensitivity;
     }
 }
+
+// Rendre applySettings accessible globalement
+window.applySettings = applySettings;
 
 async function loadUserSettings() {
     if (!currentUser) return;
     
     try {
+        if (!database || !database.ref) return;
+        
         const settingsRef = database.ref(`users/${currentUser.uid}/settings`);
         const snapshot = await settingsRef.once('value');
         
         if (snapshot.exists()) {
             AppState.gameSettings = { ...AppState.gameSettings, ...snapshot.val() };
             applySettings();
-            updateSettingsUI();
         }
     } catch (error) {
         console.error('Erreur chargement paramètres utilisateur:', error);
     }
 }
 
-async function saveUserSettings() {
-    if (!currentUser) return;
-    
-    try {
-        const settingsRef = database.ref(`users/${currentUser.uid}/settings`);
-        await settingsRef.set(AppState.gameSettings);
-        saveSettingsToStorage();
-    } catch (error) {
-        console.error('Erreur sauvegarde paramètres:', error);
-    }
-}
-
-function updateSettingsUI() {
-    // Mettre à jour les sliders
-    const volumeSlider = document.querySelector('input[data-setting="masterVolume"]');
-    if (volumeSlider) {
-        volumeSlider.value = AppState.gameSettings.masterVolume * 100;
-    }
-    
-    const effectsSlider = document.querySelector('input[data-setting="effectsVolume"]');
-    if (effectsSlider) {
-        effectsSlider.value = AppState.gameSettings.effectsVolume * 100;
-    }
-    
-    const sensitivitySlider = document.querySelector('input[data-setting="mouseSensitivity"]');
-    if (sensitivitySlider) {
-        sensitivitySlider.value = AppState.gameSettings.mouseSensitivity;
-    }
-    
-    // Mettre à jour le select de qualité
-    const graphicsSelect = document.querySelector('select');
-    if (graphicsSelect) {
-        graphicsSelect.value = AppState.gameSettings.graphics;
-    }
-}
-
-// Système de profils avancé
-function initializeProfileSystem() {
-    console.log('📊 Initialisation du système de profils...');
-    
-    // Écouter les clics sur les cartes d'amis pour ouvrir les profils
-    document.addEventListener('click', (e) => {
-        const friendCard = e.target.closest('.friend-card');
-        if (friendCard && !e.target.closest('.friend-actions')) {
-            const friendId = friendCard.getAttribute('data-friend-id');
-            if (friendId) {
-                openProfileModal(friendId);
-            }
-        }
-        
-        // Écouter les clics sur les entrées du classement
-        const leaderboardEntry = e.target.closest('.leaderboard-entry');
-        if (leaderboardEntry) {
-            const playerId = leaderboardEntry.getAttribute('data-player-id');
-            if (playerId) {
-                openProfileModal(playerId);
-            }
-        }
-    });
-}
-
-// Fonctions utilitaires avancées
+// Fonctions utilitaires
 function toggleMasterVolume() {
     AppState.gameSettings.masterVolume = AppState.gameSettings.masterVolume > 0 ? 0 : 0.5;
     applySettings();
-    saveUserSettings();
     
     NotificationSystem.show(
         'Audio',
@@ -1016,225 +1055,80 @@ function toggleFullscreen() {
     }
 }
 
-// Système de son pour les succès
-function playAchievementSound() {
-    if (AppState.gameSettings.effectsVolume === 0) return;
-    
-    // Créer un son pour les succès (simulation)
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // Do
-    oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // Mi
-    oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // Sol
-    
-    gainNode.gain.setValueAtTime(AppState.gameSettings.effectsVolume * 0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-    
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.5);
+// Fonctions d'écrans
+function showAuthScreen() {
+    document.getElementById('auth-screen').classList.remove('hidden');
+    document.getElementById('main-menu').classList.add('hidden');
+    document.getElementById('game-screen').classList.add('hidden');
+    if (document.getElementById('profile-modal')) {
+        document.getElementById('profile-modal').classList.add('hidden');
+    }
 }
 
-// Intégration du gameplay avec les statistiques
-function integrateGameplayStats() {
-    // Hook pour les kills
-    const originalHitPlayer = window.handlePlayerHit || function() {};
-    window.handlePlayerHit = function(targetPlayerId, bullet) {
-        const result = originalHitPlayer.call(this, targetPlayerId, bullet);
-        
-        // Tracker les statistiques
-        StatsTracker.trackEvent('hit');
-        if (bullet.damage >= 100) { // Kill
-            StatsTracker.trackEvent('kill', { 
-                headshot: bullet.headshot,
-                weapon: player.weapon.name 
-            });
+function showMainMenu() {
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('main-menu').classList.remove('hidden');
+    document.getElementById('game-screen').classList.add('hidden');
+    if (document.getElementById('profile-modal')) {
+        document.getElementById('profile-modal').classList.add('hidden');
+    }
+    
+    if (currentUser && window.updateUserInterface) {
+        window.updateUserInterface();
+    }
+}
+
+function showGameScreen() {
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('main-menu').classList.add('hidden');
+    document.getElementById('game-screen').classList.remove('hidden');
+    if (document.getElementById('profile-modal')) {
+        document.getElementById('profile-modal').classList.add('hidden');
+    }
+}
+
+// Rendre ces fonctions accessibles globalement
+window.showAuthScreen = showAuthScreen;
+window.showMainMenu = showMainMenu;
+window.showGameScreen = showGameScreen;
+
+// Ajouter les styles personnalisés
+function addCustomStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes damageFloat {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
         }
         
-        return result;
-    };
-    
-    // Hook pour les tirs
-    const originalShoot = window.shoot || function() {};
-    window.shoot = function() {
-        const result = originalShoot.call(this);
-        StatsTracker.trackEvent('shot');
-        return result;
-    };
-    
-    // Hook pour les morts
-    const originalHandlePlayerDeath = window.handlePlayerDeath || function() {};
-    window.handlePlayerDeath = function() {
-        const result = originalHandlePlayerDeath.call(this);
-        StatsTracker.trackEvent('death');
-        return result;
-    };
-}
-
-// Démarrage du jeu avec intégration profils
-function startGame(matchData) {
-    console.log('🎮 Démarrage du jeu avec profils:', matchData);
-    
-    AppState.currentScreen = 'game';
-    game.matchId = matchData.id;
-    game.currentMap = matchData.map;
-    
-    // Assigner l'équipe
-    player.team = Math.random() > 0.5 ? 'attackers' : 'defenders';
-    
-    // Intégrer les statistiques
-    integrateGameplayStats();
-    
-    // Démarrer les listeners temps réel
-    setupGameRealtimeListeners(matchData.id);
-    
-    // Mettre à jour le statut
-    if (currentUser) {
-        database.ref(`users/${currentUser.uid}/status`).set('playing');
-    }
-    
-    // Notifier le début de partie
-    NotificationSystem.show(
-        'Partie commencée',
-        `${matchData.map} - ${matchData.mode}`,
-        'success',
-        3000
-    );
-}
-
-// Fin de partie avec sauvegarde des statistiques
-async function endGame(result) {
-    console.log('🏁 Fin de partie:', result);
-    
-    // Tracker la fin de partie
-    StatsTracker.trackEvent('gameEnd', { won: result.won });
-    
-    // Remettre le statut en ligne
-    if (currentUser) {
-        database.ref(`users/${currentUser.uid}/status`).set('online');
-    }
-    
-    // Sauvegarder les statistiques
-    await StatsTracker.saveSessionStats();
-    
-    // Calculer les récompenses
-    const rewards = calculateGameRewards(result);
-    showGameRewards(rewards);
-}
-
-function calculateGameRewards(result) {
-    const rewards = {
-        xp: 0,
-        money: 0,
-        achievements: []
-    };
-    
-    // XP de base
-    rewards.xp += result.won ? 500 : 250;
-    rewards.xp += StatsTracker.sessionStats.kills * 100;
-    rewards.xp += StatsTracker.sessionStats.headshots * 50;
-    
-    // Argent
-    rewards.money += result.won ? 1000 : 500;
-    rewards.money += StatsTracker.sessionStats.kills * 200;
-    
-    // Bonus pour les performances exceptionnelles
-    if (StatsTracker.sessionStats.kills >= 20) {
-        rewards.xp += 1000;
-        rewards.achievements.push('Machine de guerre');
-    }
-    
-    if (StatsTracker.sessionStats.headshots >= 10) {
-        rewards.xp += 500;
-        rewards.achievements.push('Tireur de précision');
-    }
-    
-    return rewards;
-}
-
-function showGameRewards(rewards) {
-    const rewardsModal = document.createElement('div');
-    rewardsModal.className = 'rewards-modal';
-    rewardsModal.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.9);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 10000;
-        backdrop-filter: blur(10px);
-    `;
-    
-    rewardsModal.innerHTML = `
-        <div style="
-            background: rgba(15, 20, 25, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            max-width: 500px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-        ">
-            <h2 style="color: #00d4ff; margin-bottom: 30px; font-size: 32px;">
-                🎉 Récompenses de partie
-            </h2>
-            
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; margin-bottom: 30px;">
-                <div style="text-align: center;">
-                    <div style="font-size: 48px; color: #ffd700; margin-bottom: 10px;">+${rewards.xp}</div>
-                    <div style="color: rgba(255, 255, 255, 0.7);">Points d'expérience</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-size: 48px; color: #4ade80; margin-bottom: 10px;">+${rewards.money}</div>
-                    <div style="color: rgba(255, 255, 255, 0.7);">Argent gagné</div>
-                </div>
-            </div>
-            
-            ${rewards.achievements.length > 0 ? `
-                <div style="margin-bottom: 30px;">
-                    <h3 style="color: #ff4655; margin-bottom: 15px;">🏆 Nouveaux succès</h3>
-                    ${rewards.achievements.map(achievement => `
-                        <div style="background: rgba(255, 70, 85, 0.1); border: 1px solid #ff4655; 
-                                    border-radius: 10px; padding: 10px; margin-bottom: 10px;">
-                            ${achievement}
-                        </div>
-                    `).join('')}
-                </div>
-            ` : ''}
-            
-            <button onclick="this.parentElement.parentElement.remove(); showMainMenu();" style="
-                background: linear-gradient(45deg, #ff4655, #00d4ff);
-                border: none;
-                border-radius: 12px;
-                color: white;
-                padding: 15px 30px;
-                font-size: 18px;
-                font-weight: bold;
-                cursor: pointer;
-                transition: all 0.3s ease;
-            ">
-                Continuer
-            </button>
-        </div>
-    `;
-    
-    document.body.appendChild(rewardsModal);
-    
-    // Auto-suppression après 15 secondes
-    setTimeout(() => {
-        if (rewardsModal.parentNode) {
-            rewardsModal.remove();
-            showMainMenu();
+        .damage-indicator {
+            font-family: 'Arial', sans-serif;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
         }
-    }, 15000);
+        
+        .game-notification {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        .graphics-low {
+            --render-quality: 0.75;
+        }
+        
+        .graphics-medium {
+            --render-quality: 1.0;
+        }
+        
+        .graphics-high {
+            --render-quality: 1.25;
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 // Animation d'entrée
@@ -1256,7 +1150,6 @@ function playEntryAnimation() {
 window.addEventListener('error', (e) => {
     console.error('❌ Erreur globale:', e.error);
     
-    // Ne pas afficher d'erreur pour les ressources manquantes
     if (e.error && e.error.message && e.error.message.includes('Loading')) {
         return;
     }
@@ -1270,68 +1163,11 @@ window.addEventListener('error', (e) => {
 
 window.addEventListener('unhandledrejection', (e) => {
     console.error('❌ Promesse rejetée:', e.reason);
-    e.preventDefault(); // Empêcher l'affichage dans la console
+    e.preventDefault();
 });
 
 function showErrorMessage(message) {
     NotificationSystem.show('Erreur', message, 'error');
-}
-
-// Debug et développement
-if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    window.DEBUG = {
-        AppState,
-        StatsTracker,
-        AchievementManager,
-        NotificationSystem,
-        gameState,
-        player,
-        game,
-        otherPlayers,
-        
-        // Fonctions de debug
-        addMoney: (amount) => {
-            player.money += amount;
-            updateUI();
-        },
-        
-        setHealth: (health) => {
-            player.health = Math.max(0, Math.min(100, health));
-            updateUI();
-        },
-        
-        teleport: (x, y) => {
-            player.x = x;
-            player.y = y;
-        },
-        
-        unlockAchievement: (id) => {
-            if (achievements[id]) {
-                AchievementManager.unlockAchievement(id, achievements[id]);
-            }
-        },
-        
-        addKills: (count) => {
-            for (let i = 0; i < count; i++) {
-                StatsTracker.trackEvent('kill');
-            }
-        },
-        
-        simulateMatch: (won = true) => {
-            StatsTracker.trackEvent('gameEnd', { won });
-        },
-        
-        listOnlineUsers: async () => {
-            const snapshot = await database.ref('users').orderByChild('status').equalTo('online').once('value');
-            console.table(Object.values(snapshot.val() || {}));
-        },
-        
-        showNotification: (title, message, type = 'info') => {
-            NotificationSystem.show(title, message, type);
-        }
-    };
-    
-    console.log('🛠️ Mode debug activé. Utilisez window.DEBUG pour accéder aux outils.');
 }
 
 // Nettoyage lors de la fermeture de la page
@@ -1341,38 +1177,54 @@ window.addEventListener('beforeunload', (e) => {
         StatsTracker.saveSessionStats();
     }
     
-    // Sauvegarder les paramètres
-    if (currentUser) {
-        saveUserSettings();
-    }
-    
     // Nettoyer les listeners
     stopUserSystems();
-    cleanupRealtimeListeners();
     
     // Marquer comme hors ligne
-    if (currentUser) {
+    if (currentUser && database && database.ref) {
         database.ref(`users/${currentUser.uid}/status`).set('offline');
     }
 });
 
-// Intégration avec les autres modules
-function startGameLoop() {
-    // Démarrer le loop de jeu avec intégration profils
-    integrateGameplayStats();
-    
-    if (typeof startGameLoop !== 'undefined') {
-        window.originalStartGameLoop = startGameLoop;
-    }
-}
-
-// Export des fonctions principales pour les autres modules
+// Export des fonctions principales
 window.GameOrchestrator = {
     AppState,
     StatsTracker,
-    AchievementManager,
     NotificationSystem,
-    startGame,
-    endGame,
-    integrateGameplayStats
+    initializeApp,
+    showAuthScreen,
+    showMainMenu,
+    showGameScreen
 };
+
+// Debug et développement
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    window.DEBUG = {
+        AppState,
+        StatsTracker,
+        NotificationSystem,
+        
+        // Fonctions de debug
+        testNotification: (type = 'info') => {
+            NotificationSystem.show(
+                'Test Notification',
+                'Ceci est un test de notification',
+                type
+            );
+        },
+        
+        addKills: (count) => {
+            for (let i = 0; i < count; i++) {
+                StatsTracker.trackEvent('kill', { headshot: Math.random() > 0.7 });
+            }
+        },
+        
+        simulateMatch: (won = true) => {
+            StatsTracker.trackEvent('game_end', { won });
+        }
+    };
+    
+    console.log('🛠️ Mode debug activé. Utilisez window.DEBUG pour accéder aux outils.');
+}
+
+console.log('🎮 Orchestrateur de jeu corrigé chargé avec logique Valorant complète');

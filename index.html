@@ -13,6 +13,8 @@
         <div id="auth-screen" class="auth-screen">
             <div class="auth-card">
                 <div class="auth-title">SIO SHOOTER 2D</div>
+                <div class="auth-subtitle">Tactical FPS - Style Valorant</div>
+                
                 <div class="auth-tabs">
                     <button class="auth-tab active" onclick="switchAuthTab('login')">Connexion</button>
                     <button class="auth-tab" onclick="switchAuthTab('register')">Inscription</button>
@@ -97,25 +99,51 @@
                     <div id="play-section" class="menu-section">
                         <h2>Modes de Jeu</h2>
                         <div class="game-modes">
-                            <div class="game-mode" onclick="selectGameMode('deathmatch')">
-                                <div class="mode-icon"><i class="fas fa-crosshairs"></i></div>
-                                <div class="mode-info">
-                                    <h3>Deathmatch</h3>
-                                    <p>Combat libre - 10 joueurs</p>
-                                </div>
-                            </div>
-                            <div class="game-mode" onclick="selectGameMode('spike-rush')">
-                                <div class="mode-icon"><i class="fas fa-bomb"></i></div>
-                                <div class="mode-info">
-                                    <h3>Spike Rush</h3>
-                                    <p>5v5 - Rounds rapides</p>
-                                </div>
-                            </div>
                             <div class="game-mode" onclick="selectGameMode('competitive')">
                                 <div class="mode-icon"><i class="fas fa-trophy"></i></div>
                                 <div class="mode-info">
                                     <h3>Compétitif</h3>
-                                    <p>5v5 - Classé</p>
+                                    <p>5v5 classé - Premier à 13 rounds</p>
+                                    <div class="mode-details">
+                                        <span class="detail-badge ranked">Classé</span>
+                                        <span class="detail-badge">Économie</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="game-mode" onclick="selectGameMode('duel')">
+                                <div class="mode-icon"><i class="fas fa-sword"></i></div>
+                                <div class="mode-info">
+                                    <h3>Duel</h3>
+                                    <p>1v1 - Premier à 5 rounds</p>
+                                    <div class="mode-details">
+                                        <span class="detail-badge ranked">Classé</span>
+                                        <span class="detail-badge">Économie</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="game-mode" onclick="selectGameMode('unrated')">
+                                <div class="mode-icon"><i class="fas fa-gamepad"></i></div>
+                                <div class="mode-info">
+                                    <h3>Non classé</h3>
+                                    <p>5v5 casual - Entraînement</p>
+                                    <div class="mode-details">
+                                        <span class="detail-badge">Casual</span>
+                                        <span class="detail-badge">Économie</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="game-mode" onclick="selectGameMode('deathmatch')">
+                                <div class="mode-icon"><i class="fas fa-crosshairs"></i></div>
+                                <div class="mode-info">
+                                    <h3>Deathmatch</h3>
+                                    <p>Combat libre - 10 minutes</p>
+                                    <div class="mode-details">
+                                        <span class="detail-badge">Action</span>
+                                        <span class="detail-badge">Pas d'économie</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -125,21 +153,52 @@
                             <div class="maps-grid">
                                 <div class="map-card active" onclick="selectMap('dust2')">
                                     <div class="map-preview dust2"></div>
-                                    <div class="map-name">Dust2</div>
+                                    <div class="map-info">
+                                        <div class="map-name">Dust2</div>
+                                        <div class="map-layout">2 sites</div>
+                                    </div>
                                 </div>
-                                <div class="map-card" onclick="selectMap('mirage')">
-                                    <div class="map-preview mirage"></div>
-                                    <div class="map-name">Mirage</div>
+                                <div class="map-card" onclick="selectMap('haven')">
+                                    <div class="map-preview haven"></div>
+                                    <div class="map-info">
+                                        <div class="map-name">Haven</div>
+                                        <div class="map-layout">3 sites</div>
+                                    </div>
                                 </div>
-                                <div class="map-card" onclick="selectMap('inferno')">
-                                    <div class="map-preview inferno"></div>
-                                    <div class="map-name">Inferno</div>
+                                <div class="map-card" onclick="selectMap('auto')">
+                                    <div class="map-preview auto"></div>
+                                    <div class="map-info">
+                                        <div class="map-name">Automatique</div>
+                                        <div class="map-layout">Aléatoire</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="play-options">
+                            <div class="play-settings">
+                                <h4>Préférences</h4>
+                                <div class="setting-row">
+                                    <label>Région:</label>
+                                    <select id="region-select">
+                                        <option value="EU">Europe</option>
+                                        <option value="NA">Amérique du Nord</option>
+                                        <option value="AS">Asie</option>
+                                    </select>
+                                </div>
+                                <div class="setting-row">
+                                    <label>Ping max:</label>
+                                    <select id="ping-select">
+                                        <option value="50">50ms</option>
+                                        <option value="100" selected>100ms</option>
+                                        <option value="150">150ms</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
 
                         <button class="launch-game-btn" onclick="launchGame()">
-                            <i class="fas fa-rocket"></i> LANCER LA PARTIE
+                            <i class="fas fa-rocket"></i> RECHERCHER UNE PARTIE
                         </button>
                     </div>
 
@@ -148,8 +207,12 @@
                         <h2>Liste d'Amis</h2>
                         <div class="friends-actions">
                             <div class="add-friend">
-                                <input type="text" id="friend-username" placeholder="Nom d'utilisateur">
+                                <input type="text" id="friend-username" placeholder="Nom d'utilisateur" maxlength="20">
                                 <button onclick="addFriend()"><i class="fas fa-user-plus"></i></button>
+                            </div>
+                            <div class="friends-search">
+                                <input type="text" id="friend-search" placeholder="Rechercher dans vos amis..." onkeyup="searchFriends(this.value)">
+                                <i class="fas fa-search"></i>
                             </div>
                         </div>
                         <div class="friends-list" id="friends-list">
@@ -161,9 +224,9 @@
                     <div id="leaderboard-section" class="menu-section hidden">
                         <h2>Classements</h2>
                         <div class="leaderboard-tabs">
-                            <button class="leaderboard-tab active" onclick="switchLeaderboardTab('kills')">Éliminations</button>
-                            <button class="leaderboard-tab" onclick="switchLeaderboardTab('wins')">Victoires</button>
-                            <button class="leaderboard-tab" onclick="switchLeaderboardTab('kd')">K/D Ratio</button>
+                            <button class="leaderboard-tab active" onclick="switchLeaderboardTab('competitive')">Compétitif</button>
+                            <button class="leaderboard-tab" onclick="switchLeaderboardTab('duel')">Duel</button>
+                            <button class="leaderboard-tab" onclick="switchLeaderboardTab('kills')">Éliminations</button>
                             <button class="leaderboard-tab" onclick="switchLeaderboardTab('level')">Niveau</button>
                         </div>
                         <div class="leaderboard-content" id="leaderboard-content">
@@ -175,12 +238,13 @@
 
                     <!-- Arsenal Section -->
                     <div id="arsenal-section" class="menu-section hidden">
-                        <h2>Arsenal</h2>
+                        <h2>Arsenal d'Armes</h2>
                         <div class="weapon-categories">
                             <button class="weapon-cat active" onclick="showWeaponCategory('rifles')">Fusils</button>
                             <button class="weapon-cat" onclick="showWeaponCategory('pistols')">Pistolets</button>
                             <button class="weapon-cat" onclick="showWeaponCategory('smgs')">SMG</button>
                             <button class="weapon-cat" onclick="showWeaponCategory('snipers')">Snipers</button>
+                            <button class="weapon-cat" onclick="showWeaponCategory('shotguns')">Shotguns</button>
                         </div>
                         <div class="weapons-grid" id="weapons-grid">
                             <!-- Weapons will be loaded here -->
@@ -195,21 +259,31 @@
                                 <h3>Audio</h3>
                                 <div class="setting-item">
                                     <label>Volume Principal</label>
-                                    <input type="range" min="0" max="100" value="50">
+                                    <input type="range" min="0" max="100" value="50" data-setting="masterVolume">
+                                    <span class="volume-value">50%</span>
                                 </div>
                                 <div class="setting-item">
                                     <label>Effets Sonores</label>
-                                    <input type="range" min="0" max="100" value="70">
+                                    <input type="range" min="0" max="100" value="70" data-setting="effectsVolume">
+                                    <span class="volume-value">70%</span>
                                 </div>
                             </div>
                             <div class="setting-group">
                                 <h3>Graphiques</h3>
                                 <div class="setting-item">
                                     <label>Qualité</label>
-                                    <select>
-                                        <option>Basse</option>
-                                        <option selected>Moyenne</option>
-                                        <option>Haute</option>
+                                    <select data-setting="graphics">
+                                        <option value="low">Basse</option>
+                                        <option value="medium" selected>Moyenne</option>
+                                        <option value="high">Haute</option>
+                                    </select>
+                                </div>
+                                <div class="setting-item">
+                                    <label>FPS cible</label>
+                                    <select data-setting="targetFPS">
+                                        <option value="60" selected>60 FPS</option>
+                                        <option value="120">120 FPS</option>
+                                        <option value="144">144 FPS</option>
                                     </select>
                                 </div>
                             </div>
@@ -217,7 +291,26 @@
                                 <h3>Contrôles</h3>
                                 <div class="setting-item">
                                     <label>Sensibilité Souris</label>
-                                    <input type="range" min="1" max="10" value="5">
+                                    <input type="range" min="1" max="10" value="5" data-setting="mouseSensitivity">
+                                    <span class="sensitivity-value">5</span>
+                                </div>
+                                <div class="setting-item">
+                                    <label>Mode de visée</label>
+                                    <select data-setting="aimMode">
+                                        <option value="hold">Maintenir</option>
+                                        <option value="toggle">Basculer</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="setting-group">
+                                <h3>Interface</h3>
+                                <div class="setting-item">
+                                    <label>Afficher les dégâts</label>
+                                    <input type="checkbox" data-setting="showDamage" checked>
+                                </div>
+                                <div class="setting-item">
+                                    <label>Kill feed étendu</label>
+                                    <input type="checkbox" data-setting="extendedKillFeed" checked>
                                 </div>
                             </div>
                         </div>
@@ -298,39 +391,41 @@
                         </div>
 
                         <div class="stats-detailed">
-                            <h3>Statistiques détaillées</h3>
-                            <div class="stats-grid">
-                                <div class="stat-row">
-                                    <span class="stat-name">Ratio K/D</span>
-                                    <span class="stat-value" id="stat-kd-ratio">0.00</span>
+                            <h3>Statistiques par mode</h3>
+                            <div class="mode-stats">
+                                <div class="mode-stat-card">
+                                    <h4>Compétitif</h4>
+                                    <div class="mode-stats-grid">
+                                        <div class="stat-row">
+                                            <span>Rang:</span>
+                                            <span id="competitive-rank">Fer I</span>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span>Parties:</span>
+                                            <span id="competitive-games">0</span>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span>Ratio V/D:</span>
+                                            <span id="competitive-winrate">0%</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="stat-row">
-                                    <span class="stat-name">Ratio Victoires</span>
-                                    <span class="stat-value" id="stat-win-ratio">0%</span>
-                                </div>
-                                <div class="stat-row">
-                                    <span class="stat-name">Parties jouées</span>
-                                    <span class="stat-value" id="stat-games-played">0</span>
-                                </div>
-                                <div class="stat-row">
-                                    <span class="stat-name">Temps de jeu</span>
-                                    <span class="stat-value" id="stat-playtime">0h 0m</span>
-                                </div>
-                                <div class="stat-row">
-                                    <span class="stat-name">Tirs effectués</span>
-                                    <span class="stat-value" id="stat-shots-fired">0</span>
-                                </div>
-                                <div class="stat-row">
-                                    <span class="stat-name">Tirs réussis</span>
-                                    <span class="stat-value" id="stat-shots-hit">0</span>
-                                </div>
-                                <div class="stat-row">
-                                    <span class="stat-name">Headshots</span>
-                                    <span class="stat-value" id="stat-headshots">0</span>
-                                </div>
-                                <div class="stat-row">
-                                    <span class="stat-name">Défaites</span>
-                                    <span class="stat-value" id="stat-losses">0</span>
+                                <div class="mode-stat-card">
+                                    <h4>Duel</h4>
+                                    <div class="mode-stats-grid">
+                                        <div class="stat-row">
+                                            <span>Rang:</span>
+                                            <span id="duel-rank">Fer I</span>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span>Parties:</span>
+                                            <span id="duel-games">0</span>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span>Ratio V/D:</span>
+                                            <span id="duel-winrate">0%</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -353,6 +448,15 @@
                     <div id="profile-matches-content" class="profile-tab-content hidden">
                         <div class="match-history">
                             <h3>Historique des parties</h3>
+                            <div class="match-filters">
+                                <select id="match-mode-filter">
+                                    <option value="all">Tous les modes</option>
+                                    <option value="competitive">Compétitif</option>
+                                    <option value="duel">Duel</option>
+                                    <option value="unrated">Non classé</option>
+                                    <option value="deathmatch">Deathmatch</option>
+                                </select>
+                            </div>
                             <div class="matches-list" id="matches-list">
                                 <!-- Match history will be loaded here -->
                             </div>
@@ -436,12 +540,18 @@
             <div class="game-hud">
                 <div class="hud-top">
                     <div class="team-score">
-                        <div class="team-score-item">
+                        <div class="team-score-item attackers">
                             <span class="team-name">Attaquants</span>
                             <span class="score" id="attackers-score">0</span>
                         </div>
-                        <div class="round-timer" id="round-timer">1:40</div>
-                        <div class="team-score-item">
+                        <div class="game-info">
+                            <div class="round-timer" id="round-timer">1:40</div>
+                            <div class="round-info">
+                                <span id="round-number">Round 1</span>
+                                <span id="game-phase">Phase d'achat</span>
+                            </div>
+                        </div>
+                        <div class="team-score-item defenders">
                             <span class="score" id="defenders-score">0</span>
                             <span class="team-name">Défenseurs</span>
                         </div>
@@ -457,24 +567,30 @@
                             </div>
                             <div class="armor">
                                 <i class="fas fa-shield-alt"></i>
-                                <span id="player-armor">100</span>
+                                <span id="player-armor">0</span>
                             </div>
                         </div>
                         <div class="weapon-info">
-                            <div class="weapon-name" id="current-weapon">AK-47</div>
+                            <div class="weapon-name" id="current-weapon">Classic</div>
                             <div class="ammo">
-                                <span id="current-ammo">30</span> / <span id="total-ammo">90</span>
+                                <span id="current-ammo">12</span> / <span id="total-ammo">36</span>
                             </div>
                         </div>
-                        <div class="money">
-                            <i class="fas fa-coins"></i>
-                            <span id="player-money">800</span>
+                        <div class="economy-info">
+                            <div class="money">
+                                <i class="fas fa-coins"></i>
+                                <span id="player-money">800</span>
+                            </div>
+                            <div class="bomb-status" id="bomb-status"></div>
                         </div>
                     </div>
                 </div>
 
                 <div class="minimap">
                     <canvas id="minimap-canvas" width="150" height="150"></canvas>
+                    <div class="minimap-info">
+                        <div class="map-name" id="minimap-map-name">Dust2</div>
+                    </div>
                 </div>
 
                 <!-- Scoreboard (Tab to show) -->
@@ -482,16 +598,67 @@
                     <div class="scoreboard-content">
                         <div class="scoreboard-header">
                             <h3>Tableau des scores</h3>
+                            <div class="match-info">
+                                <span id="scoreboard-mode">Compétitif</span> • 
+                                <span id="scoreboard-map">Dust2</span>
+                            </div>
                         </div>
                         <div class="teams-container">
-                            <div class="team-section">
-                                <h4>Attaquants</h4>
+                            <div class="team-section attackers">
+                                <div class="team-header">
+                                    <h4>Attaquants</h4>
+                                    <div class="team-score-display" id="scoreboard-attackers-score">0</div>
+                                </div>
+                                <div class="scoreboard-headers">
+                                    <span>Joueur</span>
+                                    <span>K</span>
+                                    <span>D</span>
+                                    <span>A</span>
+                                    <span>Éco</span>
+                                    <span>Ping</span>
+                                </div>
                                 <div class="players-list" id="attackers-list"></div>
                             </div>
-                            <div class="team-section">
-                                <h4>Défenseurs</h4>
+                            <div class="team-section defenders">
+                                <div class="team-header">
+                                    <h4>Défenseurs</h4>
+                                    <div class="team-score-display" id="scoreboard-defenders-score">0</div>
+                                </div>
+                                <div class="scoreboard-headers">
+                                    <span>Joueur</span>
+                                    <span>K</span>
+                                    <span>D</span>
+                                    <span>A</span>
+                                    <span>Éco</span>
+                                    <span>Ping</span>
+                                </div>
                                 <div class="players-list" id="defenders-list"></div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buy Menu Instructions -->
+                <div class="buy-hint" id="buy-hint">
+                    <div class="hint-content">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Appuyez sur <kbd>B</kbd> pour ouvrir la boutique</span>
+                    </div>
+                </div>
+
+                <!-- Game Controls Help -->
+                <div class="controls-help hidden" id="controls-help">
+                    <div class="help-content">
+                        <h4>Contrôles</h4>
+                        <div class="controls-grid">
+                            <div><kbd>WASD</kbd> Déplacement</div>
+                            <div><kbd>Shift</kbd> Courir</div>
+                            <div><kbd>Ctrl</kbd> S'accroupir</div>
+                            <div><kbd>R</kbd> Recharger</div>
+                            <div><kbd>B</kbd> Boutique</div>
+                            <div><kbd>4</kbd> Spike/Désamorcer</div>
+                            <div><kbd>Tab</kbd> Score</div>
+                            <div><kbd>Esc</kbd> Menu</div>
                         </div>
                     </div>
                 </div>
@@ -501,9 +668,11 @@
             
             <div class="game-menu-overlay hidden" id="game-menu-overlay">
                 <div class="game-menu">
-                    <button onclick="resumeGame()">Reprendre</button>
-                    <button onclick="showSettings()">Paramètres</button>
-                    <button onclick="leaveGame()">Quitter la Partie</button>
+                    <h3>Menu de jeu</h3>
+                    <button onclick="resumeGame()"><i class="fas fa-play"></i> Reprendre</button>
+                    <button onclick="toggleControlsHelp()"><i class="fas fa-keyboard"></i> Contrôles</button>
+                    <button onclick="showSettings()"><i class="fas fa-cog"></i> Paramètres</button>
+                    <button onclick="leaveGame()" class="danger"><i class="fas fa-sign-out-alt"></i> Quitter la Partie</button>
                 </div>
             </div>
         </div>
@@ -518,8 +687,31 @@
     <script src="firebase-config.js"></script>
     <script src="auth.js"></script>
     <script src="profile.js"></script>
+    <script src="matchmaking.js"></script>
     <script src="menu.js"></script>
     <script src="gameplay.js"></script>
     <script src="game.js"></script>
+    <script src="utils.js"></script>
+
+    <!-- Additional Functions -->
+    <script>
+        function toggleControlsHelp() {
+            const help = document.getElementById('controls-help');
+            help.classList.toggle('hidden');
+        }
+
+        function showBuyHint() {
+            const hint = document.getElementById('buy-hint');
+            hint.style.display = 'block';
+            setTimeout(() => {
+                hint.style.display = 'none';
+            }, 5000);
+        }
+
+        // Show buy hint at start of buy phase
+        function onBuyPhaseStart() {
+            showBuyHint();
+        }
+    </script>
 </body>
 </html>

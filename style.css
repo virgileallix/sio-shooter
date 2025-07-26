@@ -5,7 +5,7 @@
 }
 
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #0f1419 0%, #1a252f 100%);
     color: #ffffff;
     overflow: hidden;
@@ -58,11 +58,18 @@ body {
     text-align: center;
     font-size: 32px;
     font-weight: bold;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
     background: linear-gradient(45deg, #ff4655, #00d4ff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     text-shadow: 0 0 20px rgba(255, 70, 85, 0.3);
+}
+
+.auth-subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 30px;
 }
 
 .auth-tabs {
@@ -136,6 +143,12 @@ body {
 .auth-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 20px rgba(255, 70, 85, 0.3);
+}
+
+.auth-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
 }
 
 .social-auth {
@@ -334,6 +347,10 @@ body {
     font-size: 24px;
 }
 
+.mode-info {
+    flex: 1;
+}
+
 .mode-info h3 {
     font-size: 20px;
     margin-bottom: 5px;
@@ -342,6 +359,26 @@ body {
 .mode-info p {
     color: rgba(255, 255, 255, 0.7);
     font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.mode-details {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.detail-badge {
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.detail-badge.ranked {
+    background: rgba(255, 215, 0, 0.2);
+    color: #ffd700;
 }
 
 /* Map Selection */
@@ -380,24 +417,79 @@ body {
     height: 120px;
     background-size: cover;
     background-position: center;
+    position: relative;
 }
 
 .map-preview.dust2 {
     background: linear-gradient(45deg, #d4a574, #8b6f47);
 }
 
-.map-preview.mirage {
-    background: linear-gradient(45deg, #87ceeb, #4682b4);
+.map-preview.haven {
+    background: linear-gradient(45deg, #4a90e2, #357abd);
 }
 
-.map-preview.inferno {
-    background: linear-gradient(45deg, #ff6347, #8b0000);
+.map-preview.auto {
+    background: linear-gradient(45deg, #666, #999);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+}
+
+.map-preview.auto::before {
+    content: '?';
+}
+
+.map-info {
+    padding: 15px;
+    text-align: center;
 }
 
 .map-name {
-    padding: 15px;
-    text-align: center;
     font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.map-layout {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Play Options */
+.play-options {
+    margin-bottom: 30px;
+}
+
+.play-settings {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 20px;
+}
+
+.play-settings h4 {
+    margin-bottom: 15px;
+    color: #00d4ff;
+}
+
+.setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.setting-row label {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.setting-row select {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
 }
 
 .launch-game-btn {
@@ -418,15 +510,49 @@ body {
     box-shadow: 0 15px 30px rgba(255, 70, 85, 0.4);
 }
 
+.launch-game-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
 /* Friends Section */
 .friends-actions {
     margin-bottom: 30px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
 }
 
 .add-friend {
     display: flex;
     gap: 10px;
+    flex: 1;
     max-width: 400px;
+}
+
+.friends-search {
+    position: relative;
+    flex: 1;
+    max-width: 300px;
+}
+
+.friends-search input {
+    width: 100%;
+    padding: 15px 45px 15px 15px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    font-size: 16px;
+}
+
+.friends-search i {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .add-friend input {
@@ -589,6 +715,7 @@ body {
     display: flex;
     gap: 10px;
     margin-bottom: 30px;
+    flex-wrap: wrap;
 }
 
 .leaderboard-tab {
@@ -725,6 +852,7 @@ body {
     display: flex;
     gap: 10px;
     margin-bottom: 30px;
+    flex-wrap: wrap;
 }
 
 .weapon-cat {
@@ -745,7 +873,7 @@ body {
 
 .weapons-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 20px;
 }
 
@@ -779,12 +907,14 @@ body {
 .weapon-name {
     font-weight: bold;
     margin-bottom: 10px;
+    font-size: 18px;
 }
 
 .weapon-stats {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 15px;
 }
 
 .weapon-stat {
@@ -792,6 +922,9 @@ body {
     flex-direction: column;
     align-items: center;
     font-size: 12px;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
 }
 
 .stat-label {
@@ -832,10 +965,18 @@ body {
 
 .setting-item label {
     font-weight: bold;
+    cursor: pointer;
 }
 
 .setting-item input[type="range"] {
     width: 200px;
+    margin: 0 10px;
+}
+
+.setting-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
 }
 
 .setting-item select {
@@ -845,6 +986,14 @@ body {
     border-radius: 5px;
     color: white;
     font-size: 14px;
+    cursor: pointer;
+}
+
+.volume-value, .sensitivity-value {
+    min-width: 40px;
+    text-align: center;
+    color: #00d4ff;
+    font-weight: bold;
 }
 
 /* Profile Modal */
@@ -867,7 +1016,7 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 20px;
     width: 90%;
-    max-width: 800px;
+    max-width: 900px;
     max-height: 90%;
     overflow: hidden;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
@@ -1075,16 +1224,34 @@ body {
     color: #00d4ff;
 }
 
-.stats-grid {
+.mode-stats {
     display: grid;
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.mode-stat-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.mode-stat-card h4 {
+    margin-bottom: 15px;
+    color: #00d4ff;
+    text-align: center;
+}
+
+.mode-stats-grid {
+    display: grid;
+    gap: 8px;
 }
 
 .stat-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 0;
+    padding: 8px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -1101,7 +1268,805 @@ body {
     color: #00d4ff;
 }
 
-/* Achievements Tab */
+/* Game Screen */
+.game-screen {
+    height: 100vh;
+    background: #000;
+    position: relative;
+    overflow: hidden;
+}
+
+#game-canvas {
+    display: block;
+    background: #1a1a1a;
+    border: none;
+    width: 100%;
+    height: 100%;
+}
+
+.game-hud {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 100;
+}
+
+.hud-top {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.team-score {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 15px 30px;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.team-score-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.team-score-item.attackers .score {
+    color: #ff4655;
+}
+
+.team-score-item.defenders .score {
+    color: #00d4ff;
+}
+
+.team-name {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.score {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.game-info {
+    text-align: center;
+}
+
+.round-timer {
+    font-size: 32px;
+    font-weight: bold;
+    color: #ffd700;
+    margin-bottom: 5px;
+}
+
+.round-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.round-info span {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.hud-bottom {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.player-stats {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 15px 30px;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.health-armor {
+    display: flex;
+    gap: 20px;
+}
+
+.health, .armor {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+}
+
+.health {
+    color: #4ade80;
+}
+
+.armor {
+    color: #00d4ff;
+}
+
+.weapon-info {
+    text-align: center;
+}
+
+.weapon-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 16px;
+}
+
+.ammo {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.economy-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: center;
+}
+
+.money {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #fbbf24;
+    font-weight: bold;
+}
+
+.bomb-status {
+    font-size: 12px;
+    color: #ff4655;
+    font-weight: bold;
+}
+
+.minimap {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 15px;
+    padding: 10px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+}
+
+.minimap-info {
+    text-align: center;
+    margin-top: 5px;
+}
+
+.map-name {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+#minimap-canvas {
+    border-radius: 5px;
+}
+
+/* Scoreboard */
+.scoreboard {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.95);
+    border-radius: 20px;
+    padding: 30px;
+    min-width: 800px;
+    max-width: 90vw;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    pointer-events: all;
+}
+
+.scoreboard-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.scoreboard-header h3 {
+    color: #00d4ff;
+    margin-bottom: 5px;
+}
+
+.match-info {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+}
+
+.teams-container {
+    display: flex;
+    gap: 30px;
+}
+
+.team-section {
+    flex: 1;
+}
+
+.team-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    border-radius: 8px;
+}
+
+.team-section.attackers .team-header {
+    background: rgba(255, 70, 85, 0.1);
+    border: 1px solid rgba(255, 70, 85, 0.3);
+}
+
+.team-section.defenders .team-header {
+    background: rgba(0, 212, 255, 0.1);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+}
+
+.team-header h4 {
+    color: white;
+    margin: 0;
+}
+
+.team-score-display {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.team-section.attackers .team-score-display {
+    color: #ff4655;
+}
+
+.team-section.defenders .team-score-display {
+    color: #00d4ff;
+}
+
+.scoreboard-headers {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+    gap: 10px;
+    padding: 8px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 5px;
+    margin-bottom: 5px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.players-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* Buy Menu */
+.buy-menu {
+    color: white;
+}
+
+.buy-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 20px;
+}
+
+.buy-category {
+    transition: all 0.3s ease;
+}
+
+.buy-category.active {
+    background: rgba(0, 212, 255, 0.3) !important;
+    border-color: #00d4ff !important;
+}
+
+.buy-weapons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.weapon-buy-card {
+    transition: all 0.3s ease;
+}
+
+.weapon-buy-card:hover:not(.disabled) {
+    background: rgba(255, 255, 255, 0.1) !important;
+    transform: translateY(-2px);
+}
+
+.weapon-buy-card.equipped {
+    background: rgba(0, 212, 255, 0.2) !important;
+    border-color: #00d4ff !important;
+}
+
+.weapon-buy-card.disabled {
+    opacity: 0.5;
+}
+
+/* Game Messages */
+.game-message {
+    animation: messageSlide 0.5s ease;
+}
+
+@keyframes messageSlide {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+/* Buy Hint */
+.buy-hint {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    padding: 15px 25px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    pointer-events: none;
+    z-index: 120;
+}
+
+.hint-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+}
+
+.hint-content i {
+    color: #00d4ff;
+}
+
+kbd {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+/* Controls Help */
+.controls-help {
+    position: absolute;
+    top: 50%;
+    left: 20px;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    padding: 20px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    pointer-events: all;
+    z-index: 200;
+}
+
+.help-content h4 {
+    color: #00d4ff;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.controls-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    min-width: 200px;
+}
+
+.controls-grid div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 14px;
+}
+
+.controls-grid div:last-child {
+    border-bottom: none;
+}
+
+.game-menu-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(10px);
+    pointer-events: all;
+    z-index: 200;
+}
+
+.game-menu {
+    background: rgba(15, 20, 25, 0.95);
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    min-width: 300px;
+    text-align: center;
+}
+
+.game-menu h3 {
+    color: #00d4ff;
+    margin-bottom: 20px;
+}
+
+.game-menu button {
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.game-menu button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.game-menu button.danger {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.game-menu button.danger:hover {
+    background: #ef4444;
+    color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .menu-content {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        height: auto;
+    }
+    
+    .menu-nav {
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 5px;
+    }
+    
+    .nav-btn {
+        white-space: nowrap;
+        min-width: 120px;
+    }
+    
+    .main-content {
+        padding: 20px;
+    }
+    
+    .auth-card {
+        width: 90%;
+        margin: 20px;
+    }
+    
+    .game-modes {
+        grid-template-columns: 1fr;
+    }
+    
+    .maps-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    
+    .profile-modal {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .stats-overview {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    
+    .profile-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .profile-tab {
+        flex: none;
+        min-width: 120px;
+    }
+    
+    .team-score {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .player-stats {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .scoreboard {
+        min-width: 95vw;
+        padding: 20px;
+    }
+    
+    .teams-container {
+        flex-direction: column;
+        gap: 20px;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes spin {
+    0% { 
+        transform: rotate(0deg); 
+    }
+    100% { 
+        transform: rotate(360deg); 
+    }
+}
+
+.menu-section {
+    animation: fadeIn 0.5s ease;
+}
+
+.profile-modal {
+    animation: fadeIn 0.3s ease;
+}
+
+.launch-game-btn:hover {
+    animation: pulse 2s infinite;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #ff4655, #00d4ff);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(45deg, #ff3344, #0099cc);
+}
+
+/* Additional utility classes */
+.no-friends, .no-results, .no-matches {
+    text-align: center;
+    padding: 60px 20px;
+    grid-column: 1 / -1;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.search-result {
+    border-left: 3px solid #00d4ff;
+}
+
+.danger-btn {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid #ef4444;
+    border-radius: 8px;
+    color: #ef4444;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.danger-btn:hover {
+    background: #ef4444;
+    color: white;
+}
+
+.update-btn {
+    padding: 12px 20px;
+    background: linear-gradient(45deg, #ff4655, #00d4ff);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.update-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+}
+
+.avatar-selection {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.avatar-option {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.avatar-option:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
+
+.avatar-option.active {
+    background: linear-gradient(45deg, #ff4655, #00d4ff);
+    border-color: #00d4ff;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+}
+
+.privacy-settings {
+    margin-top: 15px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+}
+
+.checkbox-item label {
+    margin: 0;
+    font-weight: normal;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+}
+
+/* Kill feed styles */
+.kill-entry {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 8px 15px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-left: 3px solid #00d4ff;
+    animation: slideInRight 0.3s ease;
+}
+
+/* Matchmaking UI */
+.matchmaking-ui {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(15, 20, 25, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 40px;
+    z-index: 1500;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    min-width: 400px;
+}
+
+/* Enhanced styles for new features */
+.match-filters {
+    margin-bottom: 20px;
+}
+
+.match-filters select {
+    padding: 8px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    color: white;
+    font-size: 14px;
+}
+
 .achievements-header {
     display: flex;
     justify-content: space-between;
@@ -1197,624 +2162,4 @@ body {
 
 .achievement-card.locked .achievement-status {
     color: rgba(255, 255, 255, 0.3);
-}
-
-/* Match History Tab */
-.match-history h3 {
-    margin-bottom: 20px;
-    color: #00d4ff;
-}
-
-.matches-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.match-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 20px;
-    transition: all 0.3s ease;
-}
-
-.match-card:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.match-card.victoire {
-    border-left: 4px solid #4ade80;
-}
-
-.match-card.défaite {
-    border-left: 4px solid #ef4444;
-}
-
-.match-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.match-map {
-    font-weight: bold;
-    font-size: 16px;
-}
-
-.match-result {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-.match-result.victoire {
-    background: rgba(74, 222, 128, 0.2);
-    color: #4ade80;
-}
-
-.match-result.défaite {
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
-}
-
-.match-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.match-mode {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 14px;
-}
-
-.match-score {
-    font-weight: bold;
-}
-
-.match-stats {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 10px;
-}
-
-.match-stats span {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 12px;
-}
-
-.match-date {
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 12px;
-}
-
-.no-matches {
-    text-align: center;
-    padding: 40px;
-    color: rgba(255, 255, 255, 0.7);
-}
-
-/* Profile Settings Tab */
-.profile-settings {
-    max-width: 500px;
-}
-
-.profile-settings h3 {
-    margin-bottom: 30px;
-    color: #00d4ff;
-}
-
-.setting-group {
-    margin-bottom: 30px;
-}
-
-.setting-group label {
-    display: block;
-    margin-bottom: 10px;
-    font-weight: bold;
-    color: rgba(255, 255, 255, 0.9);
-}
-
-.setting-group small {
-    display: block;
-    margin-top: 5px;
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 12px;
-}
-
-.username-edit {
-    display: flex;
-    gap: 10px;
-}
-
-.username-edit input {
-    flex: 1;
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    color: white;
-    font-size: 14px;
-}
-
-.username-edit input:focus {
-    outline: none;
-    border-color: #00d4ff;
-}
-
-.update-btn {
-    padding: 12px 20px;
-    background: linear-gradient(45deg, #ff4655, #00d4ff);
-    border: none;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 14px;
-}
-
-.update-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
-}
-
-.avatar-selection {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-    gap: 15px;
-    margin-top: 10px;
-}
-
-.avatar-option {
-    width: 60px;
-    height: 60px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.avatar-option:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: scale(1.05);
-}
-
-.avatar-option.active {
-    background: linear-gradient(45deg, #ff4655, #00d4ff);
-    border-color: #00d4ff;
-    box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
-}
-
-.privacy-settings {
-    margin-top: 15px;
-}
-
-.checkbox-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.checkbox-item input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-}
-
-.checkbox-item label {
-    margin: 0;
-    font-weight: normal;
-    color: rgba(255, 255, 255, 0.8);
-    cursor: pointer;
-}
-
-.profile-actions {
-    margin-top: 20px;
-}
-
-.danger-btn {
-    padding: 12px 20px;
-    background: rgba(239, 68, 68, 0.2);
-    border: 1px solid #ef4444;
-    border-radius: 8px;
-    color: #ef4444;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.danger-btn:hover {
-    background: #ef4444;
-    color: white;
-}
-
-/* Game Screen */
-.game-screen {
-    height: 100vh;
-    background: #000;
-    position: relative;
-    overflow: hidden;
-}
-
-#game-canvas {
-    display: block;
-    background: #1a1a1a;
-    border: none;
-}
-
-.game-hud {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
-    z-index: 100;
-}
-
-.hud-top {
-    position: absolute;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.team-score {
-    display: flex;
-    align-items: center;
-    gap: 30px;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 15px 30px;
-    border-radius: 10px;
-    backdrop-filter: blur(10px);
-}
-
-.team-score-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-}
-
-.team-name {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.score {
-    font-size: 24px;
-    font-weight: bold;
-}
-
-.round-timer {
-    font-size: 32px;
-    font-weight: bold;
-    color: #ff4655;
-}
-
-.hud-bottom {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.player-stats {
-    display: flex;
-    align-items: center;
-    gap: 30px;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 15px 30px;
-    border-radius: 10px;
-    backdrop-filter: blur(10px);
-}
-
-.health-armor {
-    display: flex;
-    gap: 20px;
-}
-
-.health, .armor {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: bold;
-}
-
-.health {
-    color: #4ade80;
-}
-
-.armor {
-    color: #00d4ff;
-}
-
-.weapon-info {
-    text-align: center;
-}
-
-.weapon-name {
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.ammo {
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.money {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #fbbf24;
-    font-weight: bold;
-}
-
-.minimap {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: rgba(0, 0, 0, 0.7);
-    border-radius: 10px;
-    padding: 10px;
-    backdrop-filter: blur(10px);
-}
-
-#minimap-canvas {
-    border-radius: 5px;
-}
-
-.game-menu-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    backdrop-filter: blur(10px);
-    pointer-events: all;
-    z-index: 200;
-}
-
-.game-menu {
-    background: rgba(15, 20, 25, 0.95);
-    padding: 40px;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    min-width: 300px;
-}
-
-.game-menu button {
-    padding: 15px 20px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.game-menu button:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-/* Scoreboard */
-.scoreboard {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.9);
-    border-radius: 15px;
-    padding: 30px;
-    min-width: 600px;
-    backdrop-filter: blur(10px);
-}
-
-.scoreboard-header h3 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #00d4ff;
-}
-
-.teams-container {
-    display: flex;
-    gap: 30px;
-}
-
-.team-section {
-    flex: 1;
-}
-
-.team-section h4 {
-    margin-bottom: 15px;
-    text-align: center;
-    padding: 10px;
-    border-radius: 8px;
-}
-
-.players-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .menu-content {
-        flex-direction: column;
-    }
-    
-    .sidebar {
-        width: 100%;
-        height: auto;
-    }
-    
-    .menu-nav {
-        flex-direction: row;
-        overflow-x: auto;
-        gap: 5px;
-    }
-    
-    .nav-btn {
-        white-space: nowrap;
-        min-width: 120px;
-    }
-    
-    .main-content {
-        padding: 20px;
-    }
-    
-    .auth-card {
-        width: 90%;
-        margin: 20px;
-    }
-    
-    .game-modes {
-        grid-template-columns: 1fr;
-    }
-    
-    .maps-grid {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    }
-    
-    .profile-modal {
-        width: 95%;
-        margin: 20px;
-    }
-    
-    .profile-header {
-        flex-direction: column;
-        text-align: center;
-        gap: 15px;
-    }
-    
-    .stats-overview {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    }
-    
-    .achievements-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .profile-tabs {
-        flex-wrap: wrap;
-    }
-    
-    .profile-tab {
-        flex: none;
-        min-width: 120px;
-    }
-}
-
-/* Animations */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.menu-section {
-    animation: fadeIn 0.5s ease;
-}
-
-.profile-modal {
-    animation: fadeIn 0.3s ease;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-    }
-}
-
-.launch-game-btn:hover {
-    animation: pulse 2s infinite;
-}
-
-@keyframes slideInRight {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideOutRight {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: linear-gradient(45deg, #ff4655, #00d4ff);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(45deg, #ff3344, #0099cc);
-}
-
-/* Additional styles for new features */
-.no-friends, .no-results {
-    text-align: center;
-    padding: 60px 20px;
-    grid-column: 1 / -1;
-}
-
-.search-result {
-    border-left: 3px solid #00d4ff;
-}
-
-@keyframes buttonSuccess {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-}
-
-.launch-game-btn:not(:disabled):active {
-    animation: buttonSuccess 0.3s ease;
 }
