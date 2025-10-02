@@ -66,6 +66,14 @@
                     <div class="user-details">
                         <div class="username" id="current-username">Joueur</div>
                         <div class="user-rank" id="current-user-rank">Rang: Fer I</div>
+                        <div class="user-currency">
+                            <span class="currency-item">
+                                <i class="fas fa-coins"></i> <span id="header-coins">1000</span>
+                            </span>
+                            <span class="currency-item">
+                                <i class="fas fa-gem"></i> <span id="header-vp">0</span>
+                            </span>
+                        </div>
                     </div>
                     <button class="logout-btn" onclick="logout()">
                         <i class="fas fa-sign-out-alt"></i>
@@ -87,6 +95,12 @@
                         </button>
                         <button class="nav-btn" onclick="showMenuSection('arsenal')">
                             <i class="fas fa-crosshairs"></i> Arsenal
+                        </button>
+                        <button class="nav-btn" onclick="showMenuSection('store')">
+                            <i class="fas fa-shopping-cart"></i> Boutique
+                        </button>
+                        <button class="nav-btn" onclick="showMenuSection('inventory')">
+                            <i class="fas fa-box-open"></i> Inventaire
                         </button>
                         <button class="nav-btn" onclick="showMenuSection('settings')">
                             <i class="fas fa-cog"></i> Paramètres
@@ -248,6 +262,96 @@
                         </div>
                         <div class="weapons-grid" id="weapons-grid">
                             <!-- Weapons will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Store Section -->
+                    <div id="store-section" class="menu-section hidden">
+                        <h2>Boutique</h2>
+                        <div class="currency-display">
+                            <div class="currency-item">
+                                <i class="fas fa-coins"></i>
+                                <span id="user-coins">1000</span> SIO Coins
+                            </div>
+                            <div class="currency-item">
+                                <i class="fas fa-gem"></i>
+                                <span id="user-vp">0</span> VP
+                            </div>
+                        </div>
+
+                        <div class="store-tabs">
+                            <button class="store-tab active" onclick="switchStoreTab('cases')">Cases</button>
+                            <button class="store-tab" onclick="switchStoreTab('skins')">Skins</button>
+                            <button class="store-tab" onclick="switchStoreTab('agents')">Agents</button>
+                        </div>
+
+                        <div id="store-cases" class="store-content">
+                            <div class="cases-grid" id="cases-grid">
+                                <!-- Cases will be loaded here -->
+                            </div>
+                        </div>
+
+                        <div id="store-skins" class="store-content hidden">
+                            <div class="skin-categories">
+                                <button class="skin-cat active" onclick="showSkinCategory('rifles')">Fusils</button>
+                                <button class="skin-cat" onclick="showSkinCategory('pistols')">Pistolets</button>
+                                <button class="skin-cat" onclick="showSkinCategory('smgs')">SMG</button>
+                                <button class="skin-cat" onclick="showSkinCategory('snipers')">Snipers</button>
+                            </div>
+                            <div class="skins-grid" id="skins-grid">
+                                <!-- Skins will be loaded here -->
+                            </div>
+                        </div>
+
+                        <div id="store-agents" class="store-content hidden">
+                            <div class="agents-grid" id="agents-grid">
+                                <!-- Agents will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inventory Section -->
+                    <div id="inventory-section" class="menu-section hidden">
+                        <h2>Inventaire</h2>
+                        <div class="inventory-stats">
+                            <div class="inventory-stat">
+                                <span class="stat-label">Skins possédés:</span>
+                                <span class="stat-value" id="total-skins">0</span>
+                            </div>
+                            <div class="inventory-stat">
+                                <span class="stat-label">Valeur totale:</span>
+                                <span class="stat-value" id="total-value">0</span> SIO Coins
+                            </div>
+                        </div>
+
+                        <div class="inventory-tabs">
+                            <button class="inventory-tab active" onclick="switchInventoryTab('weapons')">Armes</button>
+                            <button class="inventory-tab" onclick="switchInventoryTab('agents')">Agents</button>
+                            <button class="inventory-tab" onclick="switchInventoryTab('cases')">Cases</button>
+                        </div>
+
+                        <div id="inventory-weapons" class="inventory-content">
+                            <div class="weapon-categories">
+                                <button class="weapon-cat active" onclick="showInventoryCategory('rifles')">Fusils</button>
+                                <button class="weapon-cat" onclick="showInventoryCategory('pistols')">Pistolets</button>
+                                <button class="weapon-cat" onclick="showInventoryCategory('smgs')">SMG</button>
+                                <button class="weapon-cat" onclick="showInventoryCategory('snipers')">Snipers</button>
+                            </div>
+                            <div class="inventory-grid" id="inventory-weapons-grid">
+                                <!-- Owned weapon skins will be loaded here -->
+                            </div>
+                        </div>
+
+                        <div id="inventory-agents" class="inventory-content hidden">
+                            <div class="inventory-grid" id="inventory-agents-grid">
+                                <!-- Owned agents will be loaded here -->
+                            </div>
+                        </div>
+
+                        <div id="inventory-cases" class="inventory-content hidden">
+                            <div class="inventory-grid" id="inventory-cases-grid">
+                                <!-- Owned cases will be loaded here -->
+                            </div>
                         </div>
                     </div>
 
@@ -678,6 +782,42 @@
         </div>
     </div>
 
+    <!-- Case Opening Modal -->
+    <div id="case-opening-modal" class="modal-overlay hidden">
+        <div class="case-opening-container">
+            <div class="case-opening-header">
+                <h2 id="case-opening-title">Ouverture de Case</h2>
+                <button class="modal-close" onclick="closeCaseOpeningModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="case-opening-animation">
+                <div class="case-display">
+                    <div class="case-image" id="case-image"></div>
+                </div>
+                <div class="opening-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="opening-progress"></div>
+                    </div>
+                </div>
+                <div class="skin-reveal hidden" id="skin-reveal">
+                    <div class="skin-card">
+                        <div class="skin-image" id="revealed-skin-image"></div>
+                        <div class="skin-info">
+                            <div class="skin-name" id="revealed-skin-name"></div>
+                            <div class="skin-weapon" id="revealed-skin-weapon"></div>
+                            <div class="skin-rarity" id="revealed-skin-rarity"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="opening-actions hidden" id="opening-actions">
+                    <button class="btn-primary" onclick="equipSkin()">Équiper</button>
+                    <button class="btn-secondary" onclick="closeCaseOpeningModal()">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
@@ -692,6 +832,7 @@
     <script src="gameplay.js"></script>
     <script src="game.js"></script>
     <script src="utils.js"></script>
+    <script src="store.js"></script>
 
     <!-- Additional Functions -->
     <script>

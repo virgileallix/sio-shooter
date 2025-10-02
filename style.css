@@ -1952,6 +1952,466 @@ kbd {
     color: white;
 }
 
+/* Store System Styles */
+.currency-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.currency-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.currency-item i {
+    color: #ffd700;
+    font-size: 20px;
+}
+
+.user-currency {
+    display: flex;
+    gap: 15px;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.user-currency .currency-item {
+    font-size: 12px;
+}
+
+.user-currency .currency-item i {
+    font-size: 14px;
+}
+
+.store-tabs, .inventory-tabs {
+    display: flex;
+    margin-bottom: 30px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.store-tab, .inventory-tab {
+    flex: 1;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.store-tab.active, .inventory-tab.active {
+    background: linear-gradient(45deg, #ff4655, #00d4ff);
+    color: white;
+    font-weight: bold;
+}
+
+.store-tab:hover, .inventory-tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.cases-grid, .skins-grid, .agents-grid, .inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.case-card {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 25px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.case-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    border-color: #00d4ff;
+}
+
+.case-image {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.case-icon {
+    font-size: 60px;
+    background: linear-gradient(45deg, #ff4655, #00d4ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 15px;
+}
+
+.case-info h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #fff;
+}
+
+.case-info p {
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 15px;
+    line-height: 1.4;
+}
+
+.case-price {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffd700;
+    margin-bottom: 20px;
+}
+
+.case-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.skin-card {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 15px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid transparent;
+}
+
+.skin-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+
+.skin-image {
+    text-align: center;
+    margin-bottom: 15px;
+    padding: 20px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.weapon-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+}
+
+.skin-info {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.skin-weapon {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 5px;
+}
+
+.skin-name {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #fff;
+}
+
+.skin-rarity {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.skin-description {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.3;
+}
+
+.skin-actions {
+    text-align: center;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, #00d4ff, #0099cc);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 212, 255, 0.3);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 12px 24px;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.btn-disabled {
+    background: rgba(100, 100, 100, 0.3);
+    border: 1px solid rgba(100, 100, 100, 0.5);
+    padding: 12px 24px;
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: bold;
+    cursor: not-allowed;
+    font-size: 14px;
+}
+
+.btn-equipped {
+    background: linear-gradient(45deg, #4ade80, #22c55e);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    cursor: default;
+    font-size: 14px;
+    position: relative;
+}
+
+.btn-equipped::after {
+    content: '✓';
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.skin-categories, .weapon-categories {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.skin-cat, .weapon-cat {
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.skin-cat.active, .weapon-cat.active {
+    background: linear-gradient(45deg, #ff4655, #00d4ff);
+    color: white;
+    font-weight: bold;
+    border-color: transparent;
+}
+
+.skin-cat:hover, .weapon-cat:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+/* Inventory Styles */
+.inventory-stats {
+    display: flex;
+    justify-content: space-around;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.inventory-stat {
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #00d4ff;
+}
+
+.empty-inventory, .empty-category {
+    text-align: center;
+    padding: 80px 20px;
+    color: rgba(255, 255, 255, 0.6);
+    grid-column: 1 / -1;
+}
+
+.empty-inventory i {
+    font-size: 60px;
+    margin-bottom: 20px;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.empty-inventory p {
+    font-size: 18px;
+    margin-bottom: 25px;
+}
+
+/* Case Opening Modal */
+.case-opening-container {
+    background: rgba(15, 20, 25, 0.98);
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 600px;
+    width: 90%;
+    position: relative;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+}
+
+.case-opening-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.case-opening-header h2 {
+    color: #fff;
+    font-size: 28px;
+    margin: 0;
+}
+
+.case-opening-animation {
+    text-align: center;
+}
+
+.case-display {
+    margin-bottom: 40px;
+    padding: 40px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.case-display .case-icon {
+    font-size: 80px;
+    background: linear-gradient(45deg, #ff4655, #00d4ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: pulse 2s infinite;
+}
+
+.opening-progress {
+    margin-bottom: 40px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(45deg, #ff4655, #00d4ff);
+    width: 0%;
+    transition: width 0.1s ease;
+    border-radius: 4px;
+}
+
+.skin-reveal {
+    margin-bottom: 30px;
+}
+
+.skin-reveal .skin-card {
+    max-width: 300px;
+    margin: 0 auto;
+    animation: fadeIn 1s ease;
+}
+
+.opening-actions {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive adjustments for store */
+@media (max-width: 768px) {
+    .cases-grid, .skins-grid, .inventory-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .currency-display {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .skin-categories, .weapon-categories {
+        justify-content: center;
+    }
+    
+    .case-opening-container {
+        padding: 20px;
+        width: 95%;
+    }
+    
+    .store-tabs, .inventory-tabs {
+        flex-direction: column;
+    }
+}
+
 .update-btn {
     padding: 12px 20px;
     background: linear-gradient(45deg, #ff4655, #00d4ff);

@@ -16,9 +16,13 @@ document.addEventListener('DOMContentLoaded', () => {
     checkGoogleAuthSupport();
     
     // Vérifier si un utilisateur est déjà connecté
-    const user = auth.currentUser;
-    if (user) {
-        showMainMenu();
+    // Wait for Firebase to initialize first
+    if (typeof firebase !== 'undefined' && firebase.auth) {
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                console.log('User already logged in:', user.email);
+            }
+        });
     }
 });
 

@@ -165,6 +165,23 @@ async function loadOrCreateUserProfile() {
                 // Économie du jeu
                 money: 800,
                 
+                // Store and inventory system
+                inventory: {
+                    skins: [],
+                    cases: [],
+                    equippedSkins: {
+                        rifles: {},
+                        pistols: {},
+                        smgs: {},
+                        snipers: {},
+                        knives: {}
+                    },
+                    currency: {
+                        coins: 1000,
+                        vp: 0
+                    }
+                },
+                
                 // Métadonnées
                 createdAt: firebase.database.ServerValue.TIMESTAMP,
                 lastLogin: firebase.database.ServerValue.TIMESTAMP
@@ -197,6 +214,24 @@ async function updateUserProfileStructure(userData) {
             publicStats: true,
             showOnline: true,
             allowFriendRequests: true
+        };
+    }
+    
+    if (!userData.inventory) {
+        updates['inventory'] = {
+            skins: [],
+            cases: [],
+            equippedSkins: {
+                rifles: {},
+                pistols: {},
+                smgs: {},
+                snipers: {},
+                knives: {}
+            },
+            currency: {
+                coins: 1000,
+                vp: 0
+            }
         };
     }
     

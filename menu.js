@@ -144,6 +144,16 @@ function showMenuSection(section) {
                 case 'leaderboard':
                     switchLeaderboardTab('competitive');
                     break;
+                case 'store':
+                    if (typeof StoreSystem !== 'undefined') {
+                        StoreSystem.switchStoreTab('cases');
+                    }
+                    break;
+                case 'inventory':
+                    if (typeof StoreSystem !== 'undefined') {
+                        StoreSystem.loadInventory();
+                    }
+                    break;
                 case 'settings':
                     loadCurrentSettings();
                     break;
