@@ -1,74 +1,6 @@
-// Système de matchmaking RÉEL avec Firebase - Pas de simulation
+// Système de matchmaking RÉEL avec Firebase - VERSION COMPLÈTE CORRIGÉE
 
-// Configuration des modes de jeu (exportée globalement)
-window.gameModes = {
-    duel: {
-        name: 'Duel',
-        description: '1v1 - Premier à 5 rounds',
-        maxPlayers: 2,
-        maxRounds: 9,
-        winCondition: 5,
-        economy: true,
-        ranked: true,
-        teamSize: 1
-    },
-    competitive: {
-        name: 'Compétitif',
-        description: '5v5 - Premier à 13 rounds',
-        maxPlayers: 10,
-        maxRounds: 25,
-        winCondition: 13,
-        economy: true,
-        ranked: true,
-        teamSize: 5
-    },
-    deathmatch: {
-        name: 'Deathmatch',
-        description: 'Combat libre - 10 minutes',
-        maxPlayers: 14,
-        maxRounds: 1,
-        winCondition: 50,
-        economy: false,
-        ranked: false,
-        teamSize: 0
-    },
-    unrated: {
-        name: 'Non classé',
-        description: '5v5 - Mode casual',
-        maxPlayers: 10,
-        maxRounds: 25,
-        winCondition: 13,
-        economy: true,
-        ranked: false,
-        teamSize: 5
-    }
-};
-
-// Système de rangs pour le matchmaking réel
-const rankSystem = {
-    'Fer I': { mmr: 0, variance: 100 },
-    'Fer II': { mmr: 100, variance: 90 },
-    'Fer III': { mmr: 200, variance: 85 },
-    'Bronze I': { mmr: 300, variance: 80 },
-    'Bronze II': { mmr: 400, variance: 75 },
-    'Bronze III': { mmr: 500, variance: 70 },
-    'Argent I': { mmr: 600, variance: 65 },
-    'Argent II': { mmr: 700, variance: 60 },
-    'Argent III': { mmr: 800, variance: 55 },
-    'Or I': { mmr: 900, variance: 50 },
-    'Or II': { mmr: 1000, variance: 45 },
-    'Or III': { mmr: 1100, variance: 40 },
-    'Platine I': { mmr: 1200, variance: 35 },
-    'Platine II': { mmr: 1300, variance: 30 },
-    'Platine III': { mmr: 1400, variance: 25 },
-    'Diamant I': { mmr: 1500, variance: 20 },
-    'Diamant II': { mmr: 1600, variance: 18 },
-    'Diamant III': { mmr: 1700, variance: 15 },
-    'Immortel': { mmr: 1800, variance: 12 },
-    'Radiant': { mmr: 2000, variance: 10 }
-};
-
-// État du matchmaking (global)
+// État global du matchmaking
 window.matchmakingState = {
     inQueue: false,
     queueStartTime: null,
@@ -348,16 +280,10 @@ class MatchmakingSystem {
                         mmr: this.calculateMMR(playerData),
                         avatar: playerData.avatar || 'user',
                         team: mode === 'deathmatch' ? null : 'attackers',
-                        ready: true, // Le créateur est automatiquement prêt
+                        ready: false,
                         connected: true,
                         joinedAt: firebase.database.ServerValue.TIMESTAMP
                     }
-                },
-                settings: {
-                    economy: this.gameModes[mode].economy,
-                    ranked: this.gameModes[mode].ranked,
-                    maxRounds: this.gameModes[mode].maxRounds,
-                    winCondition: this.gameModes[mode].winCondition
                 },
                 createdAt: firebase.database.ServerValue.TIMESTAMP,
                 lastActivity: firebase.database.ServerValue.TIMESTAMP
@@ -381,20 +307,14 @@ class MatchmakingSystem {
     }
 
     // Assigner une équipe au joueur
-    assignTeam(match, mode) {
+    assignTeam(matchData, mode) {
         if (mode === 'deathmatch') return null;
         
-        const players = match.players || {};
-        let attackersCount = 0;
-        let defendersCount = 0;
+        const players = Object.values(matchData.players || {});
+        const attackers = players.filter(p => p.team === 'attackers').length;
+        const defenders = players.filter(p => p.team === 'defenders').length;
         
-        Object.values(players).forEach(player => {
-            if (player.team === 'attackers') attackersCount++;
-            if (player.team === 'defenders') defendersCount++;
-        });
-        
-        // Assigner à l'équipe avec le moins de joueurs
-        return attackersCount <= defendersCount ? 'attackers' : 'defenders';
+        return attackers <= defenders ? 'attackers' : 'defenders';
     }
 
     // Configurer les listeners de file d'attente
@@ -449,6 +369,281 @@ class MatchmakingSystem {
             this.handlePlayerLeft(playerId);
         });
     }
+
+    // ========================================
+    // MÉTHODES CORRIGÉES - AJOUTÉES
+    // ========================================
+
+    // Gérer quand un joueur rejoint le match
+    handlePlayerJoined(playerId, playerData) {
+        console.log(`👤 Joueur rejoint: ${playerData.name}`);
+        
+        // Afficher une notification
+        if (window.NotificationSystem) {
+            window.NotificationSystem.show(
+                'Nouveau joueur',
+                `${playerData.name} a rejoint le match`,
+                'info',
+                3000
+            );
+        }
+        
+        // Mettre à jour l'interface du lobby si visible
+        const lobby = document.getElementById('match-lobby');
+        if (lobby && window.matchmakingState.currentMatchId) {
+            this.refreshLobbyDisplay();
+        }
+    }
+
+    // Gérer quand un joueur quitte le match
+    handlePlayerLeft(playerId) {
+        console.log(`👋 Joueur parti: ${playerId}`);
+        
+        // Afficher une notification
+        if (window.NotificationSystem) {
+            window.NotificationSystem.show(
+                'Joueur déconnecté',
+                'Un joueur a quitté le match',
+                'warning',
+                3000
+            );
+        }
+        
+        // Mettre à jour l'interface du lobby si visible
+        const lobby = document.getElementById('match-lobby');
+        if (lobby && window.matchmakingState.currentMatchId) {
+            this.refreshLobbyDisplay();
+        }
+        
+        // Vérifier si le match doit être annulé
+        this.checkMatchValidity();
+    }
+
+    // Gérer quand un match est trouvé
+    async handleMatchFound(matchId) {
+        console.log('✅ Match trouvé:', matchId);
+        
+        // Nettoyer la file d'attente
+        if (window.matchmakingState.currentQueueId) {
+            const queueRef = database.ref(`matchmaking_queue/${window.matchmakingState.currentQueueId}`);
+            await queueRef.remove();
+        }
+        
+        window.matchmakingState.inQueue = false;
+        window.matchmakingState.currentMatchId = matchId;
+        
+        // Récupérer les données du match
+        const matchRef = database.ref(`active_matches/${matchId}`);
+        const snapshot = await matchRef.once('value');
+        const matchData = snapshot.val();
+        
+        if (matchData) {
+            // Afficher le lobby du match
+            this.showMatchLobby(matchData);
+            
+            // Configurer les listeners du match
+            this.setupMatchListeners(matchId);
+            
+            // Notification
+            if (window.NotificationSystem) {
+                window.NotificationSystem.show(
+                    'Match trouvé !',
+                    'Préparez-vous pour la bataille',
+                    'success',
+                    5000
+                );
+            }
+        }
+    }
+
+    // Rafraîchir l'affichage du lobby
+    async refreshLobbyDisplay() {
+        if (!window.matchmakingState.currentMatchId) return;
+        
+        try {
+            const matchRef = database.ref(`active_matches/${window.matchmakingState.currentMatchId}`);
+            const snapshot = await matchRef.once('value');
+            const matchData = snapshot.val();
+            
+            if (matchData) {
+                this.showMatchLobby(matchData);
+            }
+        } catch (error) {
+            console.error('Erreur rafraîchissement lobby:', error);
+        }
+    }
+
+    // Vérifier la validité du match
+    async checkMatchValidity() {
+        if (!window.matchmakingState.currentMatchId) return;
+        
+        try {
+            const matchRef = database.ref(`active_matches/${window.matchmakingState.currentMatchId}`);
+            const snapshot = await matchRef.once('value');
+            const matchData = snapshot.val();
+            
+            if (!matchData) {
+                // Le match a été supprimé
+                this.handleMatchCancelled();
+                return;
+            }
+            
+            const playerCount = Object.keys(matchData.players || {}).length;
+            
+            // Si moins de 2 joueurs, annuler le match
+            if (playerCount < 2 && matchData.status === 'waiting') {
+                console.log('⚠️ Pas assez de joueurs, match annulé');
+                await matchRef.remove();
+                this.handleMatchCancelled();
+            }
+        } catch (error) {
+            console.error('Erreur vérification match:', error);
+        }
+    }
+
+    // Gérer l'annulation du match
+    handleMatchCancelled() {
+        console.log('❌ Match annulé');
+        
+        if (window.NotificationSystem) {
+            window.NotificationSystem.show(
+                'Match annulé',
+                'Le match a été annulé. Retour au menu principal.',
+                'error',
+                5000
+            );
+        }
+        
+        this.cleanup();
+        this.hideAllMatchmakingUI();
+        
+        // Retourner au menu
+        if (window.showMainMenu) {
+            window.showMainMenu();
+        }
+    }
+
+    // Gérer la fin du match
+    async handleMatchEnded(matchData) {
+        console.log('🏁 Match terminé');
+        
+        // Afficher les résultats
+        this.showMatchResults(matchData);
+        
+        // Nettoyer après un délai
+        setTimeout(() => {
+            this.cleanup();
+            this.hideAllMatchmakingUI();
+            
+            if (window.showMainMenu) {
+                window.showMainMenu();
+            }
+        }, 10000);
+    }
+
+    // Afficher l'écran de démarrage du match
+    showMatchStarting(matchData) {
+        this.hideAllMatchmakingUI();
+        
+        const startingUI = document.createElement('div');
+        startingUI.id = 'match-preparation';
+        startingUI.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            color: white;
+        `;
+        
+        startingUI.innerHTML = `
+            <div style="text-align: center;">
+                <h1 style="font-size: 64px; margin-bottom: 20px; color: #00d4ff; animation: pulse 2s infinite;">
+                    MATCH COMMENCE
+                </h1>
+                <div style="font-size: 24px; margin-bottom: 40px; color: rgba(255,255,255,0.7);">
+                    ${this.gameModes[matchData.mode].name}
+                </div>
+                <div style="font-size: 32px; font-weight: bold; color: #ffd700;">
+                    ${matchData.map}
+                </div>
+                <div style="margin-top: 40px; color: rgba(255,255,255,0.5);">
+                    Préparez-vous...
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(startingUI);
+        
+        // Démarrer le jeu après 3 secondes
+        setTimeout(() => {
+            this.startGameSession(matchData);
+        }, 3000);
+    }
+
+    // Afficher les résultats du match
+    showMatchResults(matchData) {
+        this.hideAllMatchmakingUI();
+        
+        const resultsUI = document.createElement('div');
+        resultsUI.id = 'match-results';
+        resultsUI.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            color: white;
+            overflow-y: auto;
+            padding: 40px;
+        `;
+        
+        const winningTeam = matchData.score?.attackers > matchData.score?.defenders ? 'Attaquants' : 'Défenseurs';
+        const playerWon = (matchData.players[currentUser?.uid]?.team === 'attackers' && winningTeam === 'Attaquants') ||
+                          (matchData.players[currentUser?.uid]?.team === 'defenders' && winningTeam === 'Défenseurs');
+        
+        resultsUI.innerHTML = `
+            <div style="text-align: center; max-width: 800px;">
+                <h1 style="font-size: 64px; margin-bottom: 20px; color: ${playerWon ? '#4ade80' : '#ef4444'};">
+                    ${playerWon ? 'VICTOIRE' : 'DÉFAITE'}
+                </h1>
+                
+                <div style="display: flex; justify-content: center; gap: 40px; margin: 40px 0; padding: 30px; background: rgba(255,255,255,0.05); border-radius: 15px;">
+                    <div>
+                        <h3 style="color: #ff4655; margin-bottom: 10px;">Attaquants</h3>
+                        <div style="font-size: 48px; font-weight: bold;">${matchData.score?.attackers || 0}</div>
+                    </div>
+                    <div style="font-size: 48px; color: rgba(255,255,255,0.3);">-</div>
+                    <div>
+                        <h3 style="color: #00d4ff; margin-bottom: 10px;">Défenseurs</h3>
+                        <div style="font-size: 48px; font-weight: bold;">${matchData.score?.defenders || 0}</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 40px; color: rgba(255,255,255,0.7);">
+                    Retour au menu dans 10 secondes...
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(resultsUI);
+    }
+
+    // ========================================
+    // FIN DES MÉTHODES AJOUTÉES
+    // ========================================
 
     // Gérer la mise à jour du match
     handleMatchUpdate(matchData) {
@@ -790,7 +985,7 @@ class MatchmakingSystem {
     }
 
     hideAllMatchmakingUI() {
-        const elements = ['matchmaking-ui', 'match-lobby', 'match-preparation'];
+        const elements = ['matchmaking-ui', 'match-lobby', 'match-preparation', 'match-results'];
         elements.forEach(id => {
             const element = document.getElementById(id);
             if (element) element.remove();
