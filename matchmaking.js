@@ -1,5 +1,73 @@
 // Système de matchmaking RÉEL avec Firebase - VERSION COMPLÈTE CORRIGÉE
 
+// Configuration des modes de jeu (exportée globalement)
+window.gameModes = {
+    duel: {
+        name: 'Duel',
+        description: '1v1 - Premier à 5 rounds',
+        maxPlayers: 2,
+        maxRounds: 9,
+        winCondition: 5,
+        economy: true,
+        ranked: true,
+        teamSize: 1
+    },
+    competitive: {
+        name: 'Compétitif',
+        description: '5v5 - Premier à 13 rounds',
+        maxPlayers: 10,
+        maxRounds: 25,
+        winCondition: 13,
+        economy: true,
+        ranked: true,
+        teamSize: 5
+    },
+    deathmatch: {
+        name: 'Deathmatch',
+        description: 'Combat libre - 10 minutes',
+        maxPlayers: 14,
+        maxRounds: 1,
+        winCondition: 50,
+        economy: false,
+        ranked: false,
+        teamSize: 0
+    },
+    unrated: {
+        name: 'Non classé',
+        description: '5v5 - Mode casual',
+        maxPlayers: 10,
+        maxRounds: 25,
+        winCondition: 13,
+        economy: true,
+        ranked: false,
+        teamSize: 5
+    }
+};
+
+// Système de rangs pour le matchmaking réel
+const rankSystem = {
+    'Fer I': { mmr: 0, variance: 100 },
+    'Fer II': { mmr: 100, variance: 90 },
+    'Fer III': { mmr: 200, variance: 85 },
+    'Bronze I': { mmr: 300, variance: 80 },
+    'Bronze II': { mmr: 400, variance: 75 },
+    'Bronze III': { mmr: 500, variance: 70 },
+    'Argent I': { mmr: 600, variance: 65 },
+    'Argent II': { mmr: 700, variance: 60 },
+    'Argent III': { mmr: 800, variance: 55 },
+    'Or I': { mmr: 900, variance: 50 },
+    'Or II': { mmr: 1000, variance: 45 },
+    'Or III': { mmr: 1100, variance: 40 },
+    'Platine I': { mmr: 1200, variance: 35 },
+    'Platine II': { mmr: 1300, variance: 30 },
+    'Platine III': { mmr: 1400, variance: 25 },
+    'Diamant I': { mmr: 1500, variance: 20 },
+    'Diamant II': { mmr: 1600, variance: 18 },
+    'Diamant III': { mmr: 1700, variance: 15 },
+    'Immortel': { mmr: 1800, variance: 12 },
+    'Radiant': { mmr: 2000, variance: 10 }
+};
+
 // État global du matchmaking
 window.matchmakingState = {
     inQueue: false,
