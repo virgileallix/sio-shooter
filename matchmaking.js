@@ -1,4 +1,7 @@
-// Système de matchmaking RÉEL avec Firebase - VERSION COMPLÈTE CORRIGÉE
+// ========================================
+// COPIEZ CETTE SECTION AU TOUT DÉBUT DE matchmaking.js
+// AVANT TOUT AUTRE CODE !
+// ========================================
 
 // Configuration des modes de jeu (exportée globalement)
 window.gameModes = {
@@ -67,6 +70,14 @@ const rankSystem = {
     'Immortel': { mmr: 1800, variance: 12 },
     'Radiant': { mmr: 2000, variance: 10 }
 };
+
+console.log('✅ window.gameModes défini avec succès');
+console.log('✅ rankSystem défini avec succès');
+
+// ========================================
+// APRÈS CETTE SECTION, CONTINUEZ AVEC LE RESTE DE VOTRE CODE matchmaking.js
+// (window.matchmakingState, class MatchmakingSystem, etc.)
+// ========================================
 
 // État global du matchmaking
 window.matchmakingState = {
@@ -1200,3 +1211,4 @@ if (database && database.ref) {
 }
 
 console.log('🎮 Système de matchmaking RÉEL chargé avec Firebase !');
+
