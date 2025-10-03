@@ -1,101 +1,91 @@
-// Store System - Weapon Skins, Cases, and Inventory
-// Similar to CS:GO system with cases and rarities
+// ========================================
+// STORE.JS - BOUTIQUE ET INVENTAIRE CORRIGÉS
+// ========================================
 
-// Rarity definitions with colors and probabilities
+// Système de rarités
 const RARITIES = {
     consumer: {
-        name: 'Qualité Consumer',
+        name: 'Consumer',
         color: '#b0c3d9',
-        probability: 0.7992, // 79.92%
-        gradient: 'linear-gradient(45deg, #b0c3d9, #94a3b8)'
+        gradient: 'linear-gradient(135deg, #b0c3d9, #899eb5)',
+        probability: 0.7992
     },
     industrial: {
-        name: 'Qualité Industrielle',
+        name: 'Industrial',
         color: '#5e98d9',
-        probability: 0.1598, // 15.98%
-        gradient: 'linear-gradient(45deg, #5e98d9, #4f7db8)'
+        gradient: 'linear-gradient(135deg, #5e98d9, #4a7db5)',
+        probability: 0.1598
     },
     milspec: {
-        name: 'Qualité Militaire',
+        name: 'Mil-Spec',
         color: '#4b69ff',
-        probability: 0.032, // 3.2%
-        gradient: 'linear-gradient(45deg, #4b69ff, #3b59db)'
+        gradient: 'linear-gradient(135deg, #4b69ff, #3a54cc)',
+        probability: 0.0320
     },
     restricted: {
-        name: 'Classifié',
+        name: 'Restricted',
         color: '#8847ff',
-        probability: 0.0064, // 0.64%
-        gradient: 'linear-gradient(45deg, #8847ff, #7c3aed)'
+        gradient: 'linear-gradient(135deg, #8847ff, #6d39cc)',
+        probability: 0.0064
     },
     classified: {
-        name: 'Secret',
+        name: 'Classified',
         color: '#d32ce6',
-        probability: 0.0013, // 0.13%
-        gradient: 'linear-gradient(45deg, #d32ce6, #c026d3)'
+        gradient: 'linear-gradient(135deg, #d32ce6, #a923b8)',
+        probability: 0.0013
     },
     covert: {
-        name: 'Très Secret',
+        name: 'Covert',
         color: '#eb4b4b',
-        probability: 0.0003, // 0.03%
-        gradient: 'linear-gradient(45deg, #eb4b4b, #dc2626)'
+        gradient: 'linear-gradient(135deg, #eb4b4b, #bc3c3c)',
+        probability: 0.0003
     },
     knife: {
-        name: 'Couteau',
+        name: 'Knife',
         color: '#ffd700',
-        probability: 0.0001, // 0.01%
-        gradient: 'linear-gradient(45deg, #ffd700, #f59e0b)'
+        gradient: 'linear-gradient(135deg, #ffd700, #ccac00)',
+        probability: 0.0001
     }
 };
 
-// Weapon skins database
+// Base de données des skins d'armes
 const WEAPON_SKINS = {
     rifles: [
-        // AK-47 Skins
         {
             id: 'ak47_redline',
             weapon: 'AK-47',
             name: 'Redline',
             rarity: 'classified',
-            pattern: 'redline',
+            pattern: 'geometric',
             price: 2500,
-            description: 'Cet AK-47 arbore un design rouge et noir distinctif.'
+            description: 'Lignes rouges élégantes sur fond noir.'
         },
         {
             id: 'ak47_vulcan',
             weapon: 'AK-47',
             name: 'Vulcan',
             rarity: 'covert',
-            pattern: 'vulcan',
-            price: 8500,
-            description: 'Skin futuriste avec des détails orange et gris.'
+            pattern: 'tech',
+            price: 8000,
+            description: 'Design futuriste high-tech.'
         },
         {
             id: 'ak47_case_hardened',
             weapon: 'AK-47',
             name: 'Case Hardened',
             rarity: 'milspec',
-            pattern: 'case_hardened',
+            pattern: 'metal',
             price: 800,
-            description: 'Finition bleu acier avec des reflets dorés.'
+            description: 'Finition métallique bleue unique.'
         },
         {
             id: 'ak47_jungle_spray',
             weapon: 'AK-47',
             name: 'Jungle Spray',
             rarity: 'consumer',
-            pattern: 'jungle',
-            price: 50,
+            pattern: 'spray',
+            price: 25,
             description: 'Camouflage jungle classique.'
-        },
-        // M4A4 Skins
-        {
-            id: 'm4a4_howl',
-            weapon: 'M4A4',
-            name: 'Howl',
-            rarity: 'covert',
-            pattern: 'howl',
-            price: 12000,
-            description: 'Design iconique avec un loup hurlant.'
         },
         {
             id: 'm4a4_asiimov',
@@ -103,8 +93,8 @@ const WEAPON_SKINS = {
             name: 'Asiimov',
             rarity: 'covert',
             pattern: 'asiimov',
-            price: 9500,
-            description: 'Design futuriste blanc et orange.'
+            price: 9000,
+            description: 'Design blanc et orange iconique.'
         },
         {
             id: 'm4a4_dragon_king',
@@ -112,17 +102,26 @@ const WEAPON_SKINS = {
             name: 'Dragon King',
             rarity: 'classified',
             pattern: 'dragon',
-            price: 3200,
-            description: 'Dragon asiatique gravé sur l\'arme.'
+            price: 3000,
+            description: 'Dragon gravé avec détails dorés.'
+        },
+        {
+            id: 'm4a4_howl',
+            weapon: 'M4A4',
+            name: 'Howl',
+            rarity: 'covert',
+            pattern: 'creature',
+            price: 15000,
+            description: 'Loup hurlant rare et recherché.'
         },
         {
             id: 'm4a4_tornado',
             weapon: 'M4A4',
             name: 'Tornado',
             rarity: 'industrial',
-            pattern: 'tornado',
-            price: 120,
-            description: 'Motif de tornade gris et noir.'
+            pattern: 'spray',
+            price: 150,
+            description: 'Motif tourbillon gris.'
         }
     ],
     pistols: [
@@ -131,9 +130,9 @@ const WEAPON_SKINS = {
             weapon: 'Desert Eagle',
             name: 'Blaze',
             rarity: 'restricted',
-            pattern: 'fire',
-            price: 1800,
-            description: 'Finition flamboyante avec des flammes réalistes.'
+            pattern: 'flame',
+            price: 1200,
+            description: 'Flammes orange vif.'
         },
         {
             id: 'glock_fade',
@@ -141,26 +140,26 @@ const WEAPON_SKINS = {
             name: 'Fade',
             rarity: 'restricted',
             pattern: 'fade',
-            price: 1200,
-            description: 'Dégradé de couleurs arc-en-ciel.'
+            price: 1100,
+            description: 'Dégradé arc-en-ciel vibrant.'
         },
         {
             id: 'usp_orion',
             weapon: 'USP-S',
             name: 'Orion',
-            rarity: 'classified',
-            pattern: 'space',
-            price: 2800,
-            description: 'Thème spatial avec des étoiles.'
+            rarity: 'milspec',
+            pattern: 'geometric',
+            price: 600,
+            description: 'Motif géométrique bleu et blanc.'
         },
         {
             id: 'p250_sand_dune',
             weapon: 'P250',
             name: 'Sand Dune',
             rarity: 'consumer',
-            pattern: 'desert',
-            price: 25,
-            description: 'Camouflage désertique simple.'
+            pattern: 'solid',
+            price: 10,
+            description: 'Finition sable basique.'
         }
     ],
     smgs: [
@@ -170,8 +169,8 @@ const WEAPON_SKINS = {
             name: 'Asiimov',
             rarity: 'covert',
             pattern: 'asiimov',
-            price: 6500,
-            description: 'Version P90 du célèbre skin Asiimov.'
+            price: 7500,
+            description: 'Version P90 du célèbre Asiimov.'
         },
         {
             id: 'mp9_bulldozer',
@@ -180,7 +179,7 @@ const WEAPON_SKINS = {
             rarity: 'milspec',
             pattern: 'industrial',
             price: 400,
-            description: 'Design industriel avec des rayures jaunes.'
+            description: 'Style construction jaune et noir.'
         }
     ],
     snipers: [
@@ -189,9 +188,9 @@ const WEAPON_SKINS = {
             weapon: 'AWP',
             name: 'Dragon Lore',
             rarity: 'covert',
-            pattern: 'dragon_lore',
-            price: 25000,
-            description: 'Le skin AWP le plus iconique et recherché.'
+            pattern: 'dragon',
+            price: 20000,
+            description: 'Le skin le plus rare et recherché.'
         },
         {
             id: 'awp_asiimov',
@@ -199,26 +198,26 @@ const WEAPON_SKINS = {
             name: 'Asiimov',
             rarity: 'covert',
             pattern: 'asiimov',
-            price: 15000,
-            description: 'Design futuriste blanc et orange pour AWP.'
+            price: 12000,
+            description: 'Design Asiimov emblématique.'
         },
         {
             id: 'ssg08_blood_in_water',
             weapon: 'Scout SSG 08',
-            name: 'Blood in Water',
+            name: 'Blood in the Water',
             rarity: 'classified',
-            pattern: 'shark',
-            price: 1500,
-            description: 'Requin menaçant dans des eaux sanglantes.'
+            pattern: 'animal',
+            price: 2800,
+            description: 'Requin sanglant stylisé.'
         },
         {
             id: 'awp_safari_mesh',
             weapon: 'AWP',
             name: 'Safari Mesh',
-            rarity: 'consumer',
-            pattern: 'safari',
+            rarity: 'industrial',
+            pattern: 'camo',
             price: 80,
-            description: 'Camouflage safari basique.'
+            description: 'Camouflage maillé simple.'
         }
     ],
     knives: [
@@ -243,13 +242,12 @@ const WEAPON_SKINS = {
     ]
 };
 
-// Cases définition
+// Définition des cases
 const WEAPON_CASES = [
     {
         id: 'chroma_case',
         name: 'Chroma Case',
         price: 250,
-        image: 'chroma_case.png',
         description: 'Contient des skins colorés avec finitions vibrantes',
         contents: [
             'ak47_case_hardened',
@@ -268,7 +266,6 @@ const WEAPON_CASES = [
         id: 'spectrum_case',
         name: 'Spectrum Case',
         price: 300,
-        image: 'spectrum_case.png',
         description: 'Collection de skins avec un large spectre de couleurs',
         contents: [
             'ak47_redline',
@@ -283,7 +280,6 @@ const WEAPON_CASES = [
         id: 'phoenix_case',
         name: 'Phoenix Case',
         price: 200,
-        image: 'phoenix_case.png',
         description: 'Skins légendaires du monde de Phoenix',
         contents: [
             'ak47_vulcan',
@@ -294,7 +290,7 @@ const WEAPON_CASES = [
     }
 ];
 
-// Global store state
+// État global de l'inventaire
 let playerInventory = {
     skins: [],
     cases: [],
@@ -311,69 +307,70 @@ let playerInventory = {
     }
 };
 
-// Store system functions
+// Système de boutique
 const StoreSystem = {
-    
+    currentRevealedSkin: null,
+    currentOpeningAnimation: null,
+
     init() {
+        console.log('🛒 Initialisation du système de boutique...');
         this.loadPlayerData();
         this.setupEventListeners();
-        console.log('🛒 Store system initialized');
+        console.log('✅ Store system initialized');
     },
 
     async loadPlayerData() {
-        // Load from Firebase first if user is logged in
-        if (currentUser && database) {
-            try {
-                const userRef = database.ref(`users/${currentUser.uid}/inventory`);
+        try {
+            // Charger depuis Firebase si connecté
+            if (window.currentUser && window.database) {
+                const userRef = window.database.ref(`users/${window.currentUser.uid}/inventory`);
                 const snapshot = await userRef.once('value');
                 const firebaseData = snapshot.val();
                 
                 if (firebaseData) {
                     playerInventory = { ...playerInventory, ...firebaseData };
                     this.updateCurrencyDisplay();
+                    console.log('📦 Données chargées depuis Firebase');
                     return;
                 }
-            } catch (error) {
-                console.error('Error loading from Firebase:', error);
             }
+        } catch (error) {
+            console.error('❌ Erreur chargement Firebase:', error);
         }
         
-        // Fallback to localStorage
-        const savedData = localStorage.getItem('sio_shooter_inventory');
-        if (savedData) {
-            playerInventory = { ...playerInventory, ...JSON.parse(savedData) };
-        }
-        
-        // Add some starting skins for demo (only if no data exists)
-        if (playerInventory.skins.length === 0) {
-            playerInventory.skins = [
-                {
-                    id: 'ak47_jungle_spray',
-                    acquiredAt: Date.now(),
-                    equipped: false
-                },
-                {
-                    id: 'p250_sand_dune', 
-                    acquiredAt: Date.now(),
-                    equipped: false
-                }
-            ];
-            this.savePlayerData(); // Save the starter skins
+        // Fallback vers localStorage
+        try {
+            const savedData = localStorage.getItem('sio_shooter_inventory');
+            if (savedData) {
+                playerInventory = { ...playerInventory, ...JSON.parse(savedData) };
+                console.log('📦 Données chargées depuis localStorage');
+            } else {
+                // Skins de départ
+                playerInventory.skins = [
+                    { id: 'ak47_jungle_spray', acquiredAt: Date.now(), equipped: false },
+                    { id: 'p250_sand_dune', acquiredAt: Date.now(), equipped: false }
+                ];
+                this.savePlayerData();
+            }
+        } catch (error) {
+            console.error('❌ Erreur chargement localStorage:', error);
         }
 
         this.updateCurrencyDisplay();
     },
 
     savePlayerData() {
-        localStorage.setItem('sio_shooter_inventory', JSON.stringify(playerInventory));
-        
-        // Also save to Firebase if user is logged in
-        if (currentUser && database) {
-            try {
-                database.ref(`users/${currentUser.uid}/inventory`).set(playerInventory);
-            } catch (error) {
-                console.error('Error saving to Firebase:', error);
+        try {
+            // Sauvegarder dans localStorage
+            localStorage.setItem('sio_shooter_inventory', JSON.stringify(playerInventory));
+            
+            // Sauvegarder dans Firebase si connecté
+            if (window.currentUser && window.database) {
+                window.database.ref(`users/${window.currentUser.uid}/inventory`).set(playerInventory)
+                    .catch(err => console.error('Erreur sauvegarde Firebase:', err));
             }
+        } catch (error) {
+            console.error('❌ Erreur sauvegarde:', error);
         }
     },
 
@@ -393,38 +390,45 @@ const StoreSystem = {
         });
     },
 
-    // Store tab switching
-    switchStoreTab(tab) {
-        // Hide all store contents
-        document.querySelectorAll('.store-content').forEach(content => {
-            content.classList.add('hidden');
+    setupEventListeners() {
+        // Raccourcis clavier
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                if (window.showMenuSection) window.showMenuSection('store');
+            }
+            if (e.ctrlKey && e.key === 'i') {
+                e.preventDefault();
+                if (window.showMenuSection) window.showMenuSection('inventory');
+            }
         });
+    },
 
-        // Remove active class from all tabs
-        document.querySelectorAll('.store-tab').forEach(tabBtn => {
-            tabBtn.classList.remove('active');
-        });
+    checkDailyReward() {
+        const lastReward = localStorage.getItem('sio_shooter_last_daily_reward');
+        const today = new Date().toDateString();
 
-        // Show selected content and activate tab
-        const selectedContent = document.getElementById(`store-${tab}`);
-        const selectedTab = document.querySelector(`[onclick="switchStoreTab('${tab}')"]`);
-        
-        if (selectedContent) selectedContent.classList.remove('hidden');
-        if (selectedTab) selectedTab.classList.add('active');
+        if (lastReward !== today) {
+            const reward = 100 + Math.floor(Math.random() * 50);
+            playerInventory.currency.coins += reward;
+            
+            localStorage.setItem('sio_shooter_last_daily_reward', today);
+            this.savePlayerData();
+            this.updateCurrencyDisplay();
 
-        // Load content based on tab
-        switch(tab) {
-            case 'cases':
-                this.loadCases();
-                break;
-            case 'skins':
-                this.loadStoreSkins();
-                break;
-            case 'agents':
-                this.loadAgents();
-                break;
+            if (window.NotificationSystem) {
+                window.NotificationSystem.show(
+                    'Récompense quotidienne',
+                    `Vous avez reçu ${reward} SIO Coins!`,
+                    'success'
+                );
+            }
         }
     },
+
+    // ========================================
+    // GESTION DES CASES
+    // ========================================
 
     loadCases() {
         const casesGrid = document.getElementById('cases-grid');
@@ -459,11 +463,311 @@ const StoreSystem = {
         });
     },
 
+    purchaseCase(caseId) {
+        const weaponCase = WEAPON_CASES.find(c => c.id === caseId);
+        if (!weaponCase) return;
+
+        if (playerInventory.currency.coins < weaponCase.price) {
+            if (window.NotificationSystem) {
+                window.NotificationSystem.show(
+                    'Fonds insuffisants',
+                    'Vous n\'avez pas assez de SIO Coins.',
+                    'error'
+                );
+            }
+            return;
+        }
+
+        // Déduire les pièces
+        playerInventory.currency.coins -= weaponCase.price;
+
+        // Ajouter la case à l'inventaire
+        playerInventory.cases.push({
+            id: caseId,
+            acquiredAt: Date.now()
+        });
+
+        this.updateCurrencyDisplay();
+        this.savePlayerData();
+
+        if (window.NotificationSystem) {
+            window.NotificationSystem.show(
+                'Case achetée',
+                `${weaponCase.name} ajoutée à votre inventaire!`,
+                'success',
+                5000,
+                [
+                    {
+                        text: 'Ouvrir',
+                        primary: true,
+                        callback: `StoreSystem.openCase('${caseId}')`
+                    }
+                ]
+            );
+        }
+    },
+
+    openCase(caseId) {
+        const weaponCase = WEAPON_CASES.find(c => c.id === caseId);
+        if (!weaponCase) {
+            console.error('Case non trouvée:', caseId);
+            return;
+        }
+
+        // Vérifier que la case existe dans l'inventaire
+        const caseIndex = playerInventory.cases.findIndex(c => c.id === caseId);
+        if (caseIndex === -1) {
+            if (window.NotificationSystem) {
+                window.NotificationSystem.show(
+                    'Erreur',
+                    'Case non trouvée dans l\'inventaire.',
+                    'error'
+                );
+            }
+            return;
+        }
+
+        // Retirer la case de l'inventaire
+        playerInventory.cases.splice(caseIndex, 1);
+        this.savePlayerData();
+
+        // Afficher la modal d'ouverture
+        this.showCaseOpeningModal(weaponCase);
+    },
+
+    showCaseOpeningModal(weaponCase) {
+        const modal = document.getElementById('case-opening-modal');
+        const title = document.getElementById('case-opening-title');
+        const caseImage = document.getElementById('case-image');
+        const skinReveal = document.getElementById('skin-reveal');
+        const openingActions = document.getElementById('opening-actions');
+        const progressBar = document.getElementById('opening-progress');
+
+        if (!modal || !title || !caseImage) {
+            console.error('Éléments de modal manquants');
+            return;
+        }
+
+        // Réinitialiser
+        title.textContent = `Ouverture: ${weaponCase.name}`;
+        caseImage.innerHTML = '<div class="case-icon">📦</div>';
+        if (skinReveal) skinReveal.classList.add('hidden');
+        if (openingActions) openingActions.classList.add('hidden');
+        if (progressBar) progressBar.style.width = '0%';
+
+        modal.classList.remove('hidden');
+
+        // Démarrer l'animation après un délai
+        setTimeout(() => {
+            this.startCaseOpeningAnimation(weaponCase);
+        }, 1000);
+    },
+
+    startCaseOpeningAnimation(weaponCase) {
+        const progressBar = document.getElementById('opening-progress');
+        if (!progressBar) return;
+
+        let progress = 0;
+        
+        // Nettoyer l'ancienne animation
+        if (this.currentOpeningAnimation) {
+            clearInterval(this.currentOpeningAnimation);
+        }
+
+        this.currentOpeningAnimation = setInterval(() => {
+            progress += 2;
+            progressBar.style.width = progress + '%';
+
+            if (progress >= 100) {
+                clearInterval(this.currentOpeningAnimation);
+                this.currentOpeningAnimation = null;
+                
+                setTimeout(() => {
+                    this.revealSkin(weaponCase);
+                }, 500);
+            }
+        }, 30);
+    },
+
+    revealSkin(weaponCase) {
+        // Sélectionner un skin aléatoire basé sur les probabilités
+        const wonSkin = this.selectRandomSkinFromCase(weaponCase);
+        if (!wonSkin) {
+            console.error('Impossible de sélectionner un skin');
+            this.closeCaseOpeningModal();
+            return;
+        }
+
+        // Ajouter le skin à l'inventaire
+        playerInventory.skins.push({
+            id: wonSkin.id,
+            acquiredAt: Date.now(),
+            equipped: false
+        });
+
+        this.savePlayerData();
+
+        // Afficher le skin révélé
+        const skinReveal = document.getElementById('skin-reveal');
+        const skinImage = document.getElementById('revealed-skin-image');
+        const skinName = document.getElementById('revealed-skin-name');
+        const skinWeapon = document.getElementById('revealed-skin-weapon');
+        const skinRarity = document.getElementById('revealed-skin-rarity');
+        const openingActions = document.getElementById('opening-actions');
+
+        if (!skinReveal) return;
+
+        skinImage.innerHTML = this.getWeaponIcon(wonSkin.weapon);
+        skinName.textContent = wonSkin.name;
+        skinWeapon.textContent = wonSkin.weapon;
+        skinRarity.textContent = RARITIES[wonSkin.rarity].name;
+        skinRarity.style.color = RARITIES[wonSkin.rarity].color;
+
+        // Appliquer le gradient de rareté
+        const skinCard = skinReveal.querySelector('.skin-card');
+        if (skinCard) {
+            skinCard.style.background = RARITIES[wonSkin.rarity].gradient;
+        }
+
+        skinReveal.classList.remove('hidden');
+        if (openingActions) openingActions.classList.remove('hidden');
+
+        this.currentRevealedSkin = wonSkin;
+
+        if (window.NotificationSystem) {
+            window.NotificationSystem.show(
+                'Nouveau skin!',
+                `${wonSkin.weapon} | ${wonSkin.name}`,
+                'achievement'
+            );
+        }
+    },
+
+    selectRandomSkinFromCase(weaponCase) {
+        // Obtenir tous les skins de la case
+        const caseSkins = weaponCase.contents.map(skinId => 
+            Object.values(WEAPON_SKINS).flat().find(skin => skin.id === skinId)
+        ).filter(Boolean);
+
+        if (caseSkins.length === 0) {
+            console.error('Aucun skin trouvé dans la case');
+            return null;
+        }
+
+        // Créer un tableau pondéré basé sur les probabilités de rareté
+        const weightedSkins = [];
+        caseSkins.forEach(skin => {
+            const weight = Math.floor(RARITIES[skin.rarity].probability * 10000);
+            for (let i = 0; i < weight; i++) {
+                weightedSkins.push(skin);
+            }
+        });
+
+        // Sélectionner un skin aléatoire
+        const randomIndex = Math.floor(Math.random() * weightedSkins.length);
+        return weightedSkins[randomIndex];
+    },
+
+    closeCaseOpeningModal() {
+        const modal = document.getElementById('case-opening-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+
+        // Nettoyer l'animation
+        if (this.currentOpeningAnimation) {
+            clearInterval(this.currentOpeningAnimation);
+            this.currentOpeningAnimation = null;
+        }
+
+        this.currentRevealedSkin = null;
+
+        // Recharger l'inventaire si on est sur la page inventaire
+        if (window.location.hash === '#inventory' || document.getElementById('inventory-section')?.classList.contains('active')) {
+            this.loadInventory();
+        }
+    },
+
+    previewCase(caseId) {
+        const weaponCase = WEAPON_CASES.find(c => c.id === caseId);
+        if (!weaponCase) return;
+
+        const caseContents = weaponCase.contents.map(skinId => 
+            Object.values(WEAPON_SKINS).flat().find(skin => skin.id === skinId)
+        ).filter(Boolean);
+
+        let previewHTML = `
+            <div style="padding: 20px; max-width: 600px; margin: 0 auto;">
+                <h3 style="margin-bottom: 20px; color: #00d4ff; text-align: center;">Contenu possible:</h3>
+                <div style="display: grid; gap: 10px; max-height: 400px; overflow-y: auto;">
+        `;
+
+        caseContents.forEach(skin => {
+            const rarity = RARITIES[skin.rarity];
+            previewHTML += `
+                <div style="display: flex; align-items: center; gap: 15px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 4px solid ${rarity.color};">
+                    <div style="font-size: 24px;">${this.getWeaponIcon(skin.weapon)}</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold; color: white;">${skin.weapon} | ${skin.name}</div>
+                        <div style="font-size: 12px; color: ${rarity.color}; font-weight: bold;">${rarity.name}</div>
+                    </div>
+                    <div style="font-size: 12px; opacity: 0.7;">${(rarity.probability * 100).toFixed(2)}%</div>
+                </div>
+            `;
+        });
+
+        previewHTML += `
+                </div>
+            </div>
+        `;
+
+        if (window.NotificationSystem) {
+            // Créer une notification personnalisée avec le contenu
+            const notification = document.createElement('div');
+            notification.className = 'game-notification notification-info';
+            notification.innerHTML = previewHTML;
+            notification.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(15, 20, 25, 0.95);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 15px;
+                z-index: 10000;
+                max-width: 90%;
+                max-height: 90vh;
+                overflow-y: auto;
+            `;
+
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+            closeBtn.style.cssText = `
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: none;
+                border: none;
+                color: white;
+                font-size: 20px;
+                cursor: pointer;
+                padding: 5px 10px;
+            `;
+            closeBtn.onclick = () => notification.remove();
+            notification.appendChild(closeBtn);
+
+            document.body.appendChild(notification);
+        }
+    },
+
+    // ========================================
+    // GESTION DES SKINS
+    // ========================================
+
     loadStoreSkins() {
         const skinsGrid = document.getElementById('skins-grid');
         if (!skinsGrid) return;
 
-        // Get all skins and sort by rarity
         const allSkins = Object.values(WEAPON_SKINS).flat();
         const sortedSkins = allSkins.sort((a, b) => {
             return RARITIES[b.rarity].probability - RARITIES[a.rarity].probability;
@@ -522,6 +826,86 @@ const StoreSystem = {
         return skinCard;
     },
 
+    purchaseSkin(skinId) {
+        const skin = Object.values(WEAPON_SKINS).flat().find(s => s.id === skinId);
+        if (!skin) return;
+
+        if (playerInventory.currency.coins < skin.price) {
+            if (window.NotificationSystem) {
+                window.NotificationSystem.show(
+                    'Fonds insuffisants',
+                    'Vous n\'avez pas assez de SIO Coins.',
+                    'error'
+                );
+            }
+            return;
+        }
+
+        // Déduire les pièces
+        playerInventory.currency.coins -= skin.price;
+
+        // Ajouter le skin à l'inventaire
+        playerInventory.skins.push({
+            id: skinId,
+            acquiredAt: Date.now(),
+            equipped: false
+        });
+
+        this.updateCurrencyDisplay();
+        this.savePlayerData();
+        this.loadStoreSkins();
+
+        if (window.NotificationSystem) {
+            window.NotificationSystem.show(
+                'Skin acheté',
+                `${skin.weapon} | ${skin.name} ajouté à votre inventaire!`,
+                'success'
+            );
+        }
+    },
+
+    equipSkin(skinId) {
+        const skin = Object.values(WEAPON_SKINS).flat().find(s => s.id === skinId);
+        if (!skin) return;
+
+        const weaponCategory = this.getWeaponCategory(skin.weapon);
+        
+        // Déséquiper le skin actuel pour cette arme
+        if (playerInventory.equippedSkins[weaponCategory]) {
+            playerInventory.equippedSkins[weaponCategory][skin.weapon] = skinId;
+        }
+
+        this.savePlayerData();
+        this.loadInventory();
+
+        if (window.NotificationSystem) {
+            window.NotificationSystem.show(
+                'Skin équipé',
+                `${skin.weapon} | ${skin.name} est maintenant équipé!`,
+                'success'
+            );
+        }
+
+        // Fermer la modal si ouverte
+        if (this.currentRevealedSkin && this.currentRevealedSkin.id === skinId) {
+            this.closeCaseOpeningModal();
+        }
+    },
+
+    isSkinEquipped(skin) {
+        const weaponCategory = this.getWeaponCategory(skin.weapon);
+        return playerInventory.equippedSkins[weaponCategory]?.[skin.weapon] === skin.id;
+    },
+
+    getWeaponCategory(weaponName) {
+        for (const [category, skins] of Object.entries(WEAPON_SKINS)) {
+            if (skins.some(s => s.weapon === weaponName)) {
+                return category;
+            }
+        }
+        return 'rifles';
+    },
+
     getWeaponIcon(weaponName) {
         const icons = {
             'AK-47': '🔫',
@@ -541,362 +925,33 @@ const StoreSystem = {
         return icons[weaponName] || '🔫';
     },
 
-    purchaseCase(caseId) {
-        const weaponCase = WEAPON_CASES.find(c => c.id === caseId);
-        if (!weaponCase) return;
-
-        if (playerInventory.currency.coins < weaponCase.price) {
-            NotificationSystem.show(
-                'Fonds insuffisants',
-                'Vous n\'avez pas assez de SIO Coins pour acheter cette case.',
-                'error'
-            );
-            return;
-        }
-
-        // Deduct coins
-        playerInventory.currency.coins -= weaponCase.price;
-
-        // Add case to inventory
-        playerInventory.cases.push({
-            id: caseId,
-            acquiredAt: Date.now()
-        });
-
-        this.updateCurrencyDisplay();
-        this.savePlayerData();
-
-        NotificationSystem.show(
-            'Case achetée',
-            `${weaponCase.name} ajoutée à votre inventaire!`,
-            'success'
-        );
-
-        // Ask if user wants to open it
-        this.askToOpenCase(caseId);
-    },
-
-    purchaseSkin(skinId) {
-        const skin = Object.values(WEAPON_SKINS).flat().find(s => s.id === skinId);
-        if (!skin) return;
-
-        if (playerInventory.currency.coins < skin.price) {
-            NotificationSystem.show(
-                'Fonds insuffisants',
-                'Vous n\'avez pas assez de SIO Coins pour acheter ce skin.',
-                'error'
-            );
-            return;
-        }
-
-        // Deduct coins
-        playerInventory.currency.coins -= skin.price;
-
-        // Add skin to inventory
-        playerInventory.skins.push({
-            id: skinId,
-            acquiredAt: Date.now(),
-            equipped: false
-        });
-
-        this.updateCurrencyDisplay();
-        this.savePlayerData();
-        this.loadStoreSkins(); // Refresh the display
-
-        NotificationSystem.show(
-            'Skin acheté',
-            `${skin.weapon} | ${skin.name} ajouté à votre inventaire!`,
-            'success'
-        );
-    },
-
-    askToOpenCase(caseId) {
-        const weaponCase = WEAPON_CASES.find(c => c.id === caseId);
-        NotificationSystem.show(
-            'Case achetée',
-            'Voulez-vous ouvrir cette case maintenant?',
-            'info',
-            10000,
-            [
-                {
-                    text: 'Ouvrir',
-                    primary: true,
-                    callback: `StoreSystem.openCase('${caseId}')`
-                },
-                {
-                    text: 'Plus tard',
-                    callback: `document.querySelector('.game-notification').remove()`
-                }
-            ]
-        );
-    },
-
-    openCase(caseId) {
-        const weaponCase = WEAPON_CASES.find(c => c.id === caseId);
-        if (!weaponCase) return;
-
-        // Remove case from inventory
-        const caseIndex = playerInventory.cases.findIndex(c => c.id === caseId);
-        if (caseIndex === -1) {
-            NotificationSystem.show('Erreur', 'Case non trouvée dans l\'inventaire.', 'error');
-            return;
-        }
-
-        playerInventory.cases.splice(caseIndex, 1);
-
-        // Show case opening modal
-        this.showCaseOpeningModal(weaponCase);
-    },
-
-    showCaseOpeningModal(weaponCase) {
-        const modal = document.getElementById('case-opening-modal');
-        const title = document.getElementById('case-opening-title');
-        const caseImage = document.getElementById('case-image');
-
-        title.textContent = `Ouverture: ${weaponCase.name}`;
-        caseImage.innerHTML = '<div class="case-icon">📦</div>';
-
-        modal.classList.remove('hidden');
-
-        // Start opening animation
-        setTimeout(() => {
-            this.startCaseOpeningAnimation(weaponCase);
-        }, 1000);
-    },
-
-    startCaseOpeningAnimation(weaponCase) {
-        const progressBar = document.getElementById('opening-progress');
-        const skinReveal = document.getElementById('skin-reveal');
-
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += 2;
-            progressBar.style.width = progress + '%';
-
-            if (progress >= 100) {
-                clearInterval(interval);
-                setTimeout(() => {
-                    this.revealSkin(weaponCase);
-                }, 500);
-            }
-        }, 50);
-    },
-
-    revealSkin(weaponCase) {
-        // Select a random skin from the case based on rarity probabilities
-        const wonSkin = this.selectRandomSkinFromCase(weaponCase);
-        
-        // Add skin to player inventory
-        playerInventory.skins.push({
-            id: wonSkin.id,
-            acquiredAt: Date.now(),
-            equipped: false
-        });
-
-        // Show the revealed skin
-        const skinReveal = document.getElementById('skin-reveal');
-        const skinImage = document.getElementById('revealed-skin-image');
-        const skinName = document.getElementById('revealed-skin-name');
-        const skinWeapon = document.getElementById('revealed-skin-weapon');
-        const skinRarity = document.getElementById('revealed-skin-rarity');
-
-        skinImage.innerHTML = this.getWeaponIcon(wonSkin.weapon);
-        skinName.textContent = wonSkin.name;
-        skinWeapon.textContent = wonSkin.weapon;
-        skinRarity.textContent = RARITIES[wonSkin.rarity].name;
-        skinRarity.style.color = RARITIES[wonSkin.rarity].color;
-
-        // Apply rarity gradient to the card
-        skinReveal.querySelector('.skin-card').style.background = RARITIES[wonSkin.rarity].gradient;
-
-        skinReveal.classList.remove('hidden');
-        document.getElementById('opening-actions').classList.remove('hidden');
-
-        this.savePlayerData();
-
-        // Store the currently revealed skin for potential equipping
-        this.currentRevealedSkin = wonSkin;
-
-        NotificationSystem.show(
-            'Nouveau skin!',
-            `Vous avez obtenu: ${wonSkin.weapon} | ${wonSkin.name}`,
-            'achievement'
-        );
-    },
-
-    selectRandomSkinFromCase(weaponCase) {
-        // Get all skins that are in this case
-        const caseSkins = weaponCase.contents.map(skinId => 
-            Object.values(WEAPON_SKINS).flat().find(skin => skin.id === skinId)
-        ).filter(Boolean);
-
-        // Create weighted array based on rarity probabilities
-        const weightedSkins = [];
-        caseSkins.forEach(skin => {
-            const weight = Math.floor(RARITIES[skin.rarity].probability * 10000);
-            for (let i = 0; i < weight; i++) {
-                weightedSkins.push(skin);
-            }
-        });
-
-        // Select random skin
-        const randomIndex = Math.floor(Math.random() * weightedSkins.length);
-        return weightedSkins[randomIndex];
-    },
-
-    equipSkin(skinId) {
-        const skin = Object.values(WEAPON_SKINS).flat().find(s => s.id === skinId);
-        if (!skin) return;
-
-        const weaponCategory = this.getWeaponCategory(skin.weapon);
-        
-        // Unequip current skin for this weapon
-        Object.keys(playerInventory.equippedSkins[weaponCategory]).forEach(weapon => {
-            if (weapon === skin.weapon) {
-                delete playerInventory.equippedSkins[weaponCategory][weapon];
-            }
-        });
-
-        // Equip new skin
-        playerInventory.equippedSkins[weaponCategory][skin.weapon] = skinId;
-
-        this.savePlayerData();
-        this.loadInventory(); // Refresh inventory display
-
-        NotificationSystem.show(
-            'Skin équipé',
-            `${skin.weapon} | ${skin.name} est maintenant équipé!`,
-            'success'
-        );
-
-        // Close case opening modal if it's open
-        if (this.currentRevealedSkin && this.currentRevealedSkin.id === skinId) {
-            this.closeCaseOpeningModal();
-        }
-    },
-
-    isSkinEquipped(skin) {
-        const weaponCategory = this.getWeaponCategory(skin.weapon);
-        return playerInventory.equippedSkins[weaponCategory][skin.weapon] === skin.id;
-    },
-
-    getWeaponCategory(weaponName) {
-        const categories = {
-            'AK-47': 'rifles',
-            'M4A4': 'rifles',
-            'M4A1-S': 'rifles',
-            'Glock-18': 'pistols',
-            'USP-S': 'pistols',
-            'Desert Eagle': 'pistols',
-            'P250': 'pistols',
-            'P90': 'smgs',
-            'MP9': 'smgs',
-            'AWP': 'snipers',
-            'Scout SSG 08': 'snipers',
-            'Karambit': 'knives',
-            'Butterfly Knife': 'knives'
-        };
-        return categories[weaponName] || 'rifles';
-    },
-
-    // Function to get equipped skin data for a weapon (for use in game)
-    getEquippedSkin(weaponName) {
-        const category = this.getWeaponCategory(weaponName);
-        const equippedSkinId = playerInventory.equippedSkins[category][weaponName];
-        
-        if (!equippedSkinId) return null;
-        
-        return Object.values(WEAPON_SKINS).flat().find(skin => skin.id === equippedSkinId);
-    },
-
-    // Function to get weapon display info with skin
-    getWeaponDisplayInfo(weaponName) {
-        const equippedSkin = this.getEquippedSkin(weaponName);
-        
-        if (equippedSkin) {
-            return {
-                name: `${weaponName} | ${equippedSkin.name}`,
-                rarity: equippedSkin.rarity,
-                pattern: equippedSkin.pattern,
-                skinName: equippedSkin.name
-            };
-        }
-        
-        return {
-            name: weaponName,
-            rarity: null,
-            pattern: null,
-            skinName: null
-        };
-    },
-
-    closeCaseOpeningModal() {
-        document.getElementById('case-opening-modal').classList.add('hidden');
-        
-        // Reset modal state
-        document.getElementById('opening-progress').style.width = '0%';
-        document.getElementById('skin-reveal').classList.add('hidden');
-        document.getElementById('opening-actions').classList.add('hidden');
-        
-        this.currentRevealedSkin = null;
-    },
-
-    // Inventory functions
-    switchInventoryTab(tab) {
-        // Hide all inventory contents
-        document.querySelectorAll('.inventory-content').forEach(content => {
-            content.classList.add('hidden');
-        });
-
-        // Remove active class from all tabs
-        document.querySelectorAll('.inventory-tab').forEach(tabBtn => {
-            tabBtn.classList.remove('active');
-        });
-
-        // Show selected content and activate tab
-        const selectedContent = document.getElementById(`inventory-${tab}`);
-        const selectedTab = document.querySelector(`[onclick="switchInventoryTab('${tab}')"]`);
-        
-        if (selectedContent) selectedContent.classList.remove('hidden');
-        if (selectedTab) selectedTab.classList.add('active');
-
-        // Load content based on tab
-        switch(tab) {
-            case 'weapons':
-                this.loadInventoryWeapons();
-                break;
-            case 'agents':
-                this.loadInventoryAgents();
-                break;
-            case 'cases':
-                this.loadInventoryCases();
-                break;
-        }
-    },
+    // ========================================
+    // GESTION DE L'INVENTAIRE
+    // ========================================
 
     loadInventory() {
-        this.loadInventoryWeapons();
+        this.loadInventorySkins();
+        this.loadInventoryCases();
         this.updateInventoryStats();
     },
 
-    loadInventoryWeapons() {
+    loadInventorySkins() {
         const weaponsGrid = document.getElementById('inventory-weapons-grid');
         if (!weaponsGrid) return;
 
-        weaponsGrid.innerHTML = '';
-
-        // Get owned skins
         const ownedSkins = playerInventory.skins.map(skinData => {
             const skin = Object.values(WEAPON_SKINS).flat().find(s => s.id === skinData.id);
-            return { ...skin, acquiredAt: skinData.acquiredAt };
+            return skin ? { ...skin, acquiredAt: skinData.acquiredAt } : null;
         }).filter(Boolean);
+
+        weaponsGrid.innerHTML = '';
 
         if (ownedSkins.length === 0) {
             weaponsGrid.innerHTML = `
                 <div class="empty-inventory">
-                    <i class="fas fa-box-open"></i>
-                    <p>Aucun skin d'arme dans votre inventaire</p>
-                    <button class="btn-primary" onclick="showMenuSection('store')">Visiter la boutique</button>
+                    <i class="fas fa-inbox"></i>
+                    <p>Aucun skin dans votre inventaire</p>
+                    <button class="btn-primary" onclick="showMenuSection('store'); StoreSystem.switchStoreTab('skins')">Acheter des skins</button>
                 </div>
             `;
             return;
@@ -966,38 +1021,44 @@ const StoreSystem = {
         }
     },
 
-    setupEventListeners() {
-        // Global keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 's') {
-                e.preventDefault();
-                showMenuSection('store');
-            }
-            if (e.ctrlKey && e.key === 'i') {
-                e.preventDefault();
-                showMenuSection('inventory');
-            }
+    // ========================================
+    // NAVIGATION BOUTIQUE
+    // ========================================
+
+    switchStoreTab(tab) {
+        // Masquer tous les contenus
+        document.querySelectorAll('.store-content').forEach(content => {
+            content.classList.add('hidden');
         });
-    },
 
-    // Daily rewards system
-    checkDailyReward() {
-        const lastReward = localStorage.getItem('sio_shooter_last_daily_reward');
-        const today = new Date().toDateString();
+        // Retirer la classe active de tous les onglets
+        document.querySelectorAll('.store-tab').forEach(tabBtn => {
+            tabBtn.classList.remove('active');
+        });
 
-        if (lastReward !== today) {
-            const reward = 100 + Math.floor(Math.random() * 50); // 100-150 coins
-            playerInventory.currency.coins += reward;
-            
-            localStorage.setItem('sio_shooter_last_daily_reward', today);
-            this.savePlayerData();
-            this.updateCurrencyDisplay();
+        // Afficher le contenu sélectionné
+        const selectedContent = document.getElementById(`store-${tab}`);
+        if (selectedContent) {
+            selectedContent.classList.remove('hidden');
+        }
 
-            NotificationSystem.show(
-                'Récompense quotidienne',
-                `Vous avez reçu ${reward} SIO Coins!`,
-                'success'
-            );
+        // Activer l'onglet
+        const selectedTab = event?.target || document.querySelector(`[onclick*="switchStoreTab('${tab}')"]`);
+        if (selectedTab) {
+            selectedTab.classList.add('active');
+        }
+
+        // Charger le contenu selon l'onglet
+        switch(tab) {
+            case 'cases':
+                this.loadCases();
+                break;
+            case 'skins':
+                this.loadStoreSkins();
+                break;
+            case 'agents':
+                this.loadAgents();
+                break;
         }
     },
 
@@ -1012,107 +1073,31 @@ const StoreSystem = {
                 <p style="font-size: 14px; opacity: 0.7;">Cette fonctionnalité sera ajoutée dans une future mise à jour.</p>
             </div>
         `;
-    },
-
-    loadInventoryAgents() {
-        const agentsGrid = document.getElementById('inventory-agents-grid');
-        if (!agentsGrid) return;
-
-        agentsGrid.innerHTML = `
-            <div class="empty-inventory">
-                <i class="fas fa-user-ninja"></i>
-                <p>Aucun agent dans votre inventaire</p>
-                <p style="font-size: 14px; opacity: 0.7;">Les agents seront disponibles prochainement.</p>
-            </div>
-        `;
-    },
-
-    previewCase(caseId) {
-        const weaponCase = WEAPON_CASES.find(c => c.id === caseId);
-        if (!weaponCase) return;
-
-        // Get case contents
-        const caseContents = weaponCase.contents.map(skinId => 
-            Object.values(WEAPON_SKINS).flat().find(skin => skin.id === skinId)
-        ).filter(Boolean);
-
-        // Create preview modal content
-        let previewContent = `
-            <div style="max-height: 400px; overflow-y: auto; margin: 20px 0;">
-                <h3 style="margin-bottom: 20px; color: #00d4ff;">Contenu possible:</h3>
-                <div style="display: grid; gap: 15px;">
-        `;
-
-        caseContents.forEach(skin => {
-            previewContent += `
-                <div style="display: flex; align-items: center; gap: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 4px solid ${RARITIES[skin.rarity].color};">
-                    <div style="font-size: 24px;">${this.getWeaponIcon(skin.weapon)}</div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: bold; color: white;">${skin.weapon} | ${skin.name}</div>
-                        <div style="font-size: 12px; color: ${RARITIES[skin.rarity].color}; font-weight: bold;">${RARITIES[skin.rarity].name}</div>
-                    </div>
-                    <div style="font-size: 12px; opacity: 0.7;">${(RARITIES[skin.rarity].probability * 100).toFixed(2)}%</div>
-                </div>
-            `;
-        });
-
-        previewContent += `
-                </div>
-            </div>
-        `;
-
-        NotificationSystem.show(
-            `Aperçu: ${weaponCase.name}`,
-            previewContent,
-            'info',
-            15000,
-            [
-                {
-                    text: 'Acheter',
-                    primary: true,
-                    callback: `StoreSystem.purchaseCase('${caseId}'); document.querySelector('.game-notification').remove();`
-                },
-                {
-                    text: 'Fermer',
-                    callback: `document.querySelector('.game-notification').remove()`
-                }
-            ]
-        );
     }
 };
 
-// Global functions for HTML onclick handlers
+// ========================================
+// FONCTIONS GLOBALES POUR HTML
+// ========================================
+
+function closeCaseOpeningModal() {
+    StoreSystem.closeCaseOpeningModal();
+}
+
+function equipSkin() {
+    if (StoreSystem.currentRevealedSkin) {
+        StoreSystem.equipSkin(StoreSystem.currentRevealedSkin.id);
+    }
+}
+
 function switchStoreTab(tab) {
     StoreSystem.switchStoreTab(tab);
 }
 
-function switchInventoryTab(tab) {
-    StoreSystem.switchInventoryTab(tab);
-}
-
-function showSkinCategory(category) {
-    // Implementation for filtering skins by category in store
-    const allSkins = WEAPON_SKINS[category] || [];
-    const skinsGrid = document.getElementById('skins-grid');
-    
-    if (!skinsGrid) return;
-    
-    skinsGrid.innerHTML = '';
-    allSkins.forEach(skin => {
-        const skinCard = StoreSystem.createSkinCard(skin, 'store');
-        skinsGrid.appendChild(skinCard);
-    });
-
-    // Update active category button
-    document.querySelectorAll('.skin-cat').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`[onclick="showSkinCategory('${category}')"]`).classList.add('active');
-}
-
 function showInventoryCategory(category) {
-    // Implementation for filtering inventory by category
     const ownedSkins = playerInventory.skins.map(skinData => {
         const skin = Object.values(WEAPON_SKINS).flat().find(s => s.id === skinData.id);
-        return { ...skin, acquiredAt: skinData.acquiredAt };
+        return skin ? { ...skin, acquiredAt: skinData.acquiredAt } : null;
     }).filter(Boolean).filter(skin => {
         return StoreSystem.getWeaponCategory(skin.weapon) === category;
     });
@@ -1136,35 +1121,36 @@ function showInventoryCategory(category) {
         weaponsGrid.appendChild(skinCard);
     });
 
-    // Update active category button
-    document.querySelectorAll('#inventory-weapons .weapon-cat').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`[onclick="showInventoryCategory('${category}')"]`).classList.add('active');
-}
-
-function closeCaseOpeningModal() {
-    StoreSystem.closeCaseOpeningModal();
-}
-
-function equipSkin() {
-    if (StoreSystem.currentRevealedSkin) {
-        StoreSystem.equipSkin(StoreSystem.currentRevealedSkin.id);
+    // Mettre à jour le bouton actif
+    document.querySelectorAll('#inventory-weapons .weapon-cat').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    const activeBtn = document.querySelector(`[onclick="showInventoryCategory('${category}')"]`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
     }
 }
 
-// Initialize store system when DOM is loaded
+// ========================================
+// INITIALISATION
+// ========================================
+
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         try {
             StoreSystem.init();
             StoreSystem.checkDailyReward();
         } catch (error) {
-            console.error('Error initializing store system:', error);
+            console.error('❌ Erreur initialisation store:', error);
         }
     }, 2000);
 });
 
-// Export for use in other files
+// Export global
 window.StoreSystem = StoreSystem;
 window.playerInventory = playerInventory;
 window.WEAPON_SKINS = WEAPON_SKINS;
+window.WEAPON_CASES = WEAPON_CASES;
 window.RARITIES = RARITIES;
+
+console.log('✅ Store.js chargé avec succès');
