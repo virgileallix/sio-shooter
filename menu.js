@@ -1,13 +1,25 @@
-// Système de navigation des menus COMPLET avec toutes les fonctionnalités - VERSION CORRIGÉE
+(() => {
+    if (window.__menuSystemLoaded) {
+        console.warn('Menu system script already loaded, skipping duplicate execution.');
+        return;
+    }
+    window.__menuSystemLoaded = true;
 
-// Variables globales pour les menus
-let currentMenuSection = 'play';
-let selectedGameMode = 'competitive';
-let selectedMap = 'dust2_complex';
-let selectedWeaponCategory = 'rifles';
-let searchResults = [];
-let currentSearchQuery = '';
-let currentLeaderboardType = 'competitive';
+    // Système de navigation des menus COMPLET avec toutes les fonctionnalités - VERSION CORRIGÉE
+
+    // Variables globales pour les menus
+    let currentMenuSection = window.currentMenuSection || 'play';
+    let selectedGameMode = window.selectedGameMode || 'competitive';
+    let selectedMap = window.selectedMap || 'dust2_complex';
+    let selectedWeaponCategory = 'rifles';
+    let searchResults = [];
+    let currentSearchQuery = '';
+    let currentLeaderboardType = window.currentLeaderboardType || 'competitive';
+
+    window.currentMenuSection = currentMenuSection;
+    window.selectedGameMode = selectedGameMode;
+    window.selectedMap = selectedMap;
+    window.currentLeaderboardType = currentLeaderboardType;
 
 // Initialisation des menus
 document.addEventListener('DOMContentLoaded', () => {
@@ -137,6 +149,7 @@ function showMenuSection(section) {
         }
 
         currentMenuSection = section;
+        window.currentMenuSection = currentMenuSection;
 
         // Actions spécifiques selon la section
         switch(section) {
@@ -374,6 +387,7 @@ function selectGameMode(mode, eventTarget = null) {
         }
 
         selectedGameMode = mode;
+        window.selectedGameMode = selectedGameMode;
 
         // Mettre à jour l'interface selon le mode
         updateModeSpecificUI(mode);
@@ -570,6 +584,7 @@ function selectMap(map, eventTarget = null) {
 
         const normalizedSelection = resolveMapSelection(map);
         selectedMap = normalizedSelection === 'auto' ? 'auto' : normalizedSelection;
+        window.selectedMap = selectedMap;
 
         updateMapPreview(selectedMap);
 
@@ -1338,6 +1353,7 @@ function switchLeaderboardTab(type) {
     if (!type) return;
 
     currentLeaderboardType = type;
+    window.currentLeaderboardType = currentLeaderboardType;
 
     // Mettre à jour l'interface
     document.querySelectorAll('.leaderboard-tab').forEach(tab => {
@@ -1729,17 +1745,18 @@ function showMessage(message, type = 'info', duration = 3000) {
     }
 }
 
-// Rendre les fonctions globales accessibles
-window.showMenuSection = showMenuSection;
-window.selectGameMode = selectGameMode;
-window.selectMap = selectMap;
-window.launchGame = launchGame;
-window.addFriend = addFriend;
-window.searchFriends = searchFriends;
-window.inviteFriend = inviteFriend;
-window.removeFriend = removeFriend;
-window.showWeaponCategory = showWeaponCategory;
-window.switchLeaderboardTab = switchLeaderboardTab;
-window.reconnectToMatch = reconnectToMatch;
+    // Rendre les fonctions globales accessibles
+    window.showMenuSection = showMenuSection;
+    window.selectGameMode = selectGameMode;
+    window.selectMap = selectMap;
+    window.launchGame = launchGame;
+    window.addFriend = addFriend;
+    window.searchFriends = searchFriends;
+    window.inviteFriend = inviteFriend;
+    window.removeFriend = removeFriend;
+    window.showWeaponCategory = showWeaponCategory;
+    window.switchLeaderboardTab = switchLeaderboardTab;
+    window.reconnectToMatch = reconnectToMatch;
 
-console.log('✅ Menu système COMPLET chargé avec toutes les fonctionnalités corrigées !');
+    console.log('✅ Menu système COMPLET chargé avec toutes les fonctionnalités corrigées !');
+})();
