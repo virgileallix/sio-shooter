@@ -3,7 +3,7 @@
 // Variables globales pour les profils
 let currentProfileId = null;
 let selectedAvatar = 'user';
-let currentLeaderboardType = 'kills';
+let currentProfileLeaderboardType = 'kills';
 
 // Définition des succès disponibles
 const achievements = {
@@ -582,7 +582,7 @@ async function resetStats() {
 
 // Système de classements
 function switchLeaderboardTab(type) {
-    currentLeaderboardType = type;
+    currentProfileLeaderboardType = type;
     
     // Mettre à jour l'interface
     document.querySelectorAll('.leaderboard-tab').forEach(tab => tab.classList.remove('active'));
