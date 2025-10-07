@@ -1112,8 +1112,22 @@ const StoreSystem = {
 
         const weaponCategory = this.getWeaponCategory(skin.weapon);
         this.ensureInventoryStructure();
-        
-        // Déséquiper le skin actuel pour cette arme
+
+        // Vérifier si ce skin est déjà équipé sur cette arme
+        const currentlyEquipped = playerInventory.equippedSkins[weaponCategory]?.[skin.weapon];
+        if (currentlyEquipped === skinId) {
+            if (window.NotificationSystem) {
+                window.NotificationSystem.show(
+                    'Déjà équipé',
+                    `${skin.weapon} | ${skin.name} est déjà équipé!`,
+                    'warning',
+                    2000
+                );
+            }
+            return;
+        }
+
+        // Équiper le skin pour cette arme
         if (!playerInventory.equippedSkins[weaponCategory]) {
             playerInventory.equippedSkins[weaponCategory] = {};
         }

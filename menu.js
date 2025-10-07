@@ -156,6 +156,9 @@ function showMenuSection(section) {
                 break;
             case 'battlepass':
                 if (window.BattlePassSystem) {
+                    if (!window.BattlePassSystem.state.initialized) {
+                        window.BattlePassSystem.init();
+                    }
                     window.BattlePassSystem.render();
                 }
                 break;
@@ -167,7 +170,10 @@ function showMenuSection(section) {
                 break;
             case 'inventory':
                 if (typeof StoreSystem !== 'undefined') {
+                    StoreSystem.ensureInventoryStructure();
+                    StoreSystem.switchInventoryTab('weapons');
                     StoreSystem.loadInventory();
+                    StoreSystem.updateCurrencyDisplay();
                 }
                 break;
             case 'settings':
