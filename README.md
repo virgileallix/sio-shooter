@@ -103,12 +103,6 @@ A competitive 2D tactical shooter inspired by Valorant and Counter-Strike, featu
 | Knife | ![#ffd700](https://via.placeholder.com/15/ffd700/000000?text=+) | 0.01% | Karambit Fade |
 
 
-### Version 1.1 (Coming Soon)
-- [ ] Agent system with unique abilities
-- [ ] Battle Pass with seasonal rewards
-- [ ] Tournament mode
-- [ ] Spectator system
-
 ### Version 1.2 (Planned)
 - [ ] Additional maps (Haven, Bind, Split)
 - [ ] New weapon categories
