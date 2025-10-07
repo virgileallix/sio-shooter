@@ -96,6 +96,12 @@
                         <button class="nav-btn" onclick="showMenuSection('store')">
                             <i class="fas fa-shopping-cart"></i> Boutique
                         </button>
+                        <button class="nav-btn" onclick="showMenuSection('battlepass')">
+                            <i class="fas fa-layer-group"></i> Battle Pass
+                        </button>
+                        <button class="nav-btn" onclick="showMenuSection('tournament')">
+                            <i class="fas fa-trophy"></i> Tournois
+                        </button>
                         <button class="nav-btn" onclick="showMenuSection('inventory')">
                             <i class="fas fa-box-open"></i> Inventaire
                         </button>
@@ -206,6 +212,16 @@
                                     </select>
                                 </div>
                             </div>
+
+                            <div class="agent-selection">
+                                <h3>Agents</h3>
+                                <div id="selected-agent-display" class="selected-agent-display">
+                                    <!-- Filled by AgentSystem -->
+                                </div>
+                                <div class="agent-selection-grid" id="agent-selection-grid">
+                                    <!-- Agents rendered dynamically -->
+                                </div>
+                            </div>
                         </div>
 
                         <button class="launch-game-btn" onclick="launchGame()">
@@ -288,6 +304,86 @@
                         <div id="store-agents" class="store-content hidden">
                             <div class="agents-grid" id="agents-grid">
                                 <!-- Agents will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Battle Pass Section -->
+                    <div id="battlepass-section" class="menu-section hidden">
+                        <h2>Battle Pass</h2>
+                        <div class="battlepass-layout">
+                            <div class="battlepass-summary" id="battlepass-summary"></div>
+                            <div class="battlepass-progress-wrapper">
+                                <div class="battlepass-progress" id="battlepass-progress"></div>
+                            </div>
+                            <div class="battlepass-tracks">
+                                <div class="battlepass-track" id="battlepass-free">
+                                    <div class="track-header">
+                                        <h3>Piste gratuite</h3>
+                                        <span class="track-label free">Disponible pour tous</span>
+                                    </div>
+                                    <div class="battlepass-track-grid" id="battlepass-free-track"></div>
+                                </div>
+                                <div class="battlepass-track premium" id="battlepass-premium">
+                                    <div class="track-header">
+                                        <h3>Piste premium</h3>
+                                        <span class="track-label premium">Réservée Premium</span>
+                                    </div>
+                                    <div class="battlepass-track-grid" id="battlepass-premium-track"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tournament Section -->
+                    <div id="tournament-section" class="menu-section hidden">
+                        <div class="tournament-header">
+                            <div>
+                                <h2>Tournois</h2>
+                                <p>Rejoignez une compétition ou créez votre propre bracket.</p>
+                            </div>
+                            <button class="btn-primary" id="create-tournament-btn">
+                                <i class="fas fa-plus"></i> Nouveau tournoi
+                            </button>
+                        </div>
+
+                        <div class="tournament-create-card hidden" id="tournament-create-card">
+                            <div class="create-grid">
+                                <div class="input-group">
+                                    <label for="tournament-name">Nom du tournoi</label>
+                                    <input type="text" id="tournament-name" placeholder="Ex: Cup SIO #1" maxlength="40">
+                                </div>
+                                <div class="input-group">
+                                    <label for="tournament-size">Participants</label>
+                                    <select id="tournament-size">
+                                        <option value="4">4 joueurs</option>
+                                        <option value="8" selected>8 joueurs</option>
+                                        <option value="16">16 joueurs</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label for="tournament-mode">Mode</label>
+                                    <select id="tournament-mode">
+                                        <option value="duel">Duel 1v1</option>
+                                        <option value="competitive">Compétitif 5v5</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="create-actions">
+                                <button class="btn-secondary" id="cancel-tournament-create">Annuler</button>
+                                <button class="btn-primary" id="confirm-tournament-create">Créer</button>
+                            </div>
+                        </div>
+
+                        <div class="tournament-content">
+                            <div class="tournament-list" id="tournament-list">
+                                <!-- Tournois dynamiques -->
+                            </div>
+                            <div class="tournament-details" id="tournament-details">
+                                <div class="tournament-placeholder">
+                                    <i class="fas fa-trophy"></i>
+                                    <p>Sélectionnez un tournoi pour afficher les détails.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -623,9 +719,9 @@
 
         <!-- Game Screen -->
         <div id="game-screen" class="game-screen hidden">
-            <div class="game-hud">
-                <div class="hud-top">
-                    <div class="team-score">
+                <div class="game-hud">
+                    <div class="hud-top">
+                        <div class="team-score">
                         <div class="team-score-item attackers">
                             <span class="team-name">Attaquants</span>
                             <span class="score" id="attackers-score">0</span>
@@ -641,10 +737,16 @@
                             <span class="score" id="defenders-score">0</span>
                             <span class="team-name">Défenseurs</span>
                         </div>
+                        </div>
+                        <div class="spectator-controls">
+                            <button id="spectator-toggle-btn" class="btn-ghost">
+                                <i class="fas fa-eye"></i>
+                                Mode spectateur
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                <div class="hud-bottom">
+                    <div class="hud-bottom">
                     <div class="player-stats">
                         <div class="health-armor">
                             <div class="health">
@@ -751,7 +853,15 @@
             </div>
 
             <canvas id="game-canvas" width="1200" height="800"></canvas>
-            
+
+            <div class="spectator-overlay hidden" id="spectator-overlay">
+                <div class="spectator-panel">
+                    <h3><i class="fas fa-eye"></i> Mode spectateur</h3>
+                    <p>Déplacez-vous avec <strong>ZQSD</strong> ou les flèches. Maintenez <strong>Shift</strong> pour accélérer.</p>
+                    <p>Activez/Désactivez avec le bouton ou la touche <strong>F3</strong>.</p>
+                </div>
+            </div>
+
             <div class="game-menu-overlay hidden" id="game-menu-overlay">
                 <div class="game-menu">
                     <h3>Menu de jeu</h3>
@@ -810,6 +920,10 @@
     <script src="auth.js"></script>
     <script src="profile.js"></script>
     <script src="matchmaking.js"></script>
+    <script src="agents.js"></script>
+    <script src="battlepass.js"></script>
+    <script src="tournament.js"></script>
+    <script src="spectator.js"></script>
     <script src="menu.js"></script>
     <script src="gameplay.js"></script>
     <script src="game.js"></script>

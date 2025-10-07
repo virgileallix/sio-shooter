@@ -109,6 +109,14 @@ const WEAPONS = {
 // TYPES D'OBJETS DESTRUCTIBLES
 // ========================================
 
+const SPRITE_PATHS = {
+    wood_crate: 'assets/crate_wood.svg',
+    light_cover: 'assets/crate_light.svg'
+};
+
+const objectSprites = {};
+let objectSpritesLoaded = false;
+
 const OBJECT_TYPES = {
     wood_crate: {
         name: 'Caisse en bois',
@@ -199,6 +207,7 @@ window.player = {
     maxHealth: 100,
     armor: 0,
     maxArmor: 50,
+    baseMaxArmor: 50,
     alive: true,
     team: 'attackers',
     money: 800,
@@ -208,6 +217,12 @@ window.player = {
     lastShot: 0,
     weapon: null,
     inventory: [],
+    reloadMultiplier: 1,
+    baseSpeedMultiplier: 1,
+    speedBoostMultiplier: 1,
+    damageMultiplier: 1,
+    extraPenetration: 0,
+    effects: [],
     abilities: {
         ability1: { cooldown: 0, maxCooldown: 25, ready: true },
         ability2: { cooldown: 0, maxCooldown: 35, ready: true },
@@ -248,7 +263,8 @@ window.game = {
         y: 0,
         shake: 0,
         shakeIntensity: 0
-    }
+    },
+    revealPulseTimer: 0
 };
 
 // ========================================
@@ -262,6 +278,10 @@ let damageNumbers = [];
 let gameObjects = [];
 let smokeGrenades = [];
 let flashbangs = [];
+let revealBeacons = [];
+let slowFields = [];
+let sentryTurrets = [];
+let armorRegenEffects = [];
 
 // ========================================
 // CARTE COMPLÈTE AVEC OBJETS
@@ -352,6 +372,7 @@ function initializeGame() {
     gameCanvas.height = 800;
     
     setupControls();
+    loadObjectSprites();
     initializeMap();
     equipWeapon('phantom');
     resetGameState();
@@ -375,7 +396,8 @@ function initializeMap() {
             ...wall,
             ...objType,
             health: objType.health,
-            destroyed: false
+            destroyed: false,
+            hitTimer: 0
         });
     });
     
@@ -390,7 +412,8 @@ function initializeMap() {
             type: obj.type,
             ...objType,
             health: objType.health,
-            destroyed: false
+            destroyed: false,
+            hitTimer: 0
         });
     });
 }
@@ -402,9 +425,15 @@ function resetGameState() {
     player.x = spawn.x;
     player.y = spawn.y;
     player.health = player.maxHealth;
+    player.maxArmor = player.baseMaxArmor || player.maxArmor;
     player.armor = 0;
     player.alive = true;
     player.reloading = false;
+    player.effects = [];
+    player.speedBoostMultiplier = 1;
+    player.damageMultiplier = 1;
+    player.extraPenetration = 0;
+    player.reloadMultiplier = 1;
     
     game.roundTime = 100;
     game.buyTime = 30;
@@ -415,9 +444,21 @@ function resetGameState() {
     damageNumbers = [];
     smokeGrenades = [];
     flashbangs = [];
+    revealBeacons = [];
+    slowFields = [];
+    sentryTurrets = [];
+    armorRegenEffects = [];
     
     game.camera.x = player.x;
     game.camera.y = player.y;
+
+    if (window.SpectatorSystem && typeof window.SpectatorSystem.disable === 'function') {
+        window.SpectatorSystem.disable(true);
+    }
+
+    if (window.AgentSystem && typeof window.AgentSystem.applyAgentModifiers === 'function') {
+        window.AgentSystem.applyAgentModifiers(true);
+    }
 }
 
 function equipWeapon(weaponName) {
@@ -482,12 +523,21 @@ function gameLoopFunction(currentTime) {
 // ========================================
 
 function update(dt) {
-    if (player.alive) {
+    const spectatorActive = window.SpectatorSystem?.isEnabled?.() || false;
+    if (!spectatorActive && player.alive) {
         updatePlayer(dt);
-        updateCamera(dt);
-        updateAbilityCooldowns(dt);
+    } else if (spectatorActive) {
+        window.SpectatorSystem.update(dt);
     }
-    
+
+    updateCamera(dt);
+    updateAbilityCooldowns(dt);
+    updateStatusEffects(dt);
+    updateRevealBeacons(dt);
+    updateSlowFields(dt);
+    updateArmorRegenEffects(dt);
+    updateSentryTurrets(dt);
+    updateObjectAnimations(dt);
     updateBullets(dt);
     updateParticles(dt);
     updateDamageNumbers(dt);
@@ -516,7 +566,8 @@ function updatePlayer(dt) {
         dirY *= Math.SQRT1_2;
     }
 
-    const moveSpeed = (player.sprinting ? player.sprintSpeed : player.speed) * dt * 60;
+    const baseMove = (player.sprinting ? player.sprintSpeed : player.speed) * (player.baseSpeedMultiplier || 1);
+    const moveSpeed = baseMove * (player.speedBoostMultiplier || 1) * dt * 60;
     const deltaX = dirX * moveSpeed;
     const deltaY = dirY * moveSpeed;
     
@@ -538,8 +589,16 @@ function updatePlayer(dt) {
 
 function updateCamera(dt) {
     const smoothness = 0.1;
-    const targetX = player.x;
-    const targetY = player.y;
+    let targetX = player.x;
+    let targetY = player.y;
+
+    if (window.SpectatorSystem?.isEnabled?.()) {
+        const camTarget = window.SpectatorSystem.getCameraTarget();
+        if (camTarget) {
+            targetX = camTarget.x;
+            targetY = camTarget.y;
+        }
+    }
     
     game.camera.x += (targetX - game.camera.x) * smoothness;
     game.camera.y += (targetY - game.camera.y) * smoothness;
@@ -558,8 +617,111 @@ function updateAbilityCooldowns(dt) {
             ability.cooldown -= dt;
             if (ability.cooldown <= 0) {
                 ability.cooldown = 0;
-                ability.ready = true;
+                if (!ability.maxPoints || ability.maxPoints === 0 || key !== 'ultimate') {
+                    ability.ready = true;
+                }
             }
+        }
+    }
+}
+
+function updateStatusEffects(dt) {
+    if (!player.effects) return;
+
+    for (let i = player.effects.length - 1; i >= 0; i--) {
+        const effect = player.effects[i];
+        effect.duration -= dt;
+        if (effect.duration <= 0) {
+            player.effects.splice(i, 1);
+        }
+    }
+
+    let speedMultiplier = 1;
+    let damageMultiplier = 1;
+    let extraPenetration = 0;
+
+    player.effects.forEach(effect => {
+        switch (effect.type) {
+            case 'speedBoost':
+                speedMultiplier = Math.max(speedMultiplier, effect.value || 1);
+                break;
+            case 'damageBoost':
+                damageMultiplier = Math.max(damageMultiplier, effect.value || 1);
+                extraPenetration = Math.max(extraPenetration, effect.penetration || 0);
+                break;
+        }
+    });
+
+    player.speedBoostMultiplier = speedMultiplier;
+    player.damageMultiplier = Math.max(1, damageMultiplier);
+    player.extraPenetration = Math.max(0, extraPenetration);
+}
+
+function updateRevealBeacons(dt) {
+    for (let i = revealBeacons.length - 1; i >= 0; i--) {
+        const beacon = revealBeacons[i];
+        beacon.duration -= dt;
+        beacon.pulse += dt * (beacon.pulseSpeed || 4);
+        if (beacon.duration <= 0) {
+            revealBeacons.splice(i, 1);
+        }
+    }
+}
+
+function updateSlowFields(dt) {
+    for (let i = slowFields.length - 1; i >= 0; i--) {
+        const field = slowFields[i];
+        field.duration -= dt;
+        field.pulse += dt;
+        if (field.duration <= 0) {
+            slowFields.splice(i, 1);
+        }
+    }
+}
+
+function updateArmorRegenEffects(dt) {
+    for (let i = armorRegenEffects.length - 1; i >= 0; i--) {
+        const effect = armorRegenEffects[i];
+        effect.duration -= dt;
+        const regenRate = (effect.totalArmor || 0) / Math.max(effect.initialDuration || 1, 0.0001);
+        const amount = Math.min(regenRate * dt, effect.remaining || 0);
+        const space = Math.max(0, player.maxArmor - player.armor);
+        const applied = Math.min(amount, space);
+        player.armor += applied;
+        effect.remaining = Math.max(0, (effect.remaining || 0) - applied);
+
+        if (effect.duration <= 0 || effect.remaining <= 0 || player.armor >= player.maxArmor) {
+            armorRegenEffects.splice(i, 1);
+        }
+    }
+}
+
+function updateSentryTurrets(dt) {
+    for (let i = sentryTurrets.length - 1; i >= 0; i--) {
+        const turret = sentryTurrets[i];
+        turret.duration -= dt;
+        turret.angle += dt * 2;
+        turret.cooldown -= dt;
+
+        if (turret.cooldown <= 0) {
+            // Effet visuel de tir
+            const muzzleX = turret.x + Math.cos(turret.angle) * 18;
+            const muzzleY = turret.y + Math.sin(turret.angle) * 18;
+            particles.push({
+                x: muzzleX,
+                y: muzzleY,
+                vx: Math.cos(turret.angle) * 8,
+                vy: Math.sin(turret.angle) * 8,
+                life: 0.2,
+                maxLife: 0.2,
+                color: '#ffd166',
+                size: 3
+            });
+            turret.cooldown = turret.fireRate || 0.4;
+        }
+
+        if (turret.duration <= 0) {
+            sentryTurrets.splice(i, 1);
         }
     }
 }
@@ -640,6 +802,23 @@ function updateDamageNumbers(dt) {
     }
 }
 
+function updateObjectAnimations(dt) {
+    const now = performance.now();
+    for (let i = gameObjects.length - 1; i >= 0; i--) {
+        const obj = gameObjects[i];
+        if (obj.expiresAt && now >= obj.expiresAt) {
+            gameObjects.splice(i, 1);
+            continue;
+        }
+        if (obj.hitTimer) {
+            obj.hitTimer -= dt;
+            if (obj.hitTimer < 0) {
+                obj.hitTimer = 0;
+            }
+        }
+    }
+}
+
 function updateSmokeGrenades(dt) {
     for (let i = smokeGrenades.length - 1; i >= 0; i--) {
         const smoke = smokeGrenades[i];
@@ -687,6 +866,10 @@ function updateGameTimers(dt) {
             endRound('time_up');
         }
     }
+
+    if (game.revealPulseTimer && game.revealPulseTimer > 0) {
+        game.revealPulseTimer = Math.max(0, game.revealPulseTimer - dt);
+    }
 }
 
 // ========================================
@@ -694,6 +877,7 @@ function updateGameTimers(dt) {
 // ========================================
 
 function shoot() {
+    if (window.SpectatorSystem?.isEnabled?.()) return;
     if (!player.weapon || player.reloading) return;
     
     const now = Date.now();
@@ -729,8 +913,8 @@ function createBullet(angle) {
         y: startY,
         vx: Math.cos(angle) * player.weapon.bulletSpeed,
         vy: Math.sin(angle) * player.weapon.bulletSpeed,
-        damage: player.weapon.damage,
-        penetration: player.weapon.penetration,
+        damage: player.weapon.damage * (player.damageMultiplier || 1),
+        penetration: (player.weapon.penetration || 0) + (player.extraPenetration || 0),
         size: player.weapon.bulletSize,
         owner: 'player',
         team: player.team,
@@ -760,6 +944,8 @@ function handleBulletObjectCollision(bullet, obj, bulletIndex) {
             destroyObject(obj);
         }
     }
+
+    obj.hitTimer = Math.max(obj.hitTimer || 0, 0.25);
     
     // Pénétration
     if (obj.penetrable && bullet.penetration > bullet.penetrationCount) {
@@ -881,10 +1067,13 @@ function hitPlayer(targetPlayer, damage, ownerId) {
 }
 
 function reload() {
+    if (window.SpectatorSystem?.isEnabled?.()) return;
     if (player.reloading || player.weapon.ammo === player.weapon.maxAmmo) return;
     if (player.weapon.totalAmmo <= 0) return;
     
     player.reloading = true;
+    
+    const reloadDuration = player.weapon.reloadTime * (player.reloadMultiplier || 1);
     
     setTimeout(() => {
         const ammoNeeded = player.weapon.maxAmmo - player.weapon.ammo;
@@ -895,7 +1084,7 @@ function reload() {
         player.reloading = false;
         
         updateAmmoDisplay();
-    }, player.weapon.reloadTime * 1000);
+    }, reloadDuration * 1000);
 }
 
 // ========================================
@@ -988,37 +1177,62 @@ function addCameraShake(intensity) {
 // ========================================
 
 function useAbility(abilityKey) {
-    const ability = player.abilities[abilityKey];
-    if (!ability || !ability.ready || ability.cooldown > 0) return;
-    
-    switch(abilityKey) {
-        case 'ability1':
-            // Grenade fumigène
-            throwSmokeGrenade();
-            ability.cooldown = ability.maxCooldown;
-            ability.ready = false;
-            break;
-            
-        case 'ability2':
-            // Flashbang
-            throwFlashbang();
-            ability.cooldown = ability.maxCooldown;
-            ability.ready = false;
-            break;
-            
-        case 'ultimate':
-            if (ability.points >= ability.maxPoints) {
-                // Ultimate
+    if (window.SpectatorSystem?.isEnabled?.()) return;
+    const ability = player.abilities?.[abilityKey];
+    if (!ability) return;
+
+    const isUltimate = abilityKey === 'ultimate';
+
+    if (ability.cooldown > 0) return;
+    if (!isUltimate && ability.ready === false) return;
+
+    if (isUltimate) {
+        if (ability.maxPoints && ability.points < ability.maxPoints) return;
+    }
+
+    let executed = false;
+    if (typeof ability.execute === 'function') {
+        try {
+            ability.execute();
+            executed = true;
+        } catch (error) {
+            console.error('Erreur exécution capacité:', error);
+        }
+    }
+
+    if (!executed) {
+        // Fallback vers les anciennes mécaniques
+        switch (abilityKey) {
+            case 'ability1':
+                throwSmokeGrenade();
+                break;
+            case 'ability2':
+                throwFlashbang();
+                break;
+            case 'ultimate':
                 activateUltimate();
-                ability.points = 0;
-                ability.ready = false;
-            }
-            break;
+                break;
+            default:
+                return;
+        }
+    }
+
+    if (ability.maxCooldown && ability.maxCooldown > 0) {
+        ability.cooldown = ability.maxCooldown;
+        ability.ready = false;
+    } else if (!isUltimate) {
+        ability.cooldown = 0;
+        ability.ready = true;
+    }
+
+    if (isUltimate) {
+        ability.points = 0;
+        ability.ready = false;
     }
 }
 
-function throwSmokeGrenade() {
-    const throwDistance = 300;
+function throwSmokeGrenade(options = {}) {
+    const throwDistance = options.distance || 300;
     const targetX = player.x + Math.cos(player.angle) * throwDistance;
     const targetY = player.y + Math.sin(player.angle) * throwDistance;
     
@@ -1026,12 +1240,13 @@ function throwSmokeGrenade() {
         x: targetX,
         y: targetY,
         radius: 0,
-        maxRadius: 150,
-        lifetime: 15,
-        opacity: 0.7
+        maxRadius: options.radius || 150,
+        lifetime: options.duration || 15,
+        opacity: options.opacity || 0.7,
+        color: options.color || 'rgba(200, 200, 200, 1)'
     });
     
-    createImpactEffect(targetX, targetY, '#999999');
+    createImpactEffect(targetX, targetY, options.impactColor || '#999999');
 }
 
 function throwFlashbang() {
@@ -1073,6 +1288,120 @@ function activateUltimate() {
             size: 4
         });
     }
+}
+
+function getAbilityTarget(distance = 260) {
+    return {
+        x: player.x + Math.cos(player.angle) * distance,
+        y: player.y + Math.sin(player.angle) * distance
+    };
+}
+
+function spawnRevealBeacon(options = {}) {
+    const target = getAbilityTarget(options.distance || 260);
+    revealBeacons.push({
+        x: target.x,
+        y: target.y,
+        radius: options.radius || 220,
+        duration: options.duration || 6,
+        pulse: 0,
+        pulseSpeed: options.pulseSpeed || 4
+    });
+    createImpactEffect(target.x, target.y, '#00d4ff');
+}
+
+function activateRevealPulse(options = {}) {
+    const duration = options.duration || 6;
+    game.revealPulseTimer = Math.max(game.revealPulseTimer || 0, duration);
+}
+
+function applySpeedBoost(options = {}) {
+    const duration = options.duration || 2;
+    const multiplier = options.speedMultiplier || 1.5;
+    player.effects.push({
+        type: 'speedBoost',
+        duration,
+        value: multiplier
+    });
+    updateStatusEffects(0);
+}
+
+function spawnSlowField(options = {}) {
+    const target = getAbilityTarget(options.distance || 220);
+    slowFields.push({
+        x: target.x,
+        y: target.y,
+        radius: options.radius || 200,
+        duration: options.duration || 8,
+        slowMultiplier: options.slowMultiplier || 0.6,
+        pulse: 0
+    });
+    createImpactEffect(target.x, target.y, '#7dd3fc');
+}
+
+function enableOverchargeMode(options = {}) {
+    const duration = options.duration || 8;
+    const multiplier = options.damageMultiplier || 1.4;
+    const penetration = options.penetration || 1;
+    player.effects.push({
+        type: 'damageBoost',
+        duration,
+        value: multiplier,
+        penetration
+    });
+    updateStatusEffects(0);
+}
+
+function deployTemporaryBarrier(options = {}) {
+    const width = options.width || 220;
+    const height = options.height || 40;
+    const duration = options.duration || 8;
+    const health = options.health || 250;
+    const target = getAbilityTarget(options.distance || 180);
+
+    const barrier = {
+        x: target.x - width / 2,
+        y: target.y - height / 2,
+        width,
+        height,
+        type: 'temp_barrier',
+        name: 'Barrière',
+        health,
+        maxHealth: health,
+        penetrable: false,
+        destructible: true,
+        damageReduction: 0.1,
+        color: '#3AA7FF',
+        expiresAt: performance.now() + duration * 1000
+    };
+
+    gameObjects.push(barrier);
+}
+
+function applyArmorRegenEffect(options = {}) {
+    const duration = options.duration || 6;
+    const amount = options.totalArmor || 30;
+    armorRegenEffects.push({
+        totalArmor: amount,
+        remaining: amount,
+        duration,
+        initialDuration: duration
+    });
+}
+
+function deploySentryTurret(options = {}) {
+    const target = getAbilityTarget(options.distance || 180);
+    sentryTurrets.push({
+        x: target.x,
+        y: target.y,
+        duration: options.duration || 15,
+        damage: options.damage || 18,
+        fireRate: options.fireRate || 0.4,
+        range: options.range || 360,
+        cooldown: 0,
+        angle: 0
+    });
+    createImpactEffect(target.x, target.y, '#ffd166');
 }
 
 // ========================================
@@ -1181,6 +1510,26 @@ function refreshWeaponUI() {
     updateAmmoDisplay();
 }
 
+function loadObjectSprites() {
+    if (objectSpritesLoaded) return;
+    objectSpritesLoaded = true;
+
+    Object.entries(SPRITE_PATHS).forEach(([type, path]) => {
+        const img = new Image();
+        objectSprites[type] = {
+            image: img,
+            loaded: false
+        };
+        img.onload = () => {
+            objectSprites[type].loaded = true;
+        };
+        img.onerror = () => {
+            console.warn(`Impossible de charger le sprite: ${path}`);
+        };
+        img.src = path;
+    });
+}
+
 function endRound(reason) {
     console.log('Round terminé:', reason);
     game.phase = 'ended';
@@ -1217,9 +1566,12 @@ function render() {
     
     // Dessiner la carte
     drawMap();
+    drawSlowFields();
+    drawRevealBeacons();
     
-    // Fumée
+    // Fumée & structures
     drawSmokeGrenades();
+    drawSentryTurrets();
     
     // Autres joueurs
     drawOtherPlayers();
@@ -1242,15 +1594,33 @@ function render() {
     gameContext.restore();
     
     // HUD
+    drawRevealPulseOverlay();
     drawHUD();
 }
 
 function drawMap() {
+    const time = performance.now();
     for (const obj of gameObjects) {
         if (obj.destroyed) continue;
-        
-        gameContext.fillStyle = obj.color;
-        gameContext.fillRect(obj.x, obj.y, obj.width, obj.height);
+
+        let offsetX = 0;
+        let offsetY = 0;
+        if (obj.hitTimer > 0) {
+            const intensity = obj.hitTimer * 10;
+            offsetX = Math.sin(time * 0.05 + obj.x) * intensity;
+            offsetY = Math.cos(time * 0.045 + obj.y) * intensity;
+        }
+
+        gameContext.save();
+        gameContext.translate(offsetX, offsetY);
+
+        const sprite = objectSprites[obj.type];
+        if (sprite && sprite.loaded) {
+            gameContext.drawImage(sprite.image, obj.x, obj.y, obj.width, obj.height);
+        } else {
+            gameContext.fillStyle = obj.color;
+            gameContext.fillRect(obj.x, obj.y, obj.width, obj.height);
+        }
         
         // Barre de vie pour objets destructibles
         if (obj.destructible && obj.health < obj.maxHealth) {
@@ -1260,6 +1630,8 @@ function drawMap() {
             gameContext.fillStyle = '#00ff00';
             gameContext.fillRect(obj.x, obj.y - 8, obj.width * healthPercent, 4);
         }
+
+        gameContext.restore();
     }
 }
 
@@ -1340,13 +1712,84 @@ function drawParticles() {
     gameContext.globalAlpha = 1;
 }
 
+function drawSlowFields() {
+    for (const field of slowFields) {
+        const gradient = gameContext.createRadialGradient(
+            field.x,
+            field.y,
+            0,
+            field.x,
+            field.y,
+            field.radius
+        );
+        gradient.addColorStop(0, 'rgba(125, 211, 252, 0.35)');
+        gradient.addColorStop(1, 'rgba(125, 211, 252, 0)');
+        gameContext.fillStyle = gradient;
+        gameContext.beginPath();
+        gameContext.arc(field.x, field.y, field.radius, 0, Math.PI * 2);
+        gameContext.fill();
+
+        gameContext.strokeStyle = `rgba(125, 211, 252, 0.45)`;
+        gameContext.lineWidth = 2;
+        gameContext.beginPath();
+        gameContext.arc(field.x, field.y, field.radius * (0.6 + 0.1 * Math.sin(field.pulse * 3)), 0, Math.PI * 2);
+        gameContext.stroke();
+    }
+}
+
+function drawRevealBeacons() {
+    for (const beacon of revealBeacons) {
+        const intensity = 0.25 + 0.1 * Math.sin(beacon.pulse * 2);
+        const gradient = gameContext.createRadialGradient(
+            beacon.x,
+            beacon.y,
+            0,
+            beacon.x,
+            beacon.y,
+            beacon.radius
+        );
+        gradient.addColorStop(0, `rgba(0, 212, 255, ${intensity})`);
+        gradient.addColorStop(1, 'rgba(0, 212, 255, 0)');
+        gameContext.fillStyle = gradient;
+        gameContext.beginPath();
+        gameContext.arc(beacon.x, beacon.y, beacon.radius, 0, Math.PI * 2);
+        gameContext.fill();
+
+        gameContext.strokeStyle = `rgba(0, 212, 255, 0.6)`;
+        gameContext.lineWidth = 2;
+        gameContext.beginPath();
+        const ringRadius = beacon.radius * (0.4 + 0.2 * Math.sin(beacon.pulse * 4));
+        gameContext.arc(beacon.x, beacon.y, ringRadius, 0, Math.PI * 2);
+        gameContext.stroke();
+    }
+}
+
+function drawSentryTurrets() {
+    for (const turret of sentryTurrets) {
+        gameContext.fillStyle = 'rgba(255, 209, 102, 0.8)';
+        gameContext.beginPath();
+        gameContext.arc(turret.x, turret.y, 14, 0, Math.PI * 2);
+        gameContext.fill();
+
+        gameContext.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+        gameContext.lineWidth = 3;
+        gameContext.beginPath();
+        gameContext.moveTo(turret.x, turret.y);
+        const beamX = turret.x + Math.cos(turret.angle) * 30;
+        const beamY = turret.y + Math.sin(turret.angle) * 30;
+        gameContext.lineTo(beamX, beamY);
+        gameContext.stroke();
+    }
+}
+
 function drawSmokeGrenades() {
     for (const smoke of smokeGrenades) {
         const gradient = gameContext.createRadialGradient(
             smoke.x, smoke.y, 0,
             smoke.x, smoke.y, smoke.radius
         );
-        gradient.addColorStop(0, `rgba(200, 200, 200, ${smoke.opacity})`);
+        const innerColor = smoke.color || 'rgba(200, 200, 200, 1)';
+        gradient.addColorStop(0, innerColor);
         gradient.addColorStop(1, 'rgba(200, 200, 200, 0)');
         
         gameContext.fillStyle = gradient;
@@ -1399,6 +1842,16 @@ function drawHUD() {
     
     // Cooldowns des abilities
     drawAbilityCooldowns();
+
+    window.SpectatorSystem?.drawHUD?.(gameContext);
+}
+
+function drawRevealPulseOverlay() {
+    if (!game.revealPulseTimer || game.revealPulseTimer <= 0) return;
+    const intensity = Math.min(0.35, 0.15 + 0.1 * Math.sin(game.revealPulseTimer * 6));
+    gameContext.fillStyle = `rgba(0, 212, 255, ${intensity})`;
+    gameContext.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+    gameContext.globalAlpha = 1;
 }
 
 function drawAbilityCooldowns() {
@@ -1482,12 +1935,14 @@ function handleKeyUp(e) {
 }
 
 function handleMouseDown(e) {
+    if (window.SpectatorSystem?.isEnabled?.()) return;
     if (e.button === 0) {
         mouse.pressed = true;
     }
 }
 
 function handleMouseUp(e) {
+    if (window.SpectatorSystem?.isEnabled?.()) return;
     if (e.button === 0) {
         mouse.pressed = false;
     }
@@ -1539,5 +1994,14 @@ window.initializeGame = initializeGame;
 window.stopGame = stopGame;
 window.leaveGame = leaveGame;
 window.equipWeapon = equipWeapon;
+window.throwSmokeGrenade = throwSmokeGrenade;
+window.spawnRevealBeacon = spawnRevealBeacon;
+window.activateRevealPulse = activateRevealPulse;
+window.applySpeedBoost = applySpeedBoost;
+window.spawnSlowField = spawnSlowField;
+window.enableOverchargeMode = enableOverchargeMode;
+window.deployTemporaryBarrier = deployTemporaryBarrier;
+window.applyArmorRegenEffect = applyArmorRegenEffect;
+window.deploySentryTurret = deploySentryTurret;
 
 console.log('Système de gameplay avancé chargé (1900+ lignes)');

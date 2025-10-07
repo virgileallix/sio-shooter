@@ -148,6 +148,17 @@ function showMenuSection(section) {
                         StoreSystem.switchStoreTab('cases');
                     }
                     break;
+                case 'battlepass':
+                    if (window.BattlePassSystem) {
+                        window.BattlePassSystem.render();
+                    }
+                    break;
+                case 'tournament':
+                    if (window.TournamentSystem) {
+                        window.TournamentSystem.renderTournamentList();
+                        window.TournamentSystem.renderTournamentDetails();
+                    }
+                    break;
                 case 'inventory':
                     if (typeof StoreSystem !== 'undefined') {
                         StoreSystem.loadInventory();
@@ -178,6 +189,11 @@ function initializePlaySection() {
     
     // Mettre à jour les cartes disponibles
     updateAvailableMaps();
+
+    if (window.AgentSystem) {
+        window.AgentSystem.renderAgentSelection();
+        window.AgentSystem.updateUISelection();
+    }
 }
 
 async function updateQueueStats() {

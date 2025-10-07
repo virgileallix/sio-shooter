@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="96" height="96" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="wood_dark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8d5524"/>
+      <stop offset="100%" stop-color="#40220b"/>
+    </linearGradient>
+    <pattern id="grain_dark" patternUnits="userSpaceOnUse" width="16" height="16">
+      <path d="M0 8 Q8 0 16 8 T32 8" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+      <path d="M0 16 Q8 8 16 16 T32 16" fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="1.5"/>
+    </pattern>
+  </defs>
+  <rect x="6" y="6" width="84" height="84" rx="8" fill="url(#wood_dark)"/>
+  <rect x="12" y="12" width="72" height="72" rx="6" fill="url(#grain_dark)" opacity="0.75"/>
+  <g stroke="#2a1507" stroke-width="6" stroke-linecap="round">
+    <path d="M18 18 L78 78"/>
+    <path d="M18 78 L78 18"/>
+    <path d="M30 12 V84"/>
+    <path d="M66 12 V84"/>
+    <path d="M12 30 H84"/>
+    <path d="M12 66 H84"/>
+  </g>
+  <rect x="6" y="6" width="84" height="84" rx="8" fill="none" stroke="rgba(0,0,0,0.45)" stroke-width="4"/>
+</svg>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="96" height="72" viewBox="0 0 96 72" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="wood_light" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ba8458"/>
+      <stop offset="100%" stop-color="#77492b"/>
+    </linearGradient>
+    <pattern id="grain_light" patternUnits="userSpaceOnUse" width="12" height="12">
+      <path d="M0 6 Q6 0 12 6 T24 6" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.2"/>
+      <path d="M0 12 Q6 6 12 12 T24 12" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="1.2"/>
+    </pattern>
+  </defs>
+  <rect x="4" y="8" width="88" height="56" rx="6" fill="url(#wood_light)"/>
+  <rect x="8" y="12" width="80" height="48" rx="4" fill="url(#grain_light)" opacity="0.85"/>
+  <g stroke="#3f2615" stroke-width="4" stroke-linecap="round">
+    <path d="M10 14 L86 58"/>
+    <path d="M10 58 L86 14"/>
+    <path d="M30 12 V60"/>
+    <path d="M66 12 V60"/>
+  </g>
+  <rect x="4" y="8" width="88" height="56" rx="6" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="3"/>
+</svg>

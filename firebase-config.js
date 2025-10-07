@@ -59,6 +59,17 @@ let gameState = {
     }
 };
 
+function getDefaultBattlePassState() {
+    const seasonId = (typeof BattlePassConfig !== 'undefined' && BattlePassConfig.seasonId) ? BattlePassConfig.seasonId : 'season-1';
+    return {
+        seasonId,
+        xp: 0,
+        level: 1,
+        premium: false,
+        claimedRewards: {}
+    };
+}
+
 // Gestion des événements de connection avec création automatique de profil
 auth.onAuthStateChanged(async (user) => {
     if (user) {
@@ -123,6 +134,7 @@ async function loadOrCreateUserProfile() {
         
         if (!userData) {
             // Créer un nouveau profil utilisateur complet
+            const defaultBattlePass = getDefaultBattlePassState();
             const newUserProfile = {
                 // Informations de base
                 email: currentUser.email,
@@ -181,7 +193,9 @@ async function loadOrCreateUserProfile() {
                         vp: 0
                     }
                 },
-                
+
+                battlepass: defaultBattlePass,
+                 
                 // Métadonnées
                 createdAt: firebase.database.ServerValue.TIMESTAMP,
                 lastLogin: firebase.database.ServerValue.TIMESTAMP
@@ -189,15 +203,22 @@ async function loadOrCreateUserProfile() {
             
             await userRef.set(newUserProfile);
             console.log('Nouveau profil utilisateur créé');
-            
+            if (window.BattlePassSystem) {
+                window.BattlePassSystem.syncFromProfile(defaultBattlePass);
+            }
+             
         } else {
             // Mettre à jour la dernière connexion
             await userRef.child('lastLogin').set(firebase.database.ServerValue.TIMESTAMP);
-            
+             
             // Vérifier et ajouter les nouveaux champs si nécessaire
             await updateUserProfileStructure(userData);
+            userData.battlepass = userData.battlepass || getDefaultBattlePassState();
+            if (window.BattlePassSystem) {
+                window.BattlePassSystem.syncFromProfile(userData.battlepass);
+            }
         }
-        
+
     } catch (error) {
         console.error('Erreur lors du chargement/création du profil:', error);
     }
@@ -278,6 +299,10 @@ async function updateUserProfileStructure(userData) {
     
     if (!userData.rank) {
         updates['rank'] = 'Fer I';
+    }
+
+    if (!userData.battlepass) {
+        updates['battlepass'] = getDefaultBattlePassState();
     }
     
     // Appliquer les mises à jour si nécessaire
@@ -580,6 +605,9 @@ async function updateGameStatistics(matchResult) {
         const totalXP = baseXP + killXP + bonusXP;
         
         updates.experience = (currentStats.experience || 0) + totalXP;
+        if (window.BattlePassSystem && typeof window.BattlePassSystem.addBattlePassXP === 'function') {
+            window.BattlePassSystem.addBattlePassXP(totalXP, 'match');
+        }
         
         // Sauvegarder les statistiques
         await statsRef.update(updates);

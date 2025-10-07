@@ -480,7 +480,7 @@ const StoreSystem = {
             caseCard.className = 'case-card';
             caseCard.innerHTML = `
                 <div class="case-image">
-                    <div class="case-icon">📦</div>
+                    <img src="assets/case.svg" alt="Case ${weaponCase.name}">
                 </div>
                 <div class="case-info">
                     <h3>${weaponCase.name}</h3>
@@ -597,7 +597,19 @@ const StoreSystem = {
 
         // Réinitialiser
         title.textContent = `Ouverture: ${weaponCase.name}`;
-        caseImage.innerHTML = '<div class="case-icon">📦</div>';
+        caseImage.classList.remove('opening');
+        const caseDisplay = caseImage.closest('.case-display');
+        if (caseDisplay) {
+            caseDisplay.classList.remove('opening');
+        }
+        // reset animation
+        void caseImage.offsetWidth;
+        caseImage.classList.add('opening');
+        if (caseDisplay) {
+            void caseDisplay.offsetWidth;
+            caseDisplay.classList.add('opening');
+        }
+        caseImage.innerHTML = `<img src="assets/case.svg" alt="Case ${weaponCase.name}" class="case-illustration">`;
         if (skinReveal) skinReveal.classList.add('hidden');
         if (openingActions) openingActions.classList.add('hidden');
         if (progressBar) progressBar.style.width = '0%';
@@ -680,6 +692,15 @@ const StoreSystem = {
             skinCard.style.background = RARITIES[wonSkin.rarity].gradient;
         }
 
+        const caseImage = document.getElementById('case-image');
+        if (caseImage) {
+            caseImage.classList.remove('opening');
+        }
+        const caseDisplay = caseImage ? caseImage.closest('.case-display') : null;
+        if (caseDisplay) {
+            caseDisplay.classList.remove('opening');
+        }
+
         skinReveal.classList.remove('hidden');
         if (openingActions) openingActions.classList.remove('hidden');
 
@@ -724,6 +745,14 @@ const StoreSystem = {
         if (modal) {
             modal.classList.add('hidden');
         }
+        const caseImage = document.getElementById('case-image');
+        if (caseImage) {
+            caseImage.classList.remove('opening');
+        }
+        const caseDisplay = modal ? modal.querySelector('.case-display') : null;
+        if (caseDisplay) {
+            caseDisplay.classList.remove('opening');
+        }
 
         // Nettoyer l'animation
         if (this.currentOpeningAnimation) {
@@ -748,6 +777,9 @@ const StoreSystem = {
 
         let previewHTML = `
             <div style="padding: 20px; max-width: 600px; margin: 0 auto;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img src="assets/case.svg" alt="Case ${weaponCase.name}" style="width: 90px; filter: drop-shadow(0 10px 18px rgba(0,0,0,0.4));">
+                </div>
                 <h3 style="margin-bottom: 20px; color: #00d4ff; text-align: center;">Contenu possible:</h3>
                 <div style="display: grid; gap: 10px; max-height: 400px; overflow-y: auto;">
         `;
@@ -1048,7 +1080,7 @@ const StoreSystem = {
             caseCard.className = 'case-card inventory-case';
             caseCard.innerHTML = `
                 <div class="case-image">
-                    <div class="case-icon">📦</div>
+                    <img src="assets/case.svg" alt="Case ${weaponCase.name}">
                 </div>
                 <div class="case-info">
                     <h3>${weaponCase.name}</h3>
