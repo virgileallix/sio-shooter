@@ -108,7 +108,6 @@ A competitive 2D tactical shooter inspired by Valorant and Counter-Strike, featu
 - [ ] Battle Pass with seasonal rewards
 - [ ] Tournament mode
 - [ ] Spectator system
-- [ ] Voice chat integration
 
 ### Version 1.2 (Planned)
 - [ ] Additional maps (Haven, Bind, Split)
