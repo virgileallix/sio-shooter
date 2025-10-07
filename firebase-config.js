@@ -24,6 +24,11 @@ googleProvider.setCustomParameters({
     prompt: 'select_account'
 });
 
+// Exposer les services Firebase au scope global pour les autres modules
+window.auth = auth;
+window.database = database;
+window.googleProvider = googleProvider;
+
 // Variables globales
 let currentUser = null;
 let gameState = {
@@ -59,6 +64,9 @@ let gameState = {
     }
 };
 
+window.gameState = gameState;
+window.currentUser = currentUser;
+
 function getDefaultBattlePassState() {
     const seasonId = (typeof BattlePassConfig !== 'undefined' && BattlePassConfig.seasonId) ? BattlePassConfig.seasonId : 'season-1';
     return {
@@ -74,6 +82,7 @@ function getDefaultBattlePassState() {
 auth.onAuthStateChanged(async (user) => {
     if (user) {
         currentUser = user;
+        window.currentUser = user;
         console.log('Utilisateur connecté:', user.email);
         
         // Charger ou créer le profil utilisateur
@@ -86,6 +95,7 @@ auth.onAuthStateChanged(async (user) => {
         showMainMenu();
     } else {
         currentUser = null;
+        window.currentUser = null;
         console.log('Utilisateur déconnecté');
         
         // Nettoyer les listeners en temps réel

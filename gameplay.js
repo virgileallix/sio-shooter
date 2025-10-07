@@ -287,7 +287,12 @@ window.player = {
     },
     kills: 0,
     deaths: 0,
-    assists: 0
+    assists: 0,
+    throwAnimation: {
+        timer: 0,
+        duration: 0,
+        style: null
+    }
 };
 
 // ========================================
@@ -342,6 +347,7 @@ window.game = {
 window.otherPlayers = {};
 let bullets = [];
 let particles = [];
+let tacticalDevices = [];
 let damageNumbers = [];
 let gameObjects = [];
 let smokeGrenades = [];
@@ -350,6 +356,52 @@ let revealBeacons = [];
 let slowFields = [];
 let sentryTurrets = [];
 let armorRegenEffects = [];
+
+const DEFAULT_TACTICAL_DEVICE_STYLE = {
+    size: 7,
+    fill: '#7dd3fc',
+    glow: 'rgba(125, 211, 252, 0.45)',
+    trail: 'rgba(125, 211, 252, 0.25)',
+    accent: '#ffffff'
+};
+
+const TACTICAL_DEVICE_STYLES = {
+    smoke: {
+        size: 8,
+        fill: '#69c3ff',
+        glow: 'rgba(105, 195, 255, 0.45)',
+        trail: 'rgba(105, 195, 255, 0.25)',
+        accent: '#e0f2ff'
+    },
+    reveal: {
+        size: 7,
+        fill: '#3ddad7',
+        glow: 'rgba(61, 218, 215, 0.45)',
+        trail: 'rgba(61, 218, 215, 0.25)',
+        accent: '#faffff'
+    },
+    slow: {
+        size: 7,
+        fill: '#80d0ff',
+        glow: 'rgba(128, 208, 255, 0.45)',
+        trail: 'rgba(128, 208, 255, 0.25)',
+        accent: '#ffffff'
+    },
+    barrier: {
+        size: 8,
+        fill: '#6c5ce7',
+        glow: 'rgba(108, 92, 231, 0.45)',
+        trail: 'rgba(108, 92, 231, 0.25)',
+        accent: '#dcd6ff'
+    },
+    sentry: {
+        size: 8,
+        fill: '#f97316',
+        glow: 'rgba(249, 115, 22, 0.5)',
+        trail: 'rgba(249, 115, 22, 0.3)',
+        accent: '#fff7ed'
+    }
+};
 
 // ========================================
 // CARTE COMPLÈTE AVEC OBJETS
@@ -580,6 +632,7 @@ function resetGameState(isNewMatch = false) {
     
     bullets = [];
     particles = [];
+    tacticalDevices = [];
     damageNumbers = [];
     smokeGrenades = [];
     flashbangs = [];
@@ -587,6 +640,11 @@ function resetGameState(isNewMatch = false) {
     slowFields = [];
     sentryTurrets = [];
     armorRegenEffects = [];
+    if (player.throwAnimation) {
+        player.throwAnimation.timer = 0;
+        player.throwAnimation.duration = 0;
+        player.throwAnimation.style = null;
+    }
     
     game.camera.x = player.x;
     game.camera.y = player.y;
@@ -694,6 +752,7 @@ function update(dt) {
     updateAbilityCooldowns(dt);
     updateStatusEffects(dt);
     updateRecoil(dt);
+    updatePlayerThrowAnimation(dt);
     updateRevealBeacons(dt);
     updateSlowFields(dt);
     updateArmorRegenEffects(dt);
@@ -701,6 +760,7 @@ function update(dt) {
     updateObjectAnimations(dt);
     updateBullets(dt);
     updateParticles(dt);
+    updateTacticalDevices(dt);
     updateDamageNumbers(dt);
     updateSmokeGrenades(dt);
     updateFlashbangs(dt);
@@ -1553,20 +1613,36 @@ function useAbility(abilityKey) {
 
 function throwSmokeGrenade(options = {}) {
     const throwDistance = options.distance || 300;
-    const targetX = player.x + Math.cos(player.angle) * throwDistance;
-    const targetY = player.y + Math.sin(player.angle) * throwDistance;
-    
-    smokeGrenades.push({
-        x: targetX,
-        y: targetY,
-        radius: 0,
-        maxRadius: options.radius || 150,
-        lifetime: options.duration || 15,
-        opacity: options.opacity || 0.7,
-        color: options.color || 'rgba(200, 200, 200, 1)'
+    const target = {
+        x: player.x + Math.cos(player.angle) * throwDistance,
+        y: player.y + Math.sin(player.angle) * throwDistance
+    };
+
+    const spawnSmoke = () => {
+        smokeGrenades.push({
+            x: target.x,
+            y: target.y,
+            radius: 0,
+            maxRadius: options.radius || 150,
+            lifetime: options.duration || 15,
+            opacity: options.opacity || 0.7,
+            color: options.color || 'rgba(200, 200, 200, 1)'
+        });
+        createImpactEffect(target.x, target.y, options.impactColor || '#999999');
+    };
+
+    const device = launchTacticalDevice({
+        type: 'smoke',
+        target,
+        travelTime: options.travelTime || 0.5,
+        arcHeight: options.arcHeight !== undefined ? options.arcHeight : 120,
+        spinSpeed: options.spinSpeed ?? 10,
+        onImpact: spawnSmoke
     });
-    
-    createImpactEffect(targetX, targetY, options.impactColor || '#999999');
+
+    if (!device) {
+        spawnSmoke();
+    }
 }
 
 function throwFlashbang() {
@@ -1617,17 +1693,200 @@ function getAbilityTarget(distance = 260) {
     };
 }
 
+// ========================================
+// PROJECTILES TACTIQUES (CAPACITÉS)
+// ========================================
+
+function easeInOutSine(t) {
+    const clamped = Math.max(0, Math.min(1, t));
+    return 0.5 * (1 - Math.cos(Math.PI * clamped));
+}
+
+function triggerThrowAnimation(duration = 0.4, style = null) {
+    if (!player) return;
+    if (!player.throwAnimation) {
+        player.throwAnimation = { timer: 0, duration: 0, style: null };
+    }
+    player.throwAnimation.timer = duration;
+    player.throwAnimation.duration = duration;
+    player.throwAnimation.style = style;
+}
+
+function launchTacticalDevice(config = {}) {
+    if (!player || !player.alive) return null;
+
+    const target = config.target;
+    if (!target) return null;
+
+    const startOffset = config.startOffset !== undefined ? config.startOffset : 22;
+    const startX = player.x + player.width / 2 + Math.cos(player.angle) * startOffset;
+    const startY = player.y + player.height / 2 + Math.sin(player.angle) * startOffset;
+
+    const style = {
+        ...DEFAULT_TACTICAL_DEVICE_STYLE,
+        ...(config.type ? (TACTICAL_DEVICE_STYLES[config.type] || {}) : {}),
+        ...(config.style || {})
+    };
+
+    const travelTime = Math.max(0.1, config.travelTime || 0.45);
+    const arcHeight = config.arcHeight !== undefined ? config.arcHeight : 120;
+    const directionAngle = Math.atan2(target.y - startY, target.x - startX);
+
+    const device = {
+        type: config.type || 'generic',
+        startX,
+        startY,
+        x: startX,
+        y: startY,
+        targetX: target.x,
+        targetY: target.y,
+        travelTime,
+        arcHeight,
+        elapsed: 0,
+        rotation: 0,
+        spinSpeed: config.spinSpeed ?? 12,
+        style,
+        shadowX: startX,
+        shadowY: startY,
+        directionAngle,
+        progress: 0,
+        easedProgress: 0,
+        onImpact: typeof config.onImpact === 'function' ? config.onImpact : null
+    };
+
+    tacticalDevices.push(device);
+    triggerThrowAnimation(Math.min(travelTime, 0.55), style);
+    return device;
+}
+
+function updateTacticalDevices(dt) {
+    for (let i = tacticalDevices.length - 1; i >= 0; i--) {
+        const device = tacticalDevices[i];
+        device.elapsed += dt;
+
+        const progress = Math.min(device.elapsed / device.travelTime, 1);
+        const eased = easeInOutSine(progress);
+        const groundX = device.startX + (device.targetX - device.startX) * eased;
+        const groundY = device.startY + (device.targetY - device.startY) * eased;
+
+        device.shadowX = groundX;
+        device.shadowY = groundY;
+        const arc = Math.sin(Math.PI * eased) * device.arcHeight;
+        device.x = groundX;
+        device.y = groundY - arc;
+        device.progress = progress;
+        device.easedProgress = eased;
+
+        if (device.spinSpeed) {
+            device.rotation += device.spinSpeed * dt;
+        }
+
+        if (progress >= 1) {
+            if (device.onImpact) {
+                try {
+                    device.onImpact(device);
+                } catch (error) {
+                    console.error('Erreur exécution impact dispositif tactique:', error);
+                }
+            }
+            tacticalDevices.splice(i, 1);
+        }
+    }
+}
+
+function updatePlayerThrowAnimation(dt) {
+    if (!player.throwAnimation) return;
+    if (player.throwAnimation.timer > 0) {
+        player.throwAnimation.timer = Math.max(0, player.throwAnimation.timer - dt);
+        if (player.throwAnimation.timer === 0) {
+            player.throwAnimation.style = null;
+        }
+    }
+}
+
+function drawTacticalDevices() {
+    for (const device of tacticalDevices) {
+        const style = device.style || DEFAULT_TACTICAL_DEVICE_STYLE;
+        const size = style.size || DEFAULT_TACTICAL_DEVICE_STYLE.size;
+
+        // Ombre au sol
+        gameContext.save();
+        gameContext.translate(device.shadowX, device.shadowY);
+        gameContext.scale(1, 0.45);
+        gameContext.fillStyle = 'rgba(0, 0, 0, 0.25)';
+        gameContext.beginPath();
+        gameContext.arc(0, 0, size * 1.1, 0, Math.PI * 2);
+        gameContext.fill();
+        gameContext.restore();
+
+        // Traînée lumineuse
+        if (style.trail) {
+            const tailLength = 12 + size * 0.8;
+            const tailX = device.x - Math.cos(device.directionAngle) * tailLength * (1 - device.easedProgress * 0.35);
+            const tailY = device.y - Math.sin(device.directionAngle) * tailLength * (1 - device.easedProgress * 0.35);
+            gameContext.strokeStyle = style.trail;
+            gameContext.lineWidth = 2;
+            gameContext.beginPath();
+            gameContext.moveTo(tailX, tailY);
+            gameContext.lineTo(device.x, device.y);
+            gameContext.stroke();
+        }
+
+        gameContext.save();
+        gameContext.translate(device.x, device.y);
+        if (device.rotation) {
+            gameContext.rotate(device.rotation);
+        }
+
+        if (style.glow) {
+            gameContext.fillStyle = style.glow;
+            gameContext.beginPath();
+            gameContext.arc(0, 0, size + 4, 0, Math.PI * 2);
+            gameContext.fill();
+        }
+
+        gameContext.fillStyle = style.fill || DEFAULT_TACTICAL_DEVICE_STYLE.fill;
+        gameContext.beginPath();
+        gameContext.arc(0, 0, size, 0, Math.PI * 2);
+        gameContext.fill();
+
+        if (style.accent) {
+            gameContext.fillStyle = style.accent;
+            gameContext.beginPath();
+            gameContext.arc(size * 0.3, -size * 0.3, size * 0.35, 0, Math.PI * 2);
+            gameContext.fill();
+        }
+
+        gameContext.restore();
+    }
+}
+
 function spawnRevealBeacon(options = {}) {
     const target = getAbilityTarget(options.distance || 260);
-    revealBeacons.push({
-        x: target.x,
-        y: target.y,
-        radius: options.radius || 220,
-        duration: options.duration || 6,
-        pulse: 0,
-        pulseSpeed: options.pulseSpeed || 4
+    const deployBeacon = () => {
+        revealBeacons.push({
+            x: target.x,
+            y: target.y,
+            radius: options.radius || 220,
+            duration: options.duration || 6,
+            pulse: 0,
+            pulseSpeed: options.pulseSpeed || 4
+        });
+        createImpactEffect(target.x, target.y, '#00d4ff');
+    };
+
+    const device = launchTacticalDevice({
+        type: 'reveal',
+        target,
+        travelTime: options.travelTime || 0.45,
+        arcHeight: options.arcHeight !== undefined ? options.arcHeight : 100,
+        spinSpeed: options.spinSpeed ?? 9,
+        onImpact: deployBeacon
     });
-    createImpactEffect(target.x, target.y, '#00d4ff');
+
+    if (!device) {
+        deployBeacon();
+    }
 }
 
 function activateRevealPulse(options = {}) {
@@ -1648,15 +1907,30 @@ function applySpeedBoost(options = {}) {
 
 function spawnSlowField(options = {}) {
     const target = getAbilityTarget(options.distance || 220);
-    slowFields.push({
-        x: target.x,
-        y: target.y,
-        radius: options.radius || 200,
-        duration: options.duration || 8,
-        slowMultiplier: options.slowMultiplier || 0.6,
-        pulse: 0
+    const createField = () => {
+        slowFields.push({
+            x: target.x,
+            y: target.y,
+            radius: options.radius || 200,
+            duration: options.duration || 8,
+            slowMultiplier: options.slowMultiplier || 0.6,
+            pulse: 0
+        });
+        createImpactEffect(target.x, target.y, '#7dd3fc');
+    };
+
+    const device = launchTacticalDevice({
+        type: 'slow',
+        target,
+        travelTime: options.travelTime || 0.5,
+        arcHeight: options.arcHeight !== undefined ? options.arcHeight : 110,
+        spinSpeed: options.spinSpeed ?? 8,
+        onImpact: createField
     });
-    createImpactEffect(target.x, target.y, '#7dd3fc');
+
+    if (!device) {
+        createField();
+    }
 }
 
 function enableOverchargeMode(options = {}) {
@@ -1679,23 +1953,39 @@ function deployTemporaryBarrier(options = {}) {
     const health = options.health || 250;
     const target = getAbilityTarget(options.distance || 180);
 
-    const barrier = {
-        x: target.x - width / 2,
-        y: target.y - height / 2,
-        width,
-        height,
-        type: 'temp_barrier',
-        name: 'Barrière',
-        health,
-        maxHealth: health,
-        penetrable: false,
-        destructible: true,
-        damageReduction: 0.1,
-        color: '#3AA7FF',
-        expiresAt: performance.now() + duration * 1000
+    const placeBarrier = () => {
+        const barrier = {
+            x: target.x - width / 2,
+            y: target.y - height / 2,
+            width,
+            height,
+            type: 'temp_barrier',
+            name: 'Barrière',
+            health,
+            maxHealth: health,
+            penetrable: false,
+            destructible: true,
+            damageReduction: 0.1,
+            color: '#3AA7FF',
+            expiresAt: performance.now() + duration * 1000
+        };
+
+        gameObjects.push(barrier);
+        createImpactEffect(target.x, target.y, '#60a5fa');
     };
 
-    gameObjects.push(barrier);
+    const device = launchTacticalDevice({
+        type: 'barrier',
+        target,
+        travelTime: options.travelTime || 0.55,
+        arcHeight: options.arcHeight !== undefined ? options.arcHeight : 90,
+        spinSpeed: options.spinSpeed ?? 6,
+        onImpact: placeBarrier
+    });
+
+    if (!device) {
+        placeBarrier();
+    }
 }
 
 function applyArmorRegenEffect(options = {}) {
@@ -1711,17 +2001,32 @@ function applyArmorRegenEffect(options = {}) {
 
 function deploySentryTurret(options = {}) {
     const target = getAbilityTarget(options.distance || 180);
-    sentryTurrets.push({
-        x: target.x,
-        y: target.y,
-        duration: options.duration || 15,
-        damage: options.damage || 18,
-        fireRate: options.fireRate || 0.4,
-        range: options.range || 360,
-        cooldown: 0,
-        angle: 0
+    const spawnTurret = () => {
+        sentryTurrets.push({
+            x: target.x,
+            y: target.y,
+            duration: options.duration || 15,
+            damage: options.damage || 18,
+            fireRate: options.fireRate || 0.4,
+            range: options.range || 360,
+            cooldown: 0,
+            angle: 0
+        });
+        createImpactEffect(target.x, target.y, '#ffd166');
+    };
+
+    const device = launchTacticalDevice({
+        type: 'sentry',
+        target,
+        travelTime: options.travelTime || 0.6,
+        arcHeight: options.arcHeight !== undefined ? options.arcHeight : 105,
+        spinSpeed: options.spinSpeed ?? 7,
+        onImpact: spawnTurret
     });
-    createImpactEffect(target.x, target.y, '#ffd166');
+
+    if (!device) {
+        spawnTurret();
+    }
 }
 
 // ========================================
@@ -2184,6 +2489,7 @@ function render() {
     drawMap();
     drawSlowFields();
     drawRevealBeacons();
+    drawTacticalDevices();
     
     // Fumée & structures
     drawSmokeGrenades();
@@ -2253,6 +2559,11 @@ function drawMap() {
 
 function drawPlayer() {
     if (!player.alive) return;
+
+    const throwAnim = player.throwAnimation || { timer: 0, duration: 0, style: null };
+    const throwActive = throwAnim.timer > 0 && throwAnim.duration > 0;
+    const throwProgress = throwActive ? 1 - (throwAnim.timer / throwAnim.duration) : 0;
+    const throwStrength = throwActive ? Math.sin(Math.PI * throwProgress) : 0;
     
     gameContext.save();
     gameContext.translate(player.x + player.width / 2, player.y + player.height / 2);
@@ -2264,7 +2575,35 @@ function drawPlayer() {
     
     // Arme
     gameContext.fillStyle = '#333333';
-    gameContext.fillRect(0, -3, 25, 6);
+    const weaponLength = 25 + throwStrength * 12;
+    const weaponOffsetY = -3 - throwStrength * 4;
+    gameContext.fillRect(0, weaponOffsetY, weaponLength, 6);
+
+    if (throwActive) {
+        const deviceStyle = throwAnim.style || DEFAULT_TACTICAL_DEVICE_STYLE;
+        const deviceRadius = Math.max(3, (deviceStyle.size || DEFAULT_TACTICAL_DEVICE_STYLE.size) * 0.6);
+        const deviceCenterX = weaponLength + 4;
+        const deviceCenterY = weaponOffsetY + 3 - throwStrength * 2;
+
+        if (deviceStyle.glow) {
+            gameContext.fillStyle = deviceStyle.glow;
+            gameContext.beginPath();
+            gameContext.arc(deviceCenterX, deviceCenterY, deviceRadius + 2, 0, Math.PI * 2);
+            gameContext.fill();
+        }
+
+        gameContext.fillStyle = deviceStyle.fill || DEFAULT_TACTICAL_DEVICE_STYLE.fill;
+        gameContext.beginPath();
+        gameContext.arc(deviceCenterX, deviceCenterY, deviceRadius, 0, Math.PI * 2);
+        gameContext.fill();
+
+        if (deviceStyle.accent) {
+            gameContext.fillStyle = deviceStyle.accent;
+            gameContext.beginPath();
+            gameContext.arc(deviceCenterX + deviceRadius * 0.3, deviceCenterY - deviceRadius * 0.3, deviceRadius * 0.35, 0, Math.PI * 2);
+            gameContext.fill();
+        }
+    }
     
     gameContext.restore();
     

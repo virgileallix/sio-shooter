@@ -9,6 +9,7 @@ window.gameModes = {
         name: 'Duel',
         description: '1v1 - Premier à 5 rounds - Pas de bombe',
         maxPlayers: 2,
+        minPlayers: 2,
         maxRounds: 9,
         winCondition: 5,
         economy: true,
@@ -22,6 +23,7 @@ window.gameModes = {
         name: 'Compétitif',
         description: '5v5 - Premier à 13 rounds - Plant de spike',
         maxPlayers: 10,
+        minPlayers: 2,
         maxRounds: 25,
         winCondition: 13,
         economy: true,
@@ -35,6 +37,7 @@ window.gameModes = {
         name: 'Attaque / Défense',
         description: '5v5 avec changement de camp à la mi-temps - Plant de spike',
         maxPlayers: 10,
+        minPlayers: 2,
         maxRounds: 24,
         winCondition: 13,
         economy: true,
@@ -49,6 +52,7 @@ window.gameModes = {
         name: 'Deathmatch',
         description: 'Combat libre - 10 minutes - Pas de bombe',
         maxPlayers: 14,
+        minPlayers: 2,
         maxRounds: 1,
         winCondition: 50,
         economy: false,
@@ -62,6 +66,7 @@ window.gameModes = {
         name: 'Non classé',
         description: '5v5 - Mode casual - Plant de spike',
         maxPlayers: 10,
+        minPlayers: 2,
         maxRounds: 25,
         winCondition: 13,
         economy: true,
@@ -1036,8 +1041,13 @@ class MatchmakingSystem {
         if (matchData) {
             const players = Object.values(matchData.players || {});
             const allReady = players.every(player => player.ready);
+            const modeConfig = this.gameModes[matchData.mode] || {};
+            const minPlayers = Math.min(
+                matchData.maxPlayers || players.length,
+                Math.max(modeConfig.minPlayers || 2, 2)
+            );
             
-            if (allReady && players.length >= matchData.maxPlayers) {
+            if (allReady && players.length >= minPlayers) {
                 // Démarrer le match
                 await matchRef.update({
                     status: 'in_progress',
