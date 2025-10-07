@@ -136,6 +136,8 @@ const BOMB_SETTINGS = {
     pickupRadius: 45
 };
 
+const BOMB_MODES = new Set(['competitive', 'unrated', 'attack_defense']);
+
 // ========================================
 // TYPES D'OBJETS DESTRUCTIBLES
 // ========================================
