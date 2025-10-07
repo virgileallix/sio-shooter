@@ -30,6 +30,10 @@ const WEAPONS = {
         reloadTime: 1.5,
         bulletSpeed: 20,
         spread: 0.05,
+        cameraRecoil: 0.35,
+        recoilStep: 0.05,
+        recoilRecovery: 3.2,
+        maxRecoil: 0.5,
         penetration: 0,
         bulletSize: 3
     },
@@ -44,6 +48,10 @@ const WEAPONS = {
         reloadTime: 2.5,
         bulletSpeed: 25,
         spread: 0.03,
+        cameraRecoil: 0.55,
+        recoilStep: 0.07,
+        recoilRecovery: 2.6,
+        maxRecoil: 0.9,
         penetration: 1,
         bulletSize: 4
     },
@@ -58,6 +66,10 @@ const WEAPONS = {
         reloadTime: 2.5,
         bulletSpeed: 30,
         spread: 0.04,
+        cameraRecoil: 0.6,
+        recoilStep: 0.08,
+        recoilRecovery: 2.4,
+        maxRecoil: 1,
         penetration: 1,
         bulletSize: 4
     },
@@ -72,6 +84,10 @@ const WEAPONS = {
         reloadTime: 3.7,
         bulletSpeed: 40,
         spread: 0,
+        cameraRecoil: 0.75,
+        recoilStep: 0.02,
+        recoilRecovery: 3.6,
+        maxRecoil: 0.4,
         penetration: 3,
         bulletSize: 5
     },
@@ -86,6 +102,10 @@ const WEAPONS = {
         reloadTime: 2.25,
         bulletSpeed: 18,
         spread: 0.06,
+        cameraRecoil: 0.5,
+        recoilStep: 0.06,
+        recoilRecovery: 2.8,
+        maxRecoil: 0.8,
         penetration: 0,
         bulletSize: 3
     },
@@ -100,9 +120,20 @@ const WEAPONS = {
         reloadTime: 2.25,
         bulletSpeed: 25,
         spread: 0.02,
+        cameraRecoil: 0.45,
+        recoilStep: 0.04,
+        recoilRecovery: 3,
+        maxRecoil: 0.6,
         penetration: 2,
         bulletSize: 4
     }
+};
+
+const BOMB_SETTINGS = {
+    plantTime: 3.5,
+    defuseTime: 7,
+    detonationTime: 40,
+    pickupRadius: 45
 };
 
 // ========================================
@@ -215,6 +246,11 @@ window.player = {
     crouching: false,
     reloading: false,
     lastShot: 0,
+    recoilKick: 0,
+    isPlanting: false,
+    isDefusing: false,
+    actionProgress: 0,
+    actionType: null,
     weapon: null,
     inventory: [],
     reloadMultiplier: 1,
@@ -252,9 +288,13 @@ window.game = {
     bomb: {
         planted: false,
         carrier: null,
-        timer: 45,
-        x: 0,
-        y: 0,
+        timer: BOMB_SETTINGS.detonationTime,
+        x: null,
+        y: null,
+        site: null,
+        dropped: false,
+        planting: false,
+        plantProgress: 0,
         defusing: false,
         defuseProgress: 0
     },
@@ -429,15 +469,34 @@ function resetGameState() {
     player.armor = 0;
     player.alive = true;
     player.reloading = false;
+    player.recoilKick = 0;
     player.effects = [];
     player.speedBoostMultiplier = 1;
     player.damageMultiplier = 1;
     player.extraPenetration = 0;
     player.reloadMultiplier = 1;
+    player.sprinting = false;
+    player.crouching = false;
+    player.isPlanting = false;
+    player.isDefusing = false;
+    player.actionType = null;
+    player.actionProgress = 0;
     
     game.roundTime = 100;
     game.buyTime = 30;
     game.phase = 'buy';
+
+    game.bomb.planted = false;
+    game.bomb.planting = false;
+    game.bomb.defusing = false;
+    game.bomb.plantProgress = 0;
+    game.bomb.defuseProgress = 0;
+    game.bomb.timer = BOMB_SETTINGS.detonationTime;
+    game.bomb.site = null;
+    game.bomb.x = null;
+    game.bomb.y = null;
+    game.bomb.dropped = false;
+    game.bomb.carrier = isBombMode() && player.team === 'attackers' ? 'player' : null;
     
     bullets = [];
     particles = [];
@@ -468,6 +527,7 @@ function equipWeapon(weaponName) {
             ammo: WEAPONS[weaponName].maxAmmo,
             totalAmmo: WEAPONS[weaponName].totalAmmo
         };
+        player.recoilKick = 0;
         refreshWeaponUI();
     }
 }
@@ -533,6 +593,7 @@ function update(dt) {
     updateCamera(dt);
     updateAbilityCooldowns(dt);
     updateStatusEffects(dt);
+    updateRecoil(dt);
     updateRevealBeacons(dt);
     updateSlowFields(dt);
     updateArmorRegenEffects(dt);
@@ -543,16 +604,24 @@ function update(dt) {
     updateDamageNumbers(dt);
     updateSmokeGrenades(dt);
     updateFlashbangs(dt);
+    if (isBombMode()) {
+        updateAttackDefenseMode(dt);
+    }
     updateOtherPlayers(dt);
     updateGameTimers(dt);
     updateUI();
     
-    if (mouse.pressed && player.alive && !player.reloading) {
+    if (mouse.pressed && player.alive && !player.reloading && !player.isPlanting && !player.isDefusing) {
         shoot();
     }
 }
 
 function updatePlayer(dt) {
+    if (player.isPlanting || player.isDefusing) {
+        player.sprinting = false;
+        return;
+    }
+
     let dirX = 0;
     let dirY = 0;
     
@@ -580,6 +649,14 @@ function updatePlayer(dt) {
     if (!checkCollision(player.x, newY, player.width, player.height)) {
         player.y = newY;
     }
+
+    const currentMap = MAPS[game.currentMap];
+    if (currentMap) {
+        const maxX = currentMap.width - player.width;
+        const maxY = currentMap.height - player.height;
+        player.x = Math.min(Math.max(player.x, 0), Math.max(0, maxX));
+        player.y = Math.min(Math.max(player.y, 0), Math.max(0, maxY));
+    }
     
     // Angle vers la souris
     const dx_mouse = mouse.worldX - player.x;
@@ -605,8 +682,10 @@ function updateCamera(dt) {
     
     // Shake de caméra
     if (game.camera.shake > 0) {
-        game.camera.shake -= dt * 5;
-        game.camera.shakeIntensity = game.camera.shake * 10;
+        game.camera.shake = Math.max(0, game.camera.shake - dt * 6);
+        game.camera.shakeIntensity = game.camera.shake * 6;
+    } else {
+        game.camera.shakeIntensity = 0;
     }
 }
 
@@ -655,6 +734,18 @@ function updateStatusEffects(dt) {
     player.speedBoostMultiplier = speedMultiplier;
     player.damageMultiplier = Math.max(1, damageMultiplier);
     player.extraPenetration = Math.max(0, extraPenetration);
+}
+
+function updateRecoil(dt) {
+    if (!player.weapon) {
+        player.recoilKick = 0;
+        return;
+    }
+    const recovery = player.weapon.recoilRecovery || 2.5;
+    player.recoilKick = Math.max(0, (player.recoilKick || 0) - dt * recovery);
+    if (player.recoilKick < 0.01) {
+        player.recoilKick = 0;
+    }
 }
 
 function updateRevealBeacons(dt) {
@@ -859,11 +950,22 @@ function updateGameTimers(dt) {
         if (game.buyTime <= 0) {
             game.phase = 'active';
             game.buyTime = 0;
+            if (isBombMode() && player.team === 'attackers' && !game.bomb.carrier && !game.bomb.dropped) {
+                game.bomb.carrier = 'player';
+            }
         }
     } else if (game.phase === 'active' && game.roundTime > 0) {
-        game.roundTime -= dt;
+        game.roundTime = Math.max(0, game.roundTime - dt);
         if (game.roundTime <= 0) {
-            endRound('time_up');
+            if (isBombMode()) {
+                if (game.bomb.planted) {
+                    endRound('bomb_exploded');
+                } else {
+                    endRound('time_up');
+                }
+            } else {
+                endRound('time_up');
+            }
         }
     }
 
@@ -879,6 +981,7 @@ function updateGameTimers(dt) {
 function shoot() {
     if (window.SpectatorSystem?.isEnabled?.()) return;
     if (!player.weapon || player.reloading) return;
+    if (player.isPlanting || player.isDefusing) return;
     
     const now = Date.now();
     if (now - player.lastShot < player.weapon.fireRate) return;
@@ -893,13 +996,19 @@ function shoot() {
     player.lastShot = now;
     player.weapon.ammo--;
     
+    // Recul progressif
+    const recoilStep = player.weapon.recoilStep || 0;
+    const maxRecoil = player.weapon.maxRecoil || 0.8;
+    player.recoilKick = Math.min((player.recoilKick || 0) + recoilStep, maxRecoil);
+
     // Spread
-    const spread = player.weapon.spread * (player.sprinting ? 2 : 1);
+    const movementSpread = player.weapon.spread * (player.sprinting ? 2 : 1);
+    const spread = movementSpread * (1 + (player.recoilKick || 0));
     const angle = player.angle + (Math.random() - 0.5) * spread;
     
     createBullet(angle);
     createMuzzleFlash();
-    addCameraShake(2);
+    addCameraShake(player.weapon.cameraRecoil || 0.45);
     
     updateAmmoDisplay();
 }
@@ -1169,7 +1278,8 @@ function showDamageNumber(x, y, damage, isPlayer = false) {
 }
 
 function addCameraShake(intensity) {
-    game.camera.shake = Math.max(game.camera.shake, intensity);
+    if (intensity <= 0) return;
+    game.camera.shake = Math.min((game.camera.shake || 0) + intensity, 8);
 }
 
 // ========================================
@@ -1530,15 +1640,73 @@ function loadObjectSprites() {
     });
 }
 
-function endRound(reason) {
-    console.log('Round terminé:', reason);
-    game.phase = 'ended';
-    
-    setTimeout(() => {
-        game.round++;
-        resetGameState();
-    }, 5000);
-}
+function endRound(reason) {
+    if (game.phase === 'ended') return;
+    console.log('Round termine:', reason);
+
+    cancelBombInteraction();
+
+    let winner = null;
+    let title = 'Fin du round';
+    let message = '';
+
+    switch (reason) {
+        case 'bomb_exploded':
+        case 'defenders_eliminated':
+            winner = 'attackers';
+            message = 'La spike a explose.';
+            break;
+        case 'bomb_defused':
+        case 'time_up':
+        case 'attackers_eliminated':
+            winner = 'defenders';
+            message = reason === 'bomb_defused' ? 'La spike a ete desamorcee.' : 'Les defenseurs remportent le round.';
+            break;
+        default:
+            message = 'Round termine.';
+            break;
+    }
+
+    if (winner === 'attackers') {
+        game.attackersScore++;
+        title = 'Victoire attaquants';
+        if (!message) message = 'Les attaquants remportent le round.';
+    } else if (winner === 'defenders') {
+        game.defendersScore++;
+        title = 'Victoire defenseurs';
+        if (!message) message = 'Les defenseurs remportent le round.';
+    }
+
+    if (window.NotificationSystem) {
+        window.NotificationSystem.show(title, message, 'round', 4000);
+    }
+
+    game.bomb.planted = false;
+    game.bomb.planting = false;
+    game.bomb.defusing = false;
+    game.bomb.plantProgress = 0;
+    game.bomb.defuseProgress = 0;
+    game.bomb.timer = BOMB_SETTINGS.detonationTime;
+    game.bomb.site = null;
+    game.bomb.x = null;
+    game.bomb.y = null;
+    game.bomb.dropped = false;
+    game.bomb.carrier = null;
+
+    player.isPlanting = false;
+    player.isDefusing = false;
+    player.actionType = null;
+    player.actionProgress = 0;
+
+    game.roundTime = 0;
+    game.buyTime = 0;
+    game.phase = 'ended';
+
+    setTimeout(() => {
+        game.round++;
+        resetGameState();
+    }, 4000);
+}
 
 // ========================================
 // RENDU
@@ -1898,6 +2066,210 @@ function drawAbilityCooldowns() {
 // ÉVÉNEMENTS
 // ========================================
 
+// ========================================
+// MODE ATTAQUE/D�FENSE
+// ========================================
+
+function isBombMode() {
+    return BOMB_MODES.has(game.mode);
+}
+
+function getPlayerCenter() {
+    return {
+        x: player.x + player.width / 2,
+        y: player.y + player.height / 2
+    };
+}
+
+function getBombSiteAt(x, y) {
+    const map = MAPS[game.currentMap];
+    if (!map?.bombSites) return null;
+    return map.bombSites.find(site =>
+        x >= site.x && x <= site.x + site.width &&
+        y >= site.y && y <= site.y + site.height
+    ) || null;
+}
+
+function playerHasBomb() {
+    return game.bomb.carrier === 'player';
+}
+
+function attemptBombInteraction() {
+    if (!isBombMode() || !player.alive || game.phase !== 'active') return;
+    if (player.isPlanting || player.isDefusing) return;
+
+    const center = getPlayerCenter();
+
+    if (player.team === 'attackers') {
+        if (playerHasBomb()) {
+            const site = getBombSiteAt(center.x, center.y);
+            if (site) {
+                startBombPlant(site);
+                return;
+            }
+        } else if (game.bomb.dropped && game.bomb.x !== null && game.bomb.y !== null) {
+            const distance = Math.hypot(center.x - game.bomb.x, center.y - game.bomb.y);
+            if (distance <= BOMB_SETTINGS.pickupRadius) {
+                pickUpBomb();
+            }
+        }
+    } else if (player.team === 'defenders' && game.bomb.planted) {
+        const distance = Math.hypot(center.x - game.bomb.x, center.y - game.bomb.y);
+        if (distance <= BOMB_SETTINGS.pickupRadius) {
+            startBombDefuse();
+        }
+    }
+}
+
+function pickUpBomb() {
+    game.bomb.carrier = 'player';
+    game.bomb.dropped = false;
+    game.bomb.x = null;
+    game.bomb.y = null;
+    game.bomb.site = null;
+    if (window.NotificationSystem) {
+        window.NotificationSystem.show('Spike récupérée', 'Vous portez la spike', 'info', 3000);
+    }
+}
+
+function startBombPlant(site) {
+    if (!playerHasBomb() || game.bomb.planted || game.bomb.planting) return;
+    game.bomb.planting = true;
+    game.bomb.plantProgress = 0;
+    game.bomb.site = site?.name || null;
+
+    player.isPlanting = true;
+    player.actionType = 'plant';
+    player.actionProgress = 0;
+    player.sprinting = false;
+}
+
+function startBombDefuse() {
+    if (!game.bomb.planted || game.bomb.defusing) return;
+    game.bomb.defusing = true;
+    game.bomb.defuseProgress = 0;
+
+    player.isDefusing = true;
+    player.actionType = 'defuse';
+    player.actionProgress = 0;
+    player.sprinting = false;
+}
+
+function cancelBombInteraction(type = null) {
+    if (!type || type === 'plant') {
+        game.bomb.planting = false;
+        game.bomb.plantProgress = 0;
+        if (player.isPlanting) {
+            player.isPlanting = false;
+            if (player.actionType === 'plant') {
+                player.actionType = null;
+                player.actionProgress = 0;
+            }
+        }
+    }
+
+    if (!type || type === 'defuse') {
+        game.bomb.defusing = false;
+        game.bomb.defuseProgress = 0;
+        if (player.isDefusing) {
+            player.isDefusing = false;
+            if (player.actionType === 'defuse') {
+                player.actionType = null;
+                player.actionProgress = 0;
+            }
+        }
+    }
+}
+
+function completeBombPlant(site, position) {
+    game.bomb.planted = true;
+    game.bomb.planting = false;
+    game.bomb.plantProgress = 0;
+    game.bomb.carrier = null;
+    game.bomb.dropped = false;
+    game.bomb.x = position.x;
+    game.bomb.y = position.y;
+    game.bomb.site = site?.name || null;
+    game.roundTime = BOMB_SETTINGS.detonationTime;
+    game.bomb.timer = game.roundTime;
+
+    player.isPlanting = false;
+    player.actionType = null;
+    player.actionProgress = 0;
+
+    if (window.NotificationSystem) {
+        const siteLabel = site?.name ? `site ${site.name}` : 'site';
+        window.NotificationSystem.show('Spike posée', `La spike est armée sur le ${siteLabel}`, 'round', 3500);
+    }
+}
+
+function completeBombDefuse() {
+    cancelBombInteraction('defuse');
+    game.bomb.planted = false;
+    game.bomb.timer = 0;
+    game.roundTime = 0;
+    endRound('bomb_defused');
+}
+
+function updateAttackDefenseMode(dt) {
+    const bomb = game.bomb;
+    if (!bomb) return;
+
+    if (game.phase === 'buy') {
+        bomb.planted = false;
+        bomb.planting = false;
+        bomb.defusing = false;
+        bomb.plantProgress = 0;
+        bomb.defuseProgress = 0;
+        bomb.timer = BOMB_SETTINGS.detonationTime;
+        if (player.team === 'attackers' && !bomb.carrier && !bomb.dropped) {
+            bomb.carrier = 'player';
+        }
+        return;
+    }
+
+    const center = getPlayerCenter();
+
+    if (bomb.planting) {
+        const site = getBombSiteAt(center.x, center.y);
+        if (!keys['f'] || !playerHasBomb() || !player.alive || !site) {
+            cancelBombInteraction('plant');
+        } else {
+            bomb.plantProgress += dt;
+            player.actionProgress = Math.min(1, bomb.plantProgress / BOMB_SETTINGS.plantTime);
+            if (bomb.plantProgress >= BOMB_SETTINGS.plantTime) {
+                completeBombPlant(site, center);
+            }
+        }
+    }
+
+    if (bomb.defusing) {
+        const distance = Math.hypot(center.x - bomb.x, center.y - bomb.y);
+        if (!keys['f'] || player.team !== 'defenders' || !player.alive || distance > BOMB_SETTINGS.pickupRadius) {
+            cancelBombInteraction('defuse');
+        } else {
+            bomb.defuseProgress += dt;
+            player.actionProgress = Math.min(1, bomb.defuseProgress / BOMB_SETTINGS.defuseTime);
+            if (bomb.defuseProgress >= BOMB_SETTINGS.defuseTime) {
+                completeBombDefuse();
+            }
+        }
+    }
+
+    if (!bomb.planting && !bomb.defusing && player.actionProgress > 0) {
+        player.actionProgress = 0;
+        player.actionType = null;
+    }
+
+    if (bomb.planted) {
+        bomb.timer = game.roundTime;
+    }
+}
+
+// ========================================
+// �%V�%NEMENTS
+// ========================================
+
 function handleKeyDown(e) {
     const key = e.key.toLowerCase();
     keys[key] = true;
@@ -1918,6 +2290,10 @@ function handleKeyDown(e) {
     if (key === 'q') useAbility('ability1');
     if (key === 'e') useAbility('ability2');
     if (key === 'x') useAbility('ultimate');
+    if (key === 'f') {
+        e.preventDefault();
+        attemptBombInteraction();
+    }
     
     // Changement d'arme
     if (key === '1') equipWeapon('phantom');
@@ -1931,6 +2307,11 @@ function handleKeyUp(e) {
     
     if (key === 'shift') {
         player.sprinting = false;
+    }
+    
+    if (key === 'f') {
+        e.preventDefault();
+        cancelBombInteraction(player.actionType);
     }
 }
 
