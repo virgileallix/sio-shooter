@@ -637,6 +637,35 @@ async function updatePlayerLevelAndRank(experience) {
     }
 }
 
+// Pont pour les anciens déclencheurs de démarrage de partie
+function startGame(matchData = {}) {
+    try {
+        const safeMatchData = { ...matchData };
+        
+        if (!safeMatchData.id && window.matchmakingState?.currentMatchId) {
+            safeMatchData.id = window.matchmakingState.currentMatchId;
+        }
+        
+        if (window.MatchmakingSystem && typeof window.MatchmakingSystem.startGameSession === 'function') {
+            window.MatchmakingSystem.startGameSession(safeMatchData);
+            return;
+        }
+        
+        // Fallback minimal si le système de matchmaking n'est pas disponible
+        console.warn('MatchmakingSystem indisponible, utilisation du fallback startGame');
+        if (typeof showGameScreen === 'function') {
+            showGameScreen();
+        }
+        if (typeof initializeGame === 'function') {
+            initializeGame();
+        }
+    } catch (error) {
+        console.error('Erreur lors du démarrage de la partie:', error);
+    }
+}
+
+window.startGame = startGame;
+
 // Nettoyage des connexions en temps réel
 function cleanupRealtimeListeners() {
     // Arrêter tous les listeners Firebase

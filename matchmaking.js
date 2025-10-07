@@ -429,6 +429,7 @@ class MatchmakingSystem {
                 return;
             }
             
+            matchData.id = matchId;
             this.handleMatchUpdate(matchData);
         });
         
@@ -517,6 +518,7 @@ class MatchmakingSystem {
         const matchData = snapshot.val();
         
         if (matchData) {
+            matchData.id = matchId;
             // Afficher le lobby du match
             this.showMatchLobby(matchData);
             
@@ -623,6 +625,10 @@ class MatchmakingSystem {
     // Afficher l'écran de démarrage du match
     showMatchStarting(matchData) {
         this.hideAllMatchmakingUI();
+        
+        if (!matchData.id && window.matchmakingState.currentMatchId) {
+            matchData.id = window.matchmakingState.currentMatchId;
+        }
         
         const startingUI = document.createElement('div');
         startingUI.id = 'match-preparation';
@@ -825,15 +831,29 @@ class MatchmakingSystem {
         
         this.hideAllMatchmakingUI();
         
+        const resolvedMatchId = matchData?.id || window.matchmakingState.currentMatchId;
+        if (!resolvedMatchId) {
+            console.error('Impossible de démarrer la partie: matchId manquant', matchData);
+            if (window.NotificationSystem) {
+                window.NotificationSystem.show(
+                    'Erreur de match',
+                    'Impossible de démarrer la partie (ID manquant). Veuillez relancer la recherche.',
+                    'error',
+                    6000
+                );
+            }
+            return;
+        }
+
         // Configurer les données du jeu
         if (window.game && window.player) {
             window.game.mode = matchData.mode;
             window.game.currentMap = matchData.map;
-            window.game.matchId = matchData.id;
+            window.game.matchId = resolvedMatchId;
             
             // Assigner l'équipe du joueur
-            const playerData = matchData.players[currentUser.uid];
-            if (playerData) {
+            const playerData = matchData.players?.[currentUser.uid];
+            if (playerData?.team) {
                 window.player.team = playerData.team;
             }
         }
@@ -851,11 +871,16 @@ class MatchmakingSystem {
         }, 500);
         
         // Configurer la synchronisation en temps réel
-        this.setupGameSync(matchData.id);
+        this.setupGameSync(resolvedMatchId);
     }
 
     // Configurer la synchronisation de jeu en temps réel
     setupGameSync(matchId) {
+        if (!matchId) {
+            console.error('Impossible de configurer la synchronisation: matchId manquant');
+            return;
+        }
+
         const gameRef = database.ref(`game_sessions/${matchId}`);
         
         // Initialiser la session de jeu si c'est l'hôte

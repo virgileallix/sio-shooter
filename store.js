@@ -312,10 +312,13 @@ const StoreSystem = {
     currentRevealedSkin: null,
     currentOpeningAnimation: null,
 
-    init() {
+    async init() {
         console.log('🛒 Initialisation du système de boutique...');
-        this.loadPlayerData();
+        await this.loadPlayerData();
         this.setupEventListeners();
+        this.switchStoreTab('cases');
+        this.switchInventoryTab('weapons');
+        this.loadInventory();
         console.log('✅ Store system initialized');
     },
 
@@ -329,6 +332,7 @@ const StoreSystem = {
                 
                 if (firebaseData) {
                     playerInventory = { ...playerInventory, ...firebaseData };
+                    this.ensureInventoryStructure();
                     this.updateCurrencyDisplay();
                     console.log('📦 Données chargées depuis Firebase');
                     return;
@@ -356,11 +360,13 @@ const StoreSystem = {
             console.error('❌ Erreur chargement localStorage:', error);
         }
 
+        this.ensureInventoryStructure();
         this.updateCurrencyDisplay();
     },
 
     savePlayerData() {
         try {
+            this.ensureInventoryStructure();
             // Sauvegarder dans localStorage
             localStorage.setItem('sio_shooter_inventory', JSON.stringify(playerInventory));
             
@@ -390,6 +396,38 @@ const StoreSystem = {
         });
     },
 
+    ensureInventoryStructure() {
+        if (!Array.isArray(playerInventory.skins)) {
+            playerInventory.skins = [];
+        }
+
+        if (!Array.isArray(playerInventory.cases)) {
+            playerInventory.cases = [];
+        }
+
+        if (!playerInventory.currency) {
+            playerInventory.currency = { coins: 0, vp: 0 };
+        }
+
+        playerInventory.currency.coins = Number.isFinite(playerInventory.currency.coins)
+            ? playerInventory.currency.coins
+            : 0;
+        playerInventory.currency.vp = Number.isFinite(playerInventory.currency.vp)
+            ? playerInventory.currency.vp
+            : 0;
+
+        if (!playerInventory.equippedSkins) {
+            playerInventory.equippedSkins = {};
+        }
+
+        const categories = ['rifles', 'pistols', 'smgs', 'snipers', 'knives'];
+        categories.forEach(category => {
+            if (!playerInventory.equippedSkins[category]) {
+                playerInventory.equippedSkins[category] = {};
+            }
+        });
+    },
+
     setupEventListeners() {
         // Raccourcis clavier
         document.addEventListener('keydown', (e) => {
@@ -409,6 +447,7 @@ const StoreSystem = {
         const today = new Date().toDateString();
 
         if (lastReward !== today) {
+            this.ensureInventoryStructure();
             const reward = 100 + Math.floor(Math.random() * 50);
             playerInventory.currency.coins += reward;
             
@@ -467,6 +506,8 @@ const StoreSystem = {
         const weaponCase = WEAPON_CASES.find(c => c.id === caseId);
         if (!weaponCase) return;
 
+        this.ensureInventoryStructure();
+
         if (playerInventory.currency.coins < weaponCase.price) {
             if (window.NotificationSystem) {
                 window.NotificationSystem.show(
@@ -487,8 +528,11 @@ const StoreSystem = {
             acquiredAt: Date.now()
         });
 
-        this.updateCurrencyDisplay();
+        this.ensureInventoryStructure();
         this.savePlayerData();
+        this.updateCurrencyDisplay();
+        this.loadInventoryCases();
+        this.updateInventoryStats();
 
         if (window.NotificationSystem) {
             window.NotificationSystem.show(
@@ -529,7 +573,10 @@ const StoreSystem = {
 
         // Retirer la case de l'inventaire
         playerInventory.cases.splice(caseIndex, 1);
+        this.ensureInventoryStructure();
         this.savePlayerData();
+        this.loadInventoryCases();
+        this.updateInventoryStats();
 
         // Afficher la modal d'ouverture
         this.showCaseOpeningModal(weaponCase);
@@ -605,7 +652,11 @@ const StoreSystem = {
             equipped: false
         });
 
+        this.ensureInventoryStructure();
         this.savePlayerData();
+        this.loadInventorySkins();
+        this.updateInventoryStats();
+        this.loadStoreSkins();
 
         // Afficher le skin révélé
         const skinReveal = document.getElementById('skin-reveal');
@@ -682,10 +733,9 @@ const StoreSystem = {
 
         this.currentRevealedSkin = null;
 
-        // Recharger l'inventaire si on est sur la page inventaire
-        if (window.location.hash === '#inventory' || document.getElementById('inventory-section')?.classList.contains('active')) {
-            this.loadInventory();
-        }
+        // Mettre à jour les inventaires et la boutique
+        this.loadInventory();
+        this.loadStoreSkins();
     },
 
     previewCase(caseId) {
@@ -830,6 +880,8 @@ const StoreSystem = {
         const skin = Object.values(WEAPON_SKINS).flat().find(s => s.id === skinId);
         if (!skin) return;
 
+        this.ensureInventoryStructure();
+
         if (playerInventory.currency.coins < skin.price) {
             if (window.NotificationSystem) {
                 window.NotificationSystem.show(
@@ -851,9 +903,12 @@ const StoreSystem = {
             equipped: false
         });
 
-        this.updateCurrencyDisplay();
+        this.ensureInventoryStructure();
         this.savePlayerData();
+        this.updateCurrencyDisplay();
         this.loadStoreSkins();
+        this.loadInventorySkins();
+        this.updateInventoryStats();
 
         if (window.NotificationSystem) {
             window.NotificationSystem.show(
@@ -869,14 +924,17 @@ const StoreSystem = {
         if (!skin) return;
 
         const weaponCategory = this.getWeaponCategory(skin.weapon);
+        this.ensureInventoryStructure();
         
         // Déséquiper le skin actuel pour cette arme
-        if (playerInventory.equippedSkins[weaponCategory]) {
-            playerInventory.equippedSkins[weaponCategory][skin.weapon] = skinId;
+        if (!playerInventory.equippedSkins[weaponCategory]) {
+            playerInventory.equippedSkins[weaponCategory] = {};
         }
+        playerInventory.equippedSkins[weaponCategory][skin.weapon] = skinId;
 
         this.savePlayerData();
-        this.loadInventory();
+        this.loadInventorySkins();
+        this.loadStoreSkins();
 
         if (window.NotificationSystem) {
             window.NotificationSystem.show(
@@ -930,8 +988,10 @@ const StoreSystem = {
     // ========================================
 
     loadInventory() {
+        this.ensureInventoryStructure();
         this.loadInventorySkins();
         this.loadInventoryCases();
+        this.loadInventoryAgents();
         this.updateInventoryStats();
     },
 
@@ -1004,6 +1064,19 @@ const StoreSystem = {
         });
     },
 
+    loadInventoryAgents() {
+        const agentsGrid = document.getElementById('inventory-agents-grid');
+        if (!agentsGrid) return;
+
+        agentsGrid.innerHTML = `
+            <div class="empty-inventory">
+                <i class="fas fa-user-ninja"></i>
+                <p>Aucun agent débloqué pour le moment</p>
+                <p style="font-size: 14px; opacity: 0.7;">Les agents seront disponibles dans une future mise à jour.</p>
+            </div>
+        `;
+    },
+
     updateInventoryStats() {
         const totalSkinsElement = document.getElementById('total-skins');
         const totalValueElement = document.getElementById('total-value');
@@ -1025,7 +1098,7 @@ const StoreSystem = {
     // NAVIGATION BOUTIQUE
     // ========================================
 
-    switchStoreTab(tab) {
+    switchStoreTab(tab, triggerButton = null) {
         // Masquer tous les contenus
         document.querySelectorAll('.store-content').forEach(content => {
             content.classList.add('hidden');
@@ -1043,9 +1116,9 @@ const StoreSystem = {
         }
 
         // Activer l'onglet
-        const selectedTab = event?.target || document.querySelector(`[onclick*="switchStoreTab('${tab}')"]`);
-        if (selectedTab) {
-            selectedTab.classList.add('active');
+        const selectedButton = triggerButton || document.querySelector(`.store-tab[data-store-tab="${tab}"]`);
+        if (selectedButton) {
+            selectedButton.classList.add('active');
         }
 
         // Charger le contenu selon l'onglet
@@ -1060,6 +1133,42 @@ const StoreSystem = {
                 this.loadAgents();
                 break;
         }
+    },
+
+    switchInventoryTab(tab, triggerButton = null) {
+        this.ensureInventoryStructure();
+
+        document.querySelectorAll('.inventory-content').forEach(content => {
+            content.classList.add('hidden');
+        });
+
+        document.querySelectorAll('.inventory-tab').forEach(tabBtn => {
+            tabBtn.classList.remove('active');
+        });
+
+        const selectedContent = document.getElementById(`inventory-${tab}`);
+        if (selectedContent) {
+            selectedContent.classList.remove('hidden');
+        }
+
+        const selectedButton = triggerButton || document.querySelector(`.inventory-tab[data-inventory-tab="${tab}"]`);
+        if (selectedButton) {
+            selectedButton.classList.add('active');
+        }
+
+        switch (tab) {
+            case 'cases':
+                this.loadInventoryCases();
+                break;
+            case 'agents':
+                this.loadInventoryAgents();
+                break;
+            default:
+                this.loadInventorySkins();
+                break;
+        }
+
+        this.updateInventoryStats();
     },
 
     loadAgents() {
@@ -1090,11 +1199,17 @@ function equipSkin() {
     }
 }
 
-function switchStoreTab(tab) {
-    StoreSystem.switchStoreTab(tab);
+function switchStoreTab(tab, button) {
+    StoreSystem.switchStoreTab(tab, button);
+}
+
+function switchInventoryTab(tab, button) {
+    StoreSystem.switchInventoryTab(tab, button);
 }
 
 function showInventoryCategory(category) {
+    StoreSystem.ensureInventoryStructure();
+
     const ownedSkins = playerInventory.skins.map(skinData => {
         const skin = Object.values(WEAPON_SKINS).flat().find(s => s.id === skinData.id);
         return skin ? { ...skin, acquiredAt: skinData.acquiredAt } : null;
@@ -1137,12 +1252,11 @@ function showInventoryCategory(category) {
 
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
-        try {
-            StoreSystem.init();
-            StoreSystem.checkDailyReward();
-        } catch (error) {
-            console.error('❌ Erreur initialisation store:', error);
-        }
+        StoreSystem.init()
+            .then(() => StoreSystem.checkDailyReward())
+            .catch(error => {
+                console.error('❌ Erreur initialisation store:', error);
+            });
     }, 2000);
 });
 

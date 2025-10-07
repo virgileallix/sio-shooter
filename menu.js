@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function initializeMenus() {
     try {
-        loadWeapons();
         loadFriends();
         setupMenuEventListeners();
         setupSettingsListeners();
@@ -73,9 +72,12 @@ function handleMenuKeyboard(e) {
                 showMenuSection('leaderboard');
                 break;
             case '4':
-                showMenuSection('arsenal');
+                showMenuSection('store');
                 break;
             case '5':
+                showMenuSection('inventory');
+                break;
+            case '6':
                 showMenuSection('settings');
                 break;
         }
@@ -137,9 +139,6 @@ function showMenuSection(section) {
                     break;
                 case 'friends':
                     loadFriends();
-                    break;
-                case 'arsenal':
-                    loadWeapons();
                     break;
                 case 'leaderboard':
                     switchLeaderboardTab('competitive');

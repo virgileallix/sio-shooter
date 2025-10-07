@@ -93,9 +93,6 @@
                         <button class="nav-btn" onclick="showMenuSection('leaderboard')">
                             <i class="fas fa-trophy"></i> Classements
                         </button>
-                        <button class="nav-btn" onclick="showMenuSection('arsenal')">
-                            <i class="fas fa-crosshairs"></i> Arsenal
-                        </button>
                         <button class="nav-btn" onclick="showMenuSection('store')">
                             <i class="fas fa-shopping-cart"></i> Boutique
                         </button>
@@ -250,21 +247,6 @@
                         </div>
                     </div>
 
-                    <!-- Arsenal Section -->
-                    <div id="arsenal-section" class="menu-section hidden">
-                        <h2>Arsenal d'Armes</h2>
-                        <div class="weapon-categories">
-                            <button class="weapon-cat active" onclick="showWeaponCategory('rifles')">Fusils</button>
-                            <button class="weapon-cat" onclick="showWeaponCategory('pistols')">Pistolets</button>
-                            <button class="weapon-cat" onclick="showWeaponCategory('smgs')">SMG</button>
-                            <button class="weapon-cat" onclick="showWeaponCategory('snipers')">Snipers</button>
-                            <button class="weapon-cat" onclick="showWeaponCategory('shotguns')">Shotguns</button>
-                        </div>
-                        <div class="weapons-grid" id="weapons-grid">
-                            <!-- Weapons will be loaded here -->
-                        </div>
-                    </div>
-
                     <!-- Store Section -->
                     <div id="store-section" class="menu-section hidden">
                         <h2>Boutique</h2>
@@ -280,9 +262,9 @@
                         </div>
 
                         <div class="store-tabs">
-                            <button class="store-tab active" onclick="switchStoreTab('cases')">Cases</button>
-                            <button class="store-tab" onclick="switchStoreTab('skins')">Skins</button>
-                            <button class="store-tab" onclick="switchStoreTab('agents')">Agents</button>
+                            <button class="store-tab active" data-store-tab="cases" onclick="switchStoreTab('cases', this)">Cases</button>
+                            <button class="store-tab" data-store-tab="skins" onclick="switchStoreTab('skins', this)">Skins</button>
+                            <button class="store-tab" data-store-tab="agents" onclick="switchStoreTab('agents', this)">Agents</button>
                         </div>
 
                         <div id="store-cases" class="store-content">
@@ -325,9 +307,9 @@
                         </div>
 
                         <div class="inventory-tabs">
-                            <button class="inventory-tab active" onclick="switchInventoryTab('weapons')">Armes</button>
-                            <button class="inventory-tab" onclick="switchInventoryTab('agents')">Agents</button>
-                            <button class="inventory-tab" onclick="switchInventoryTab('cases')">Cases</button>
+                            <button class="inventory-tab active" data-inventory-tab="weapons" onclick="switchInventoryTab('weapons', this)">Armes</button>
+                            <button class="inventory-tab" data-inventory-tab="agents" onclick="switchInventoryTab('agents', this)">Agents</button>
+                            <button class="inventory-tab" data-inventory-tab="cases" onclick="switchInventoryTab('cases', this)">Cases</button>
                         </div>
 
                         <div id="inventory-weapons" class="inventory-content">

@@ -121,6 +121,17 @@ const OBJECT_TYPES = {
         width: 40,
         height: 40
     },
+    light_cover: {
+        name: 'Caisse légère',
+        health: 60,
+        maxHealth: 60,
+        penetrable: true,
+        damageReduction: 0.45,
+        destructible: true,
+        color: '#a26c45',
+        width: 55,
+        height: 30
+    },
     metal_crate: {
         name: 'Caisse métallique',
         health: 200,
@@ -288,6 +299,10 @@ const MAPS = {
             { x: 600, y: 600, type: 'wood_crate' },
             { x: 1800, y: 300, type: 'wood_crate' },
             { x: 1900, y: 400, type: 'wood_crate' },
+            { x: 1050, y: 950, type: 'light_cover' },
+            { x: 1120, y: 1000, type: 'light_cover' },
+            { x: 1450, y: 620, type: 'light_cover' },
+            { x: 1550, y: 620, type: 'light_cover' },
             
             // Caisses métalliques
             { x: 700, y: 700, type: 'metal_crate' },
@@ -412,6 +427,7 @@ function equipWeapon(weaponName) {
             ammo: WEAPONS[weaponName].maxAmmo,
             totalAmmo: WEAPONS[weaponName].totalAmmo
         };
+        refreshWeaponUI();
     }
 }
 
@@ -487,23 +503,25 @@ function update(dt) {
 }
 
 function updatePlayer(dt) {
-    let dx = 0, dy = 0;
+    let dirX = 0;
+    let dirY = 0;
     
-    const speed = player.sprinting ? player.sprintSpeed : player.speed;
+    if (keys['w'] || keys['z']) dirY -= 1;
+    if (keys['s']) dirY += 1;
+    if (keys['a'] || keys['q']) dirX -= 1;
+    if (keys['d']) dirX += 1;
     
-    if (keys['w'] || keys['z']) dy -= speed;
-    if (keys['s']) dy += speed;
-    if (keys['a'] || keys['q']) dx -= speed;
-    if (keys['d']) dx += speed;
-    
-    if (dx !== 0 && dy !== 0) {
-        const normalizer = Math.sqrt(2) / 2;
-        dx *= normalizer;
-        dy *= normalizer;
+    if (dirX !== 0 && dirY !== 0) {
+        dirX *= Math.SQRT1_2;
+        dirY *= Math.SQRT1_2;
     }
+
+    const moveSpeed = (player.sprinting ? player.sprintSpeed : player.speed) * dt * 60;
+    const deltaX = dirX * moveSpeed;
+    const deltaY = dirY * moveSpeed;
     
-    const newX = player.x + dx;
-    const newY = player.y + dy;
+    const newX = player.x + deltaX;
+    const newY = player.y + deltaY;
     
     if (!checkCollision(newX, player.y, player.width, player.height)) {
         player.x = newX;
@@ -1099,26 +1117,68 @@ function updateUI() {
     const roundNumber = document.getElementById('round-number');
     if (roundNumber) roundNumber.textContent = `Round ${game.round}`;
     
-    // Santé
-    const healthBar = document.getElementById('health-bar');
-    if (healthBar) {
-        const healthPercent = (player.health / player.maxHealth) * 100;
-        healthBar.style.width = healthPercent + '%';
+    const healthValue = document.getElementById('player-health');
+    if (healthValue) {
+        healthValue.textContent = Math.max(0, Math.floor(player.health));
     }
     
-    const healthText = document.getElementById('health-text');
-    if (healthText) healthText.textContent = Math.floor(player.health);
+    const armorValue = document.getElementById('player-armor');
+    if (armorValue) {
+        armorValue.textContent = Math.max(0, Math.floor(player.armor));
+    }
     
-    // Armure
-    const armorText = document.getElementById('armor-text');
-    if (armorText) armorText.textContent = Math.floor(player.armor);
+    const moneyValue = document.getElementById('player-money');
+    if (moneyValue) {
+        moneyValue.textContent = Math.max(0, Math.floor(player.money));
+    }
+    
+    const scoreboardAttackers = document.getElementById('scoreboard-attackers-score');
+    if (scoreboardAttackers) {
+        scoreboardAttackers.textContent = game.attackersScore;
+    }
+    const scoreboardDefenders = document.getElementById('scoreboard-defenders-score');
+    if (scoreboardDefenders) {
+        scoreboardDefenders.textContent = game.defendersScore;
+    }
+    
+    const scoreboardMode = document.getElementById('scoreboard-mode');
+    if (scoreboardMode) {
+        scoreboardMode.textContent = window.gameModes?.[game.mode]?.name || game.mode;
+    }
+    
+    const scoreboardMap = document.getElementById('scoreboard-map');
+    if (scoreboardMap) {
+        scoreboardMap.textContent = MAPS[game.currentMap]?.name || game.currentMap;
+    }
+    
+    const weaponNameElement = document.getElementById('current-weapon');
+    if (weaponNameElement && player.weapon) {
+        weaponNameElement.textContent = player.weapon.name;
+    }
+    
+    updateAmmoDisplay();
 }
 
 function updateAmmoDisplay() {
-    const ammoElement = document.getElementById('ammo-display');
-    if (ammoElement && player.weapon) {
-        ammoElement.textContent = `${player.weapon.ammo} / ${player.weapon.totalAmmo}`;
+    if (!player.weapon) return;
+    
+    const currentAmmoElement = document.getElementById('current-ammo');
+    if (currentAmmoElement) {
+        currentAmmoElement.textContent = Math.max(0, Math.floor(player.weapon.ammo));
     }
+    
+    const totalAmmoElement = document.getElementById('total-ammo');
+    if (totalAmmoElement) {
+        totalAmmoElement.textContent = Math.max(0, Math.floor(player.weapon.totalAmmo));
+    }
+}
+
+function refreshWeaponUI() {
+    const weaponNameElement = document.getElementById('current-weapon');
+    if (weaponNameElement && player.weapon) {
+        weaponNameElement.textContent = player.weapon.name;
+    }
+    updateAmmoDisplay();
 }
 
 function endRound(reason) {
