@@ -25,6 +25,19 @@ window.gameModes = {
         ranked: true,
         teamSize: 5
     },
+    attack_defense: {
+        name: 'Attaque / Défense',
+        description: '5v5 avec changement de camp à la mi-temps',
+        maxPlayers: 10,
+        maxRounds: 24,
+        winCondition: 13,
+        economy: true,
+        ranked: false,
+        teamSize: 5,
+        roundDuration: 100,
+        buyPhaseDuration: 30,
+        swapRounds: 12
+    },
     deathmatch: {
         name: 'Deathmatch',
         description: 'Combat libre - 10 minutes',
@@ -129,17 +142,14 @@ class MatchmakingSystem {
         }
 
         try {
-            // Récupérer les données du joueur
+            const normalizedMap = this.normalizeMapName(map);
             const playerData = await this.getPlayerData(currentUser.uid);
             
-            // Créer l'entrée dans la file d'attente
-            const queueId = await this.createQueueEntry(mode, map, playerData, options);
+            const queueId = await this.createQueueEntry(mode, normalizedMap, playerData, options);
             
-            // Afficher l'interface de matchmaking
-            this.showMatchmakingUI(mode, map);
+            this.showMatchmakingUI(mode, normalizedMap);
             
-            // Démarrer la recherche
-            await this.startQueueSearch(queueId, mode, playerData);
+            await this.startQueueSearch(queueId, mode, playerData, normalizedMap);
             
             return queueId;
         } catch (error) {
@@ -161,7 +171,7 @@ class MatchmakingSystem {
             playerRank: playerData.rank || 'Fer I',
             playerMMR: this.calculateMMR(playerData),
             mode: mode,
-            map: map,
+            map: map || null,
             region: options.region || 'EU',
             maxPing: options.maxPing || 100,
             preferences: options,
@@ -175,7 +185,7 @@ class MatchmakingSystem {
         window.matchmakingState.inQueue = true;
         window.matchmakingState.queueStartTime = Date.now();
         window.matchmakingState.selectedMode = mode;
-        window.matchmakingState.selectedMap = map;
+        window.matchmakingState.selectedMap = map || null;
         window.matchmakingState.currentQueueId = newQueueRef.key;
         
         console.log('✅ Entrée file d\'attente créée:', newQueueRef.key);
@@ -183,9 +193,9 @@ class MatchmakingSystem {
     }
 
     // Démarrer la recherche active de matchs
-    async startQueueSearch(queueId, mode, playerData) {
+    async startQueueSearch(queueId, mode, playerData, preferredMap = null) {
         // Rechercher immédiatement
-        await this.searchForExistingMatches(queueId, mode, playerData);
+        await this.searchForExistingMatches(queueId, mode, playerData, preferredMap);
         
         // Configurer les listeners
         this.setupQueueListeners(queueId);
@@ -193,7 +203,7 @@ class MatchmakingSystem {
         // Recherche périodique
         this.queueCheckInterval = setInterval(async () => {
             if (window.matchmakingState.inQueue) {
-                await this.searchForExistingMatches(queueId, mode, playerData);
+                await this.searchForExistingMatches(queueId, mode, playerData, preferredMap);
                 await this.updateQueueActivity(queueId);
             }
         }, 3000); // Vérifier toutes les 3 secondes
@@ -207,7 +217,7 @@ class MatchmakingSystem {
     }
 
     // Rechercher des matchs existants ou créer un nouveau match
-    async searchForExistingMatches(queueId, mode, playerData) {
+    async searchForExistingMatches(queueId, mode, playerData, preferredMap = null) {
         try {
             // Rechercher des matchs en attente
             const matchesRef = database.ref('active_matches');
@@ -220,7 +230,7 @@ class MatchmakingSystem {
                     const match = matches[matchId];
                     
                     // Vérifier la compatibilité
-                    if (await this.isMatchCompatible(match, mode, playerData)) {
+                    if (await this.isMatchCompatible(match, mode, playerData, preferredMap)) {
                         // Tenter de rejoindre le match
                         const joined = await this.joinExistingMatch(queueId, matchId, match, playerData);
                         if (joined) {
@@ -239,9 +249,13 @@ class MatchmakingSystem {
     }
 
     // Vérifier si un match est compatible
-    async isMatchCompatible(match, mode, playerData) {
+    async isMatchCompatible(match, mode, playerData, preferredMap = null) {
         // Vérifier le mode de jeu
         if (match.mode !== mode) return false;
+        
+        if (preferredMap && match.map && match.map !== preferredMap) {
+            return false;
+        }
         
         // Vérifier si le match n'est pas plein
         const currentPlayers = Object.keys(match.players || {}).length;
@@ -344,7 +358,7 @@ class MatchmakingSystem {
             const matchData = {
                 id: newMatchRef.key,
                 mode: mode,
-                map: window.matchmakingState.selectedMap || this.selectRandomMap(),
+            map: this.normalizeMapName(window.matchmakingState.selectedMap) || this.selectRandomMap(),
                 status: 'waiting',
                 host: currentUser.uid,
                 region: window.matchmakingState.preferences.region,
@@ -398,22 +412,26 @@ class MatchmakingSystem {
 
     // Configurer les listeners de file d'attente
     setupQueueListeners(queueId) {
-        // Écouter les changements de statut
         const queueRef = database.ref(`matchmaking_queue/${queueId}`);
         
-        window.matchmakingState.listeners.queueStatus = queueRef.on('value', (snapshot) => {
+        const statusHandler = (snapshot) => {
             const queueData = snapshot.val();
             if (!queueData) {
-                // File d'attente supprimée (match trouvé ou timeout)
                 return;
             }
             
             if (queueData.status === 'match_found') {
                 this.handleMatchFound(queueData.matchId);
             }
-        });
+        };
         
-        // Nettoyer si le joueur se déconnecte
+        queueRef.on('value', statusHandler);
+        window.matchmakingState.listeners.queueStatus = {
+            ref: queueRef,
+            eventType: 'value',
+            handler: statusHandler
+        };
+        
         queueRef.onDisconnect().remove();
     }
 
@@ -421,8 +439,7 @@ class MatchmakingSystem {
     setupMatchListeners(matchId) {
         const matchRef = database.ref(`active_matches/${matchId}`);
         
-        // Écouter les changements de statut du match
-        window.matchmakingState.listeners.matchStatus = matchRef.on('value', (snapshot) => {
+        const statusHandler = (snapshot) => {
             const matchData = snapshot.val();
             if (!matchData) {
                 console.log('Match supprimé');
@@ -431,23 +448,44 @@ class MatchmakingSystem {
             
             matchData.id = matchId;
             this.handleMatchUpdate(matchData);
-        });
+        };
         
-        // Écouter les nouveaux joueurs
-        window.matchmakingState.listeners.players = matchRef.child('players').on('child_added', (snapshot) => {
+        matchRef.on('value', statusHandler);
+        window.matchmakingState.listeners.matchStatus = {
+            ref: matchRef,
+            eventType: 'value',
+            handler: statusHandler
+        };
+        
+        const playersRef = matchRef.child('players');
+        const playerAddedHandler = (snapshot) => {
             const playerId = snapshot.key;
             const playerData = snapshot.val();
             
             if (playerId !== currentUser.uid) {
                 this.handlePlayerJoined(playerId, playerData);
             }
-        });
+        };
         
-        // Écouter les joueurs qui partent
-        window.matchmakingState.listeners.playersLeft = matchRef.child('players').on('child_removed', (snapshot) => {
+        const playerRemovedHandler = (snapshot) => {
             const playerId = snapshot.key;
             this.handlePlayerLeft(playerId);
-        });
+        };
+        
+        playersRef.on('child_added', playerAddedHandler);
+        playersRef.on('child_removed', playerRemovedHandler);
+        
+        window.matchmakingState.listeners.players = {
+            ref: playersRef,
+            eventType: 'child_added',
+            handler: playerAddedHandler
+        };
+        
+        window.matchmakingState.listeners.playersLeft = {
+            ref: playersRef,
+            eventType: 'child_removed',
+            handler: playerRemovedHandler
+        };
     }
 
     // ========================================
@@ -595,13 +633,8 @@ class MatchmakingSystem {
             );
         }
         
-        this.cleanup();
-        this.hideAllMatchmakingUI();
-        
-        // Retourner au menu
-        if (window.showMainMenu) {
-            window.showMainMenu();
-        }
+        this.clearCurrentMatchState();
+        this.handlePostMatchCleanup();
     }
 
     // Gérer la fin du match
@@ -613,12 +646,8 @@ class MatchmakingSystem {
         
         // Nettoyer après un délai
         setTimeout(() => {
-            this.cleanup();
-            this.hideAllMatchmakingUI();
-            
-            if (window.showMainMenu) {
-                window.showMainMenu();
-            }
+            this.clearCurrentMatchState();
+            this.handlePostMatchCleanup();
         }, 10000);
     }
 
@@ -656,7 +685,7 @@ class MatchmakingSystem {
                     ${this.gameModes[matchData.mode].name}
                 </div>
                 <div style="font-size: 32px; font-weight: bold; color: #ffd700;">
-                    ${matchData.map}
+                    ${this.getMapDisplayName(matchData.map)}
                 </div>
                 <div style="margin-top: 40px; color: rgba(255,255,255,0.5);">
                     Préparez-vous...
@@ -796,7 +825,7 @@ class MatchmakingSystem {
                     </div>
                     <div style="text-align: center;">
                         <h3 style="color: #ffd700; margin-bottom: 10px;">CARTE</h3>
-                        <p style="font-size: 18px;">${matchData.map}</p>
+                        <p style="font-size: 18px;">${this.getMapDisplayName(matchData.map)}</p>
                     </div>
                     <div style="text-align: center;">
                         <h3 style="color: #4ade80; margin-bottom: 10px;">JOUEURS</h3>
@@ -848,8 +877,20 @@ class MatchmakingSystem {
         // Configurer les données du jeu
         if (window.game && window.player) {
             window.game.mode = matchData.mode;
-            window.game.currentMap = matchData.map;
+            window.game.currentMap = this.normalizeMapName(matchData.map) || matchData.map;
             window.game.matchId = resolvedMatchId;
+            
+            const modeSettings = this.gameModes[matchData.mode] || {};
+            window.game.modeSettings = modeSettings;
+            if (typeof modeSettings.maxRounds === 'number') {
+                window.game.maxRounds = modeSettings.maxRounds;
+            }
+            if (typeof modeSettings.winCondition === 'number') {
+                window.game.winCondition = modeSettings.winCondition;
+            }
+            window.game.defaultRoundTime = modeSettings.roundDuration || window.game.defaultRoundTime || 100;
+            window.game.defaultBuyTime = modeSettings.buyPhaseDuration || window.game.defaultBuyTime || 30;
+            window.game.swapRounds = modeSettings.swapRounds || window.game.swapRounds || Math.floor((window.game.maxRounds || 24) / 2);
             
             // Assigner l'équipe du joueur
             const playerData = matchData.players?.[currentUser.uid];
@@ -903,23 +944,37 @@ class MatchmakingSystem {
             }
         });
         
-        // Écouter les événements de jeu
-        window.matchmakingState.listeners.gameEvents = gameRef.child('events').on('child_added', (snapshot) => {
+        const eventsRef = gameRef.child('events');
+        const eventHandler = (snapshot) => {
             const event = snapshot.val();
-            if (event.playerId !== currentUser.uid) {
+            if (event && event.playerId !== currentUser.uid) {
                 this.handleGameEvent(event);
             }
-        });
+        };
         
-        // Écouter les positions des joueurs
-        window.matchmakingState.listeners.playerPositions = gameRef.child('players').on('child_changed', (snapshot) => {
+        eventsRef.on('child_added', eventHandler);
+        window.matchmakingState.listeners.gameEvents = {
+            ref: eventsRef,
+            eventType: 'child_added',
+            handler: eventHandler
+        };
+        
+        const positionsRef = gameRef.child('players');
+        const positionHandler = (snapshot) => {
             const playerId = snapshot.key;
             const playerData = snapshot.val();
             
             if (playerId !== currentUser.uid && window.updateOtherPlayerPosition) {
                 window.updateOtherPlayerPosition(playerId, playerData);
             }
-        });
+        };
+        
+        positionsRef.on('child_changed', positionHandler);
+        window.matchmakingState.listeners.playerPositions = {
+            ref: positionsRef,
+            eventType: 'child_changed',
+            handler: positionHandler
+        };
     }
 
     // Gérer les événements de jeu
@@ -961,6 +1016,108 @@ class MatchmakingSystem {
         const matchRef = database.ref(`active_matches/${window.matchmakingState.currentMatchId}`);
         await matchRef.child(`players/${currentUser.uid}`).remove();
         
+        this.clearCurrentMatchState();
+        this.handlePostMatchCleanup();
+    }
+
+    async forfeitCurrentMatch(options = {}) {
+        const matchId = window.matchmakingState.currentMatchId;
+        if (!matchId) return;
+        
+        if (!database || !database.ref) {
+            this.cleanup();
+            window.matchmakingState.currentMatchId = null;
+            return;
+        }
+
+        try {
+            const matchRef = database.ref(`active_matches/${matchId}`);
+            const sessionRef = database.ref(`game_sessions/${matchId}`);
+            
+            await matchRef.child(`players/${currentUser.uid}`).remove();
+            
+            try {
+                await sessionRef.child(`players/${currentUser.uid}`).remove();
+            } catch (playerRemovalError) {
+                console.warn('Suppression joueur session échouée:', playerRemovalError);
+            }
+            
+            if (options.recordEvent !== false) {
+                try {
+                    await sessionRef.child('events').push({
+                        type: 'player_left',
+                        playerId: currentUser.uid,
+                        reason: options.reason || 'forfeit',
+                        timestamp: firebase.database.ServerValue.TIMESTAMP
+                    });
+                } catch (eventError) {
+                    console.warn('Enregistrement événement abandon échoué:', eventError);
+                }
+            }
+            
+            const snapshot = await matchRef.once('value');
+            const remainingMatch = snapshot.val();
+            const remainingPlayers = Object.keys(remainingMatch?.players || {});
+            
+            if (remainingPlayers.length === 0) {
+                await matchRef.remove();
+                try {
+                    await sessionRef.remove();
+                } catch (sessionRemovalError) {
+                    console.warn('Suppression session échouée:', sessionRemovalError);
+                }
+            } else {
+                await matchRef.child('lastActivity').set(firebase.database.ServerValue.TIMESTAMP);
+            }
+        } catch (error) {
+            console.error('Erreur lors de l\'abandon du match:', error);
+        } finally {
+            this.clearCurrentMatchState();
+            this.handlePostMatchCleanup();
+        }
+    }
+
+    async finishCurrentMatch(result = {}) {
+        const matchId = window.matchmakingState.currentMatchId;
+        if (!matchId || !database || !database.ref) {
+            return;
+        }
+
+        const attackersScore = result.attackersScore ?? window.game?.attackersScore ?? 0;
+        const defendersScore = result.defendersScore ?? window.game?.defendersScore ?? 0;
+        const winningTeam = result.winner || (attackersScore === defendersScore ? 'draw' : (attackersScore > defendersScore ? 'attackers' : 'defenders'));
+        const reason = result.reason || 'completed';
+
+        try {
+            const matchRef = database.ref(`active_matches/${matchId}`);
+            await matchRef.update({
+                status: 'ended',
+                score: { attackers: attackersScore, defenders: defendersScore },
+                winningTeam: winningTeam,
+                endReason: reason,
+                endedAt: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            const sessionRef = database.ref(`game_sessions/${matchId}`);
+            await sessionRef.update({
+                status: 'completed',
+                score: { attackers: attackersScore, defenders: defendersScore },
+                winningTeam: winningTeam,
+                endedAt: firebase.database.ServerValue.TIMESTAMP
+            });
+        } catch (error) {
+            console.error('Erreur finalisation match:', error);
+        }
+    }
+
+    clearCurrentMatchState() {
+        window.matchmakingState.currentMatchId = null;
+        window.matchmakingState.selectedMode = null;
+        window.matchmakingState.selectedMap = null;
+        window.matchmakingState.inQueue = false;
+    }
+
+    handlePostMatchCleanup() {
         this.cleanup();
         this.hideAllMatchmakingUI();
         
@@ -1001,10 +1158,9 @@ class MatchmakingSystem {
             this.matchCheckInterval = null;
         }
         
-        // Arrêter les listeners Firebase
         Object.values(window.matchmakingState.listeners).forEach(listener => {
-            if (typeof listener === 'function') {
-                database.ref().off('value', listener);
+            if (listener && listener.ref && listener.handler) {
+                listener.ref.off(listener.eventType, listener.handler);
             }
         });
         
@@ -1032,6 +1188,8 @@ class MatchmakingSystem {
             min-width: 400px;
         `;
 
+        const mapLabel = map ? this.getMapDisplayName(map) : 'Carte aléatoire';
+
         matchmakingUI.innerHTML = `
             <div style="margin-bottom: 20px;">
                 <div style="width: 60px; height: 60px; border: 4px solid rgba(0, 212, 255, 0.3); 
@@ -1040,7 +1198,7 @@ class MatchmakingSystem {
                 </div>
                 <h2 style="color: #00d4ff; margin-bottom: 10px;">Recherche de partie</h2>
                 <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 20px;">
-                    ${this.gameModes[mode].name} ${map ? `sur ${map}` : ''}
+                    ${this.gameModes[mode].name} • ${mapLabel}
                 </p>
             </div>
 
@@ -1145,6 +1303,33 @@ class MatchmakingSystem {
             level: 1,
             stats: {}
         };
+    }
+
+    normalizeMapName(map) {
+        if (!map) return null;
+        const value = String(map).toLowerCase();
+        switch (value) {
+            case 'dust2':
+            case 'dust2_complex':
+                return 'dust2_complex';
+            case 'haven':
+            case 'haven_complex':
+                return 'haven_complex';
+            case 'auto':
+                return null;
+            default:
+                return map;
+        }
+    }
+
+    getMapDisplayName(mapId) {
+        if (!mapId) return 'Aléatoire';
+        const normalized = this.normalizeMapName(mapId) || mapId;
+        const displayNames = {
+            dust2_complex: 'Dust2',
+            haven_complex: 'Haven'
+        };
+        return displayNames[normalized] || normalized;
     }
 
     // Sélectionner une carte aléatoire

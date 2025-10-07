@@ -108,7 +108,7 @@ class GameRenderer {
     }
     
     renderMap(mapName) {
-        const mapData = maps[mapName];
+        const mapData = MAPS[mapName];
         if (!mapData) return;
         
         // Rendu du sol
@@ -168,7 +168,7 @@ class GameRenderer {
     }
     
     renderBombSites(gameState) {
-        const mapData = maps[gameState.currentMap];
+        const mapData = MAPS[gameState.currentMap];
         if (!mapData) return;
         
         mapData.bombSites.forEach(site => {
@@ -216,7 +216,7 @@ class GameRenderer {
     renderBomb(gameState) {
         if (!game.bomb.planted) return;
         
-        const mapData = maps[gameState.currentMap];
+        const mapData = MAPS[gameState.currentMap];
         const bombSite = mapData.bombSites.find(site => site.name === game.bomb.site);
         if (!bombSite) return;
         
@@ -271,7 +271,7 @@ class GameRenderer {
     }
     
     renderSpawnAreas(gameState) {
-        const mapData = maps[gameState.currentMap];
+        const mapData = MAPS[gameState.currentMap];
         if (!mapData) return;
         
         // Zone des attaquants
@@ -628,7 +628,7 @@ class GameRenderer {
         });
         
         // Hitboxes des murs
-        const mapData = maps[gameState.currentMap];
+        const mapData = MAPS[gameState.currentMap];
         if (mapData) {
             mapData.walls.forEach(wall => {
                 this.ctx.strokeRect(wall.x, wall.y, wall.width, wall.height);

@@ -25,11 +25,19 @@ const SpectatorSystem = {
                 this.toggle();
             }
         });
+
+        this.refreshAvailability();
     },
 
     toggle(forceValue) {
         const newState = typeof forceValue === 'boolean' ? forceValue : !this.state.enabled;
         if (newState === this.state.enabled) return;
+
+        if (newState && !this.canEnterSpectator()) {
+            this.showDeniedMessage();
+            this.refreshAvailability();
+            return;
+        }
 
         this.state.enabled = newState;
         if (this.state.enabled) {
@@ -63,6 +71,36 @@ const SpectatorSystem = {
         this.overlay?.classList.add('hidden');
         if (!silent) {
             NotificationSystem?.show?.('Spectateur', 'Mode spectateur désactivé.', 'info', 2000);
+        }
+    },
+
+    canEnterSpectator(playerState = window.player) {
+        if (!window.game || !window.game.gameStarted) return true;
+        if (window.game.matchFinished) return true;
+        if (playerState && playerState.alive === false) return true;
+        return false;
+    },
+
+    refreshAvailability(playerState = window.player) {
+        const available = this.canEnterSpectator(playerState);
+        if (this.button) {
+            this.button.disabled = !available;
+            this.button.title = available ? 'Activer le mode spectateur (F3)' : 'Disponible après votre élimination ou en fin de partie';
+            this.button.classList.toggle('disabled', !available);
+        }
+        if (!available && this.state.enabled) {
+            this.disable(true);
+        }
+    },
+
+    showDeniedMessage() {
+        if (window.NotificationSystem) {
+            window.NotificationSystem.show(
+                'Spectateur indisponible',
+                'Vous ne pouvez activer le mode spectateur qu\'après votre élimination ou à la fin du match.',
+                'warning',
+                3000
+            );
         }
     },
 

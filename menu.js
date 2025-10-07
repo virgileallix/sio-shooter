@@ -430,13 +430,14 @@ function updateMapSelectionForMode(mode) {
     
     // Cartes disponibles selon le mode
     const availableMaps = {
-        'deathmatch': ['dust2_complex', 'haven_complex'],
-        'competitive': ['dust2_complex', 'haven_complex'],
-        'duel': ['dust2_complex'],
-        'unrated': ['dust2_complex', 'haven_complex']
+        deathmatch: ['dust2', 'haven'],
+        competitive: ['dust2', 'haven'],
+        attack_defense: ['dust2', 'haven'],
+        duel: ['dust2'],
+        unrated: ['dust2', 'haven']
     };
     
-    const maps = availableMaps[mode] || ['dust2_complex'];
+    const maps = availableMaps[mode] || ['dust2'];
     
     // Réorganiser les cartes
     maps.forEach(mapName => {
@@ -484,6 +485,32 @@ function updateModeInfo(mode, modeData) {
     }
 }
 
+function resolveMapSelection(map) {
+    const value = (map || '').toLowerCase();
+    switch (value) {
+        case 'dust2':
+        case 'dust2_complex':
+            return 'dust2_complex';
+        case 'haven':
+        case 'haven_complex':
+            return 'haven_complex';
+        case 'auto':
+        case 'random':
+            return 'auto';
+        default:
+            return map;
+    }
+}
+
+function getMapDisplayName(mapKey) {
+    const names = {
+        'dust2_complex': 'Dust2',
+        'haven_complex': 'Haven',
+        'auto': 'Aléatoire'
+    };
+    return names[mapKey] || mapKey;
+}
+
 // Sélection de la carte avec animation
 function selectMap(map) {
     try {
@@ -508,15 +535,14 @@ function selectMap(map) {
             }
         }
         
-        selectedMap = map;
+        const normalizedSelection = resolveMapSelection(map);
+        selectedMap = normalizedSelection === 'auto' ? 'auto' : normalizedSelection;
         
-        // Mettre à jour l'aperçu de la carte
-        updateMapPreview(map);
+        updateMapPreview(selectedMap);
         
-        console.log('🗺️ Carte sélectionnée:', map);
+        console.log('🗺️ Carte sélectionnée:', getMapDisplayName(selectedMap));
         
-        // Analytics
-        trackMapSelection(map);
+        trackMapSelection(selectedMap);
         
     } catch (error) {
         console.error('Erreur sélection carte:', error);
@@ -561,13 +587,13 @@ function updateMapPreview(map) {
 function getMapInfo(map) {
     const mapInfos = {
         'dust2_complex': {
-            name: 'Dust2 Complex',
+            name: 'Dust2',
             sites: '2',
             size: 'Grande',
             difficulty: 'Moyen'
         },
         'haven_complex': {
-            name: 'Haven Complex',
+            name: 'Haven',
             sites: '3',
             size: 'Très grande',
             difficulty: 'Difficile'

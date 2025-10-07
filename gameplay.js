@@ -10,6 +10,12 @@
 window.keys = {};
 window.mouse = { x: 0, y: 0, pressed: false, worldX: 0, worldY: 0 };
 let gameCanvas, gameContext;
+let minimapCanvas = null;
+let minimapContext = null;
+let minimapScale = 1;
+let minimapOffset = { x: 0, y: 0 };
+let minimapCurrentMap = null;
+let minimapNameElement = null;
 let gameLoop = null;
 let lastTime = 0;
 let deltaTime = 0;
@@ -138,6 +144,18 @@ const BOMB_SETTINGS = {
 
 const BOMB_MODES = new Set(['competitive', 'unrated', 'attack_defense']);
 
+const MINIMAP_SETTINGS = {
+    background: '#11161f',
+    border: 'rgba(255, 255, 255, 0.15)',
+    wall: 'rgba(255, 255, 255, 0.15)',
+    bombSiteActive: 'rgba(255, 70, 85, 0.35)',
+    bombSite: 'rgba(255, 70, 85, 0.2)',
+    player: '#00d4ff',
+    ally: '#4ade80',
+    enemy: '#ff4655',
+    bomb: '#ffd166'
+};
+
 // ========================================
 // TYPES D'OBJETS DESTRUCTIBLES
 // ========================================
@@ -244,6 +262,7 @@ window.player = {
     alive: true,
     team: 'attackers',
     money: 800,
+    startingMoney: 800,
     sprinting: false,
     crouching: false,
     reloading: false,
@@ -281,9 +300,16 @@ window.game = {
     mode: 'deathmatch',
     currentMap: 'dust2_complex',
     round: 1,
+    half: 1,
     maxRounds: 13,
+    winCondition: 13,
     roundTime: 100,
     buyTime: 30,
+    defaultRoundTime: 100,
+    defaultBuyTime: 30,
+    swapRounds: 12,
+    modeSettings: {},
+    matchFinished: false,
     phase: 'buy',
     attackersScore: 0,
     defendersScore: 0,
@@ -412,17 +438,62 @@ function initializeGame() {
     gameContext = gameCanvas.getContext('2d');
     gameCanvas.width = 1200;
     gameCanvas.height = 800;
+    game.gamePaused = false;
+    game.gameStarted = false;
     
+    applyModeSettings();
     setupControls();
     loadObjectSprites();
     initializeMap();
+    initializeMinimap();
     equipWeapon('phantom');
-    resetGameState();
+    resetGameState(true);
     startGameLoop();
     
     game.gameStarted = true;
     console.log('Gameplay initialisé');
     return true;
+}
+
+function applyModeSettings() {
+    const modeConfig = window.gameModes?.[game.mode] || window.game.modeSettings || {};
+    game.modeSettings = modeConfig;
+    game.maxRounds = typeof modeConfig.maxRounds === 'number' ? modeConfig.maxRounds : game.maxRounds;
+    game.winCondition = typeof modeConfig.winCondition === 'number' ? modeConfig.winCondition : game.winCondition;
+    game.defaultRoundTime = typeof modeConfig.roundDuration === 'number' ? modeConfig.roundDuration : game.defaultRoundTime;
+    game.defaultBuyTime = typeof modeConfig.buyPhaseDuration === 'number' ? modeConfig.buyPhaseDuration : game.defaultBuyTime;
+    if (modeConfig.swapRounds) {
+        game.swapRounds = modeConfig.swapRounds;
+    } else if (game.maxRounds) {
+        game.swapRounds = Math.floor(game.maxRounds / 2);
+    }
+}
+
+function initializeMinimap() {
+    minimapCanvas = document.getElementById('minimap-canvas');
+    minimapNameElement = document.getElementById('minimap-map-name');
+    if (!minimapCanvas) {
+        minimapContext = null;
+        return;
+    }
+    minimapContext = minimapCanvas.getContext('2d');
+    minimapCurrentMap = null;
+    updateMinimapLayout();
+    updateMinimap(true);
+}
+
+function updateMinimapLayout() {
+    if (!minimapContext) return;
+    const map = MAPS[game.currentMap];
+    if (!map) return;
+    const scaleX = minimapCanvas.width / map.width;
+    const scaleY = minimapCanvas.height / map.height;
+    minimapScale = Math.min(scaleX, scaleY);
+    minimapOffset = {
+        x: (minimapCanvas.width - map.width * minimapScale) / 2,
+        y: (minimapCanvas.height - map.height * minimapScale) / 2
+    };
+    minimapCurrentMap = game.currentMap;
 }
 
 function initializeMap() {
@@ -460,9 +531,26 @@ function initializeMap() {
     });
 }
 
-function resetGameState() {
-    const map = MAPS[game.currentMap];
-    const spawn = map.spawnPoints[player.team][0];
+function resetGameState(isNewMatch = false) {
+    const map = MAPS[game.currentMap] || MAPS['dust2_complex'];
+    if (!map) {
+        console.error('Carte introuvable:', game.currentMap);
+        return;
+    }
+    const spawnPoints = map.spawnPoints?.[player.team] || map.spawnPoints?.attackers || [{ x: 0, y: 0 }];
+    const spawn = spawnPoints[0];
+    if (isNewMatch) {
+        game.round = 1;
+        game.half = 1;
+        game.attackersScore = 0;
+        game.defendersScore = 0;
+        game.phase = 'buy';
+        game.revealPulseTimer = 0;
+        game.matchFinished = false;
+        if (typeof player.startingMoney === 'number') {
+            player.money = player.startingMoney;
+        }
+    }
     
     player.x = spawn.x;
     player.y = spawn.y;
@@ -484,21 +572,11 @@ function resetGameState() {
     player.actionType = null;
     player.actionProgress = 0;
     
-    game.roundTime = 100;
-    game.buyTime = 30;
+    game.roundTime = game.defaultRoundTime;
+    game.buyTime = game.defaultBuyTime;
     game.phase = 'buy';
 
-    game.bomb.planted = false;
-    game.bomb.planting = false;
-    game.bomb.defusing = false;
-    game.bomb.plantProgress = 0;
-    game.bomb.defuseProgress = 0;
-    game.bomb.timer = BOMB_SETTINGS.detonationTime;
-    game.bomb.site = null;
-    game.bomb.x = null;
-    game.bomb.y = null;
-    game.bomb.dropped = false;
-    game.bomb.carrier = isBombMode() && player.team === 'attackers' ? 'player' : null;
+    resetBombState();
     
     bullets = [];
     particles = [];
@@ -512,14 +590,34 @@ function resetGameState() {
     
     game.camera.x = player.x;
     game.camera.y = player.y;
+    minimapCurrentMap = null;
+    updateMinimapLayout();
+    updateMinimap(true);
 
     if (window.SpectatorSystem && typeof window.SpectatorSystem.disable === 'function') {
         window.SpectatorSystem.disable(true);
     }
+    window.SpectatorSystem?.refreshAvailability?.(player);
 
     if (window.AgentSystem && typeof window.AgentSystem.applyAgentModifiers === 'function') {
         window.AgentSystem.applyAgentModifiers(true);
     }
+
+    updateUI();
+}
+
+function resetBombState() {
+    game.bomb.planted = false;
+    game.bomb.planting = false;
+    game.bomb.defusing = false;
+    game.bomb.plantProgress = 0;
+    game.bomb.defuseProgress = 0;
+    game.bomb.timer = BOMB_SETTINGS.detonationTime;
+    game.bomb.site = null;
+    game.bomb.x = null;
+    game.bomb.y = null;
+    game.bomb.dropped = false;
+    game.bomb.carrier = isBombMode() && player.team === 'attackers' ? 'player' : null;
 }
 
 function equipWeapon(weaponName) {
@@ -1547,6 +1645,7 @@ function updateUI() {
         const seconds = Math.floor(time % 60);
         timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
+    const mapData = MAPS[game.currentMap];
     
     // Score
     const attackersScore = document.getElementById('attackers-score');
@@ -1589,7 +1688,7 @@ function updateUI() {
     
     const scoreboardMap = document.getElementById('scoreboard-map');
     if (scoreboardMap) {
-        scoreboardMap.textContent = MAPS[game.currentMap]?.name || game.currentMap;
+        scoreboardMap.textContent = mapData?.name || game.currentMap;
     }
     
     const weaponNameElement = document.getElementById('current-weapon');
@@ -1597,7 +1696,12 @@ function updateUI() {
         weaponNameElement.textContent = player.weapon.name;
     }
     
+    if (minimapNameElement && mapData) {
+        minimapNameElement.textContent = mapData.name;
+    }
+
     updateAmmoDisplay();
+    updateMinimap();
 }
 
 function updateAmmoDisplay() {
@@ -1622,6 +1726,132 @@ function refreshWeaponUI() {
     updateAmmoDisplay();
 }
 
+function updateMinimap(forceLayout = false) {
+    if (!minimapContext || !minimapCanvas) return;
+    const map = MAPS[game.currentMap];
+    if (!map) return;
+    if (forceLayout || minimapCurrentMap !== game.currentMap) {
+        updateMinimapLayout();
+    }
+
+    minimapContext.clearRect(0, 0, minimapCanvas.width, minimapCanvas.height);
+    drawMinimapBackground(map);
+    drawMinimapWalls(map);
+    drawMinimapBombSites(map);
+    drawMinimapPlayers();
+    drawMinimapBomb();
+}
+
+function drawMinimapBackground(map) {
+    minimapContext.fillStyle = MINIMAP_SETTINGS.background;
+    minimapContext.fillRect(0, 0, minimapCanvas.width, minimapCanvas.height);
+    minimapContext.strokeStyle = MINIMAP_SETTINGS.border;
+    minimapContext.lineWidth = 2;
+    minimapContext.strokeRect(
+        minimapOffset.x,
+        minimapOffset.y,
+        map.width * minimapScale,
+        map.height * minimapScale
+    );
+}
+
+function drawMinimapWalls(map) {
+    minimapContext.fillStyle = MINIMAP_SETTINGS.wall;
+    map.walls?.forEach(wall => {
+        const projected = projectToMinimap(wall.x, wall.y);
+        minimapContext.fillRect(
+            projected.x,
+            projected.y,
+            wall.width * minimapScale,
+            wall.height * minimapScale
+        );
+    });
+}
+
+function drawMinimapBombSites(map) {
+    if (!map.bombSites) return;
+    map.bombSites.forEach(site => {
+        const projected = projectToMinimap(site.x, site.y);
+        const width = site.width * minimapScale;
+        const height = site.height * minimapScale;
+        minimapContext.fillStyle = game.bomb.site === site.name ? MINIMAP_SETTINGS.bombSiteActive : MINIMAP_SETTINGS.bombSite;
+        minimapContext.fillRect(projected.x, projected.y, width, height);
+        minimapContext.strokeStyle = MINIMAP_SETTINGS.border;
+        minimapContext.lineWidth = 1;
+        minimapContext.strokeRect(projected.x, projected.y, width, height);
+        minimapContext.fillStyle = '#ffffff';
+        minimapContext.font = '10px Arial';
+        minimapContext.textAlign = 'center';
+        minimapContext.fillText(`Site ${site.name}`, projected.x + width / 2, projected.y + height / 2 + 3);
+    });
+}
+
+function drawMinimapPlayers() {
+    const playerRadius = Math.max(3, 5 * minimapScale);
+    const playerCenter = getPlayerCenter();
+    const playerPos = projectToMinimap(playerCenter.x, playerCenter.y);
+
+    drawMinimapPlayerDot(playerPos.x, playerPos.y, playerRadius, MINIMAP_SETTINGS.player, player.angle, playerHasBomb());
+    Object.values(otherPlayers).forEach(other => {
+        if (!other) return;
+        if (other.team && other.team === player.team) {
+            if (other.alive === false) return;
+        }
+        const centerX = other.x + (other.width || 0) / 2;
+        const centerY = other.y + (other.height || 0) / 2;
+        const projected = projectToMinimap(centerX, centerY);
+        const isAlly = other.team && other.team === player.team;
+        const color = isAlly ? MINIMAP_SETTINGS.ally : MINIMAP_SETTINGS.enemy;
+        const otherAngle = typeof other.angle === 'number' ? other.angle : 0;
+        drawMinimapPlayerDot(projected.x, projected.y, playerRadius * 0.9, color, otherAngle, false);
+    });
+}
+
+function drawMinimapPlayerDot(x, y, radius, color, angle = 0, highlight = false) {
+    minimapContext.fillStyle = color;
+    minimapContext.beginPath();
+    minimapContext.arc(x, y, radius, 0, Math.PI * 2);
+    minimapContext.fill();
+
+    if (highlight) {
+        minimapContext.strokeStyle = MINIMAP_SETTINGS.bomb;
+        minimapContext.lineWidth = 2;
+        minimapContext.beginPath();
+        minimapContext.arc(x, y, radius + 2, 0, Math.PI * 2);
+        minimapContext.stroke();
+    }
+
+    const directionLength = radius * 1.6;
+    minimapContext.strokeStyle = '#ffffff';
+    minimapContext.lineWidth = 1;
+    minimapContext.beginPath();
+    minimapContext.moveTo(x, y);
+    minimapContext.lineTo(
+        x + Math.cos(angle) * directionLength,
+        y + Math.sin(angle) * directionLength
+    );
+    minimapContext.stroke();
+}
+
+function drawMinimapBomb() {
+    if (game.bomb.planted || game.bomb.dropped) {
+        if (typeof game.bomb.x === 'number' && typeof game.bomb.y === 'number') {
+            const pos = projectToMinimap(game.bomb.x, game.bomb.y);
+            minimapContext.fillStyle = MINIMAP_SETTINGS.bomb;
+            minimapContext.beginPath();
+            minimapContext.arc(pos.x, pos.y, Math.max(3, 4 * minimapScale), 0, Math.PI * 2);
+            minimapContext.fill();
+        }
+    }
+}
+
+function projectToMinimap(x, y) {
+    return {
+        x: minimapOffset.x + x * minimapScale,
+        y: minimapOffset.y + y * minimapScale
+    };
+}
+
 function loadObjectSprites() {
     if (objectSpritesLoaded) return;
     objectSpritesLoaded = true;
@@ -1642,73 +1872,167 @@ function loadObjectSprites() {
     });
 }
 
-function endRound(reason) {
-    if (game.phase === 'ended') return;
-    console.log('Round termine:', reason);
-
-    cancelBombInteraction();
-
-    let winner = null;
-    let title = 'Fin du round';
-    let message = '';
-
-    switch (reason) {
-        case 'bomb_exploded':
-        case 'defenders_eliminated':
-            winner = 'attackers';
-            message = 'La spike a explose.';
-            break;
-        case 'bomb_defused':
-        case 'time_up':
-        case 'attackers_eliminated':
-            winner = 'defenders';
-            message = reason === 'bomb_defused' ? 'La spike a ete desamorcee.' : 'Les defenseurs remportent le round.';
-            break;
-        default:
-            message = 'Round termine.';
-            break;
-    }
-
-    if (winner === 'attackers') {
-        game.attackersScore++;
-        title = 'Victoire attaquants';
-        if (!message) message = 'Les attaquants remportent le round.';
-    } else if (winner === 'defenders') {
-        game.defendersScore++;
-        title = 'Victoire defenseurs';
-        if (!message) message = 'Les defenseurs remportent le round.';
-    }
-
-    if (window.NotificationSystem) {
-        window.NotificationSystem.show(title, message, 'round', 4000);
-    }
-
-    game.bomb.planted = false;
-    game.bomb.planting = false;
-    game.bomb.defusing = false;
-    game.bomb.plantProgress = 0;
-    game.bomb.defuseProgress = 0;
-    game.bomb.timer = BOMB_SETTINGS.detonationTime;
-    game.bomb.site = null;
-    game.bomb.x = null;
-    game.bomb.y = null;
-    game.bomb.dropped = false;
-    game.bomb.carrier = null;
-
-    player.isPlanting = false;
-    player.isDefusing = false;
-    player.actionType = null;
-    player.actionProgress = 0;
-
-    game.roundTime = 0;
-    game.buyTime = 0;
-    game.phase = 'ended';
-
-    setTimeout(() => {
-        game.round++;
-        resetGameState();
-    }, 4000);
-}
+function endRound(reason) {
+    if (game.phase === 'ended' || game.phase === 'match_over') return;
+    console.log('Round terminé:', reason);
+
+    cancelBombInteraction();
+
+    let winner = null;
+    let title = 'Fin du round';
+    let message = '';
+
+    switch (reason) {
+        case 'bomb_exploded':
+        case 'defenders_eliminated':
+            winner = 'attackers';
+            message = reason === 'bomb_exploded' ? 'La spike a explosé.' : 'Les attaquants remportent le round.';
+            break;
+        case 'bomb_defused':
+        case 'time_up':
+        case 'attackers_eliminated':
+            winner = 'defenders';
+            message = reason === 'bomb_defused' ? 'La spike a été désamorcée.' : 'Les défenseurs remportent le round.';
+            break;
+        default:
+            message = 'Round terminé.';
+            break;
+    }
+
+    if (winner === 'attackers') {
+        game.attackersScore++;
+        title = 'Victoire attaquants';
+        if (!message) message = 'Les attaquants remportent le round.';
+    } else if (winner === 'defenders') {
+        game.defendersScore++;
+        title = 'Victoire défenseurs';
+        if (!message) message = 'Les défenseurs remportent le round.';
+    }
+
+    if (window.NotificationSystem) {
+        window.NotificationSystem.show(title, message, 'round', 4000);
+    }
+
+    resetBombState();
+    player.isPlanting = false;
+    player.isDefusing = false;
+    player.actionType = null;
+    player.actionProgress = 0;
+
+    game.roundTime = 0;
+    game.buyTime = 0;
+    game.phase = 'ended';
+
+    const matchEnded = handleRoundTransition(winner, reason);
+
+    if (!matchEnded) {
+        setTimeout(() => {
+            game.round++;
+            resetGameState();
+        }, 4000);
+    }
+}
+
+function handleRoundTransition(winner, reason) {
+    updateUI();
+    const roundsPlayed = game.attackersScore + game.defendersScore;
+    const matchEnded = checkMatchConclusion(roundsPlayed, winner, reason);
+    if (matchEnded) {
+        return true;
+    }
+    if (shouldSwapSides(roundsPlayed)) {
+        swapTeamSides();
+    }
+    window.SpectatorSystem?.refreshAvailability?.(player);
+    return false;
+}
+
+function shouldSwapSides(roundsPlayed) {
+    if (!isBombMode()) return false;
+    if ((game.half || 1) > 1) return false;
+    const swapRound = game.swapRounds || Math.floor((game.maxRounds || 0) / 2);
+    return swapRound > 0 && roundsPlayed === swapRound;
+}
+
+function swapTeamSides() {
+    player.team = player.team === 'attackers' ? 'defenders' : 'attackers';
+    Object.values(otherPlayers).forEach(other => {
+        if (!other || !other.team) return;
+        other.team = other.team === 'attackers' ? 'defenders' : 'attackers';
+    });
+    game.half = (game.half || 1) + 1;
+    resetBombState();
+    if (window.NotificationSystem) {
+        window.NotificationSystem.show('Changement de camp', 'Les équipes échangent leurs positions.', 'info', 4000);
+    }
+}
+
+function checkMatchConclusion(roundsPlayed, winner, reason) {
+    if (game.matchFinished) return true;
+    const winCondition = game.winCondition || 13;
+    const attackersReached = game.attackersScore >= winCondition;
+    const defendersReached = game.defendersScore >= winCondition;
+
+    if (attackersReached || defendersReached) {
+        const winningTeam = attackersReached && defendersReached ? (winner || 'draw') : (attackersReached ? 'attackers' : 'defenders');
+        finishMatch(winningTeam, 'win_condition');
+        return true;
+    }
+
+    const maxRounds = game.maxRounds || 0;
+    if (maxRounds && roundsPlayed >= maxRounds) {
+        let finalWinner = 'draw';
+        if (game.attackersScore !== game.defendersScore) {
+            finalWinner = game.attackersScore > game.defendersScore ? 'attackers' : 'defenders';
+        }
+        finishMatch(finalWinner, reason || 'max_rounds');
+        return true;
+    }
+
+    return false;
+}
+
+function finishMatch(winner, reason = 'completed') {
+    if (game.matchFinished) return;
+    game.matchFinished = true;
+    game.phase = 'match_over';
+    game.gamePaused = true;
+    updateUI();
+    window.SpectatorSystem?.disable?.(true);
+
+    let title = 'Fin de partie';
+    let message = 'La partie est terminée.';
+
+    if (winner === 'attackers') {
+        title = 'Victoire des attaquants';
+    } else if (winner === 'defenders') {
+        title = 'Victoire des défenseurs';
+    } else if (winner === 'draw') {
+        title = 'Match nul';
+    }
+
+    if (reason === 'forfeit') {
+        message = 'La partie s\'est terminée par abandon.';
+    }
+
+    if (window.NotificationSystem) {
+        window.NotificationSystem.show(title, message, 'round', 6000);
+    }
+
+    const scoreboard = document.getElementById('scoreboard');
+    if (scoreboard) {
+        scoreboard.classList.remove('hidden');
+    }
+
+    if (window.MatchmakingSystem && typeof window.MatchmakingSystem.finishCurrentMatch === 'function') {
+        window.MatchmakingSystem.finishCurrentMatch({
+            winner,
+            reason,
+            attackersScore: game.attackersScore,
+            defendersScore: game.defendersScore
+        });
+    }
+}
 
 // ========================================
 // RENDU
@@ -2355,6 +2679,7 @@ function handleMouseWheel(e) {
 function stopGame() {
     game.gameStarted = false;
     game.gamePaused = true;
+    window.SpectatorSystem?.disable?.(true);
     
     if (gameLoop) {
         cancelAnimationFrame(gameLoop);
@@ -2362,7 +2687,30 @@ function stopGame() {
     }
 }
 
-function leaveGame() {
+async function leaveGame() {
+    const activeMatch = game.gameStarted && !game.matchFinished;
+    if (activeMatch) {
+        const confirmed = window.confirm('Voulez-vous abandonner la partie en cours ?');
+        if (!confirmed) {
+            return;
+        }
+    }
+
+    if (window.MatchmakingSystem) {
+        try {
+            if (activeMatch && typeof window.MatchmakingSystem.forfeitCurrentMatch === 'function') {
+                await window.MatchmakingSystem.forfeitCurrentMatch({ reason: 'forfeit' });
+            } else if (!activeMatch && game.matchFinished && typeof window.MatchmakingSystem.clearCurrentMatchState === 'function') {
+                window.MatchmakingSystem.clearCurrentMatchState();
+                if (typeof window.MatchmakingSystem.handlePostMatchCleanup === 'function') {
+                    window.MatchmakingSystem.handlePostMatchCleanup();
+                }
+            }
+        } catch (error) {
+            console.error('Erreur lors de l\'abandon de la partie:', error);
+        }
+    }
+
     stopGame();
     if (window.showMainMenu) {
         window.showMainMenu();
