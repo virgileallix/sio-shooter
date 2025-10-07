@@ -102,22 +102,6 @@ A competitive 2D tactical shooter inspired by Valorant and Counter-Strike, featu
 | Covert | ![#eb4b4b](https://via.placeholder.com/15/eb4b4b/000000?text=+) | 0.03% | Dragon Lore |
 | Knife | ![#ffd700](https://via.placeholder.com/15/ffd700/000000?text=+) | 0.01% | Karambit Fade |
 
-## 🔧 Technical Details
-
-### Architecture
-- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **Backend**: Firebase Realtime Database
-- **Authentication**: Firebase Auth
-- **Storage**: Firebase + localStorage fallback
-- **Styling**: Custom CSS with animations and transitions
-
-### Firebase Configuration
-The game uses Firebase for:
-- User authentication and profiles
-- Real-time multiplayer features
-- Player statistics and progression
-- Store purchases and inventory
-- Friends and social features
 
 ### Version 1.1 (Coming Soon)
 - [ ] Agent system with unique abilities
@@ -154,12 +138,6 @@ We welcome contributions to SIO SHOOTER 2D! Here's how you can help:
 2. Follow the existing code style
 3. Test thoroughly before submitting PR
 
-### Development Setup
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
 
 ## 📝 License
 
