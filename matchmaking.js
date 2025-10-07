@@ -7,56 +7,69 @@
 window.gameModes = {
     duel: {
         name: 'Duel',
-        description: '1v1 - Premier à 5 rounds',
+        description: '1v1 - Premier à 5 rounds - Pas de bombe',
         maxPlayers: 2,
         maxRounds: 9,
         winCondition: 5,
         economy: true,
         ranked: true,
-        teamSize: 1
+        teamSize: 1,
+        hasBomb: false,
+        roundDuration: 90,
+        buyPhaseDuration: 20
     },
     competitive: {
         name: 'Compétitif',
-        description: '5v5 - Premier à 13 rounds',
+        description: '5v5 - Premier à 13 rounds - Plant de spike',
         maxPlayers: 10,
         maxRounds: 25,
         winCondition: 13,
         economy: true,
         ranked: true,
-        teamSize: 5
+        teamSize: 5,
+        hasBomb: true,
+        roundDuration: 100,
+        buyPhaseDuration: 45
     },
     attack_defense: {
         name: 'Attaque / Défense',
-        description: '5v5 avec changement de camp à la mi-temps',
+        description: '5v5 avec changement de camp à la mi-temps - Plant de spike',
         maxPlayers: 10,
         maxRounds: 24,
         winCondition: 13,
         economy: true,
         ranked: false,
         teamSize: 5,
+        hasBomb: true,
         roundDuration: 100,
         buyPhaseDuration: 30,
         swapRounds: 12
     },
     deathmatch: {
         name: 'Deathmatch',
-        description: 'Combat libre - 10 minutes',
+        description: 'Combat libre - 10 minutes - Pas de bombe',
         maxPlayers: 14,
         maxRounds: 1,
         winCondition: 50,
         economy: false,
         ranked: false,
-        teamSize: 0
+        teamSize: 0,
+        hasBomb: false,
+        roundDuration: 600,
+        buyPhaseDuration: 0
     },
     unrated: {
         name: 'Non classé',
-        description: '5v5 - Mode casual',
+        description: '5v5 - Mode casual - Plant de spike',
         maxPlayers: 10,
         maxRounds: 25,
         winCondition: 13,
         economy: true,
         ranked: false,
-        teamSize: 5
+        teamSize: 5,
+        hasBomb: true,
+        roundDuration: 100,
+        buyPhaseDuration: 30
     }
 };
 

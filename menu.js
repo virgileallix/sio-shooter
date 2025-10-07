@@ -7,6 +7,7 @@ let selectedMap = 'dust2_complex';
 let selectedWeaponCategory = 'rifles';
 let searchResults = [];
 let currentSearchQuery = '';
+let currentLeaderboardType = 'competitive';
 
 // Initialisation des menus
 document.addEventListener('DOMContentLoaded', () => {
@@ -30,13 +31,22 @@ function initializeMenus() {
 
 // Configuration des écouteurs d'événements
 function setupMenuEventListeners() {
-    // Navigation du menu principal
+    // Nettoyer les anciens listeners pour éviter les doublons
+    const navButtons = document.querySelectorAll('.nav-btn');
+    navButtons.forEach(btn => {
+        // Cloner le bouton pour supprimer tous les événements
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+    });
+
+    // Navigation du menu principal - nouvelle version
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            const onclickAttr = e.target.closest('.nav-btn').getAttribute('onclick');
+            e.stopPropagation();
+            const onclickAttr = btn.getAttribute('onclick');
             if (onclickAttr) {
-                const match = onclickAttr.match(/'(.+)'/);
+                const match = onclickAttr.match(/'(.+?)'/);
                 if (match && match[1]) {
                     showMenuSection(match[1]);
                 }
@@ -51,7 +61,7 @@ function setupMenuEventListeners() {
 
     // Raccourcis clavier pour navigation rapide
     document.addEventListener('keydown', (e) => {
-        if (AppState.currentScreen === 'menu') {
+        if (window.AppState && window.AppState.currentScreen === 'menu') {
             handleMenuKeyboard(e);
         }
     });
@@ -94,86 +104,80 @@ function showMenuSection(section) {
     try {
         // Mémoriser la section précédente pour l'animation
         const previousSection = currentMenuSection;
-        
-        // Cacher toutes les sections avec animation
+
+        // Cacher toutes les sections immédiatement
         document.querySelectorAll('.menu-section').forEach(sec => {
-            sec.classList.add('section-exit');
-            setTimeout(() => {
-                sec.classList.add('hidden');
-                sec.classList.remove('section-exit');
-            }, 200);
+            sec.classList.add('hidden');
+            sec.classList.remove('section-enter', 'section-exit');
         });
-        
+
         // Retirer la classe active de tous les boutons de navigation
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.classList.remove('active');
         });
-        
-        // Afficher la section sélectionnée avec animation
-        setTimeout(() => {
-            const sectionElement = document.getElementById(`${section}-section`);
-            if (sectionElement) {
-                sectionElement.classList.remove('hidden');
-                sectionElement.classList.add('section-enter');
-                
-                setTimeout(() => {
-                    sectionElement.classList.remove('section-enter');
-                }, 300);
-            } else {
-                console.warn(`Section ${section} non trouvée`);
-                return;
-            }
-            
-            // Activer le bouton correspondant
-            const navButton = document.querySelector(`.nav-btn[onclick*="${section}"]`);
-            if (navButton) {
-                navButton.classList.add('active');
-            }
-            
-            currentMenuSection = section;
-            
-            // Actions spécifiques selon la section
-            switch(section) {
-                case 'play':
-                    initializePlaySection();
-                    break;
-                case 'friends':
-                    loadFriends();
-                    break;
-                case 'leaderboard':
-                    switchLeaderboardTab('competitive');
-                    break;
-                case 'store':
-                    if (typeof StoreSystem !== 'undefined') {
-                        StoreSystem.switchStoreTab('cases');
-                    }
-                    break;
-                case 'battlepass':
-                    if (window.BattlePassSystem) {
-                        window.BattlePassSystem.render();
-                    }
-                    break;
-                case 'tournament':
-                    if (window.TournamentSystem) {
-                        window.TournamentSystem.renderTournamentList();
-                        window.TournamentSystem.renderTournamentDetails();
-                    }
-                    break;
-                case 'inventory':
-                    if (typeof StoreSystem !== 'undefined') {
-                        StoreSystem.loadInventory();
-                    }
-                    break;
-                case 'settings':
-                    loadCurrentSettings();
-                    break;
-            }
 
-            // Analytics
-            trackSectionVisit(section, previousSection);
-            
-        }, 200);
-        
+        // Afficher la section sélectionnée immédiatement
+        const sectionElement = document.getElementById(`${section}-section`);
+        if (sectionElement) {
+            sectionElement.classList.remove('hidden');
+            sectionElement.classList.add('section-enter');
+
+            setTimeout(() => {
+                sectionElement.classList.remove('section-enter');
+            }, 300);
+        } else {
+            console.warn(`Section ${section} non trouvée`);
+            return;
+        }
+
+        // Activer le bouton correspondant
+        const navButton = document.querySelector(`.nav-btn[onclick*="${section}"]`);
+        if (navButton) {
+            navButton.classList.add('active');
+        }
+
+        currentMenuSection = section;
+
+        // Actions spécifiques selon la section
+        switch(section) {
+            case 'play':
+                initializePlaySection();
+                break;
+            case 'friends':
+                loadFriends();
+                break;
+            case 'leaderboard':
+                switchLeaderboardTab('competitive');
+                break;
+            case 'store':
+                if (typeof StoreSystem !== 'undefined') {
+                    StoreSystem.switchStoreTab('cases');
+                }
+                break;
+            case 'battlepass':
+                if (window.BattlePassSystem) {
+                    window.BattlePassSystem.render();
+                }
+                break;
+            case 'tournament':
+                if (window.TournamentSystem) {
+                    window.TournamentSystem.renderTournamentList();
+                    window.TournamentSystem.renderTournamentDetails();
+                }
+                break;
+            case 'inventory':
+                if (typeof StoreSystem !== 'undefined') {
+                    StoreSystem.loadInventory();
+                }
+                break;
+            case 'settings':
+                loadCurrentSettings();
+                break;
+        }
+
+        // Analytics
+        trackSectionVisit(section, previousSection);
+
         console.log(`📍 Section changée: ${previousSection} → ${section}`);
     } catch (error) {
         console.error('Erreur changement section:', error);
@@ -318,7 +322,7 @@ async function reconnectToMatch(matchId) {
 }
 
 // Sélection du mode de jeu avec validation
-function selectGameMode(mode) {
+function selectGameMode(mode, eventTarget = null) {
     try {
         // Vérifier que le mode existe
         if (!window.gameModes || !window.gameModes[mode]) {
@@ -332,14 +336,15 @@ function selectGameMode(mode) {
             modeEl.classList.remove('selected');
             modeEl.style.transform = 'scale(1)';
         });
-        
+
         // Animation de sélection
-        if (event && event.target) {
-            const gameMode = event.target.closest('.game-mode');
+        const target = eventTarget || window.event?.target;
+        if (target) {
+            const gameMode = target.closest('.game-mode');
             if (gameMode) {
                 gameMode.classList.add('selected');
                 gameMode.style.transform = 'scale(1.02)';
-                
+
                 // Effet visuel de sélection
                 const ripple = document.createElement('div');
                 ripple.style.cssText = `
@@ -354,27 +359,27 @@ function selectGameMode(mode) {
                     animation: ripple 0.6s ease-out;
                     pointer-events: none;
                 `;
-                
+
                 gameMode.style.position = 'relative';
                 gameMode.appendChild(ripple);
-                
+
                 setTimeout(() => ripple.remove(), 600);
             }
         }
-        
+
         selectedGameMode = mode;
-        
+
         // Mettre à jour l'interface selon le mode
         updateModeSpecificUI(mode);
-        
+
         // Sauvegarder la préférence
         saveGameModePreference(mode);
-        
+
         console.log('🎮 Mode de jeu sélectionné:', mode);
-        
+
         // Analytics
         trackModeSelection(mode);
-        
+
     } catch (error) {
         console.error('Erreur sélection mode:', error);
     }
@@ -427,7 +432,7 @@ function updateModeSpecificUI(mode) {
 function updateMapSelectionForMode(mode) {
     const mapsGrid = document.querySelector('.maps-grid');
     if (!mapsGrid) return;
-    
+
     // Cartes disponibles selon le mode
     const availableMaps = {
         deathmatch: ['dust2', 'haven'],
@@ -436,17 +441,38 @@ function updateMapSelectionForMode(mode) {
         duel: ['dust2'],
         unrated: ['dust2', 'haven']
     };
-    
-    const maps = availableMaps[mode] || ['dust2'];
-    
-    // Réorganiser les cartes
-    maps.forEach(mapName => {
-        const mapCard = mapsGrid.querySelector(`[onclick*="${mapName}"]`);
+
+    const maps = availableMaps[mode] || ['dust2', 'haven'];
+
+    // D'abord, masquer toutes les cartes
+    const allMapCards = mapsGrid.querySelectorAll('.map-card');
+    allMapCards.forEach(card => {
+        card.style.display = 'none';
+    });
+
+    // Réorganiser et afficher les cartes disponibles
+    maps.forEach((mapName, index) => {
+        // Chercher par contenu du div.map-name au lieu de onclick
+        const mapCard = Array.from(allMapCards).find(card => {
+            const mapNameEl = card.querySelector('.map-name');
+            return mapNameEl && mapNameEl.textContent.toLowerCase().includes(mapName);
+        });
+
         if (mapCard) {
             mapCard.style.display = 'block';
-            mapCard.style.order = maps.indexOf(mapName);
+            mapCard.style.order = index.toString();
         }
     });
+
+    // Toujours afficher l'option "Automatique"
+    const autoCard = Array.from(allMapCards).find(card => {
+        const mapNameEl = card.querySelector('.map-name');
+        return mapNameEl && mapNameEl.textContent.toLowerCase().includes('auto');
+    });
+    if (autoCard) {
+        autoCard.style.display = 'block';
+        autoCard.style.order = '999';
+    }
 }
 
 function updateModeInfo(mode, modeData) {
@@ -512,21 +538,22 @@ function getMapDisplayName(mapKey) {
 }
 
 // Sélection de la carte avec animation
-function selectMap(map) {
+function selectMap(map, eventTarget = null) {
     try {
         // Animation de désélection
         document.querySelectorAll('.map-card').forEach(mapEl => {
             mapEl.classList.remove('active');
             mapEl.style.transform = 'scale(1)';
         });
-        
+
         // Animation de sélection
-        if (event && event.target) {
-            const mapCard = event.target.closest('.map-card');
+        const target = eventTarget || window.event?.target;
+        if (target) {
+            const mapCard = target.closest('.map-card');
             if (mapCard) {
                 mapCard.classList.add('active');
                 mapCard.style.transform = 'scale(1.05)';
-                
+
                 // Effet de pulsation
                 mapCard.style.boxShadow = '0 0 30px rgba(0, 212, 255, 0.5)';
                 setTimeout(() => {
@@ -534,16 +561,16 @@ function selectMap(map) {
                 }, 200);
             }
         }
-        
+
         const normalizedSelection = resolveMapSelection(map);
         selectedMap = normalizedSelection === 'auto' ? 'auto' : normalizedSelection;
-        
+
         updateMapPreview(selectedMap);
-        
+
         console.log('🗺️ Carte sélectionnée:', getMapDisplayName(selectedMap));
-        
+
         trackMapSelection(selectedMap);
-        
+
     } catch (error) {
         console.error('Erreur sélection carte:', error);
     }
@@ -825,21 +852,27 @@ function getWeaponIcon(weaponName) {
 }
 
 // Sélectionner une arme
-function selectWeapon(weapon) {
+function selectWeapon(weapon, eventTarget = null) {
     try {
         // Désélectionner toutes les armes
         document.querySelectorAll('.weapon-card').forEach(card => {
             card.classList.remove('selected');
         });
-        
+
         // Sélectionner l'arme actuelle
-        event.target.closest('.weapon-card').classList.add('selected');
-        
+        const target = eventTarget || window.event?.target;
+        if (target) {
+            const weaponCard = target.closest('.weapon-card');
+            if (weaponCard) {
+                weaponCard.classList.add('selected');
+            }
+        }
+
         console.log('🔫 Arme sélectionnée:', weapon.name);
-        
+
         // Afficher les détails de l'arme
         showWeaponDetails(weapon);
-        
+
     } catch (error) {
         console.error('Erreur sélection arme:', error);
     }
@@ -894,15 +927,20 @@ function showWeaponDetails(weapon) {
 
 // Changer de catégorie d'armes
 function showWeaponCategory(category) {
+    if (!category) return;
+
     selectedWeaponCategory = category;
-    
+
     // Mettre à jour l'interface
     document.querySelectorAll('.weapon-cat').forEach(cat => {
         cat.classList.remove('active');
+        // Vérifier si le bouton correspond à la catégorie
+        const catOnClick = cat.getAttribute('onclick');
+        if (catOnClick && catOnClick.includes(category)) {
+            cat.classList.add('active');
+        }
     });
-    
-    document.querySelector(`[onclick*="${category}"]`).classList.add('active');
-    
+
     // Recharger les armes
     loadWeapons();
 }
@@ -1291,12 +1329,20 @@ function updateSearchResults(count, searchTerm) {
 
 // Système de classements
 function switchLeaderboardTab(type) {
+    if (!type) return;
+
     currentLeaderboardType = type;
-    
+
     // Mettre à jour l'interface
-    document.querySelectorAll('.leaderboard-tab').forEach(tab => tab.classList.remove('active'));
-    document.querySelector(`[onclick*="${type}"]`).classList.add('active');
-    
+    document.querySelectorAll('.leaderboard-tab').forEach(tab => {
+        tab.classList.remove('active');
+        // Vérifier si le bouton correspond au type
+        const tabOnClick = tab.getAttribute('onclick');
+        if (tabOnClick && tabOnClick.includes(type)) {
+            tab.classList.add('active');
+        }
+    });
+
     // Charger les données
     loadLeaderboard(type);
 }

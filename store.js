@@ -381,19 +381,42 @@ const StoreSystem = {
     },
 
     updateCurrencyDisplay() {
+        this.ensureInventoryStructure();
+
         const elementsToUpdate = [
-            { id: 'user-coins', value: playerInventory.currency.coins },
-            { id: 'header-coins', value: playerInventory.currency.coins },
-            { id: 'user-vp', value: playerInventory.currency.vp },
-            { id: 'header-vp', value: playerInventory.currency.vp }
+            { id: 'user-coins', value: Math.floor(playerInventory.currency.coins) },
+            { id: 'header-coins', value: Math.floor(playerInventory.currency.coins) },
+            { id: 'user-vp', value: Math.floor(playerInventory.currency.vp) },
+            { id: 'header-vp', value: Math.floor(playerInventory.currency.vp) }
         ];
 
         elementsToUpdate.forEach(item => {
             const element = document.getElementById(item.id);
             if (element) {
-                element.textContent = item.value;
+                // Animation de compteur
+                const currentValue = parseInt(element.textContent) || 0;
+                const targetValue = item.value;
+
+                if (currentValue !== targetValue) {
+                    this.animateCounter(element, currentValue, targetValue, 500);
+                }
             }
         });
+    },
+
+    animateCounter(element, start, end, duration) {
+        const range = end - start;
+        const increment = range / (duration / 16); // 60 FPS
+        let current = start;
+
+        const timer = setInterval(() => {
+            current += increment;
+            if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                current = end;
+                clearInterval(timer);
+            }
+            element.textContent = Math.floor(current);
+        }, 16);
     },
 
     ensureInventoryStructure() {
@@ -520,7 +543,10 @@ const StoreSystem = {
         }
 
         // Déduire les pièces
-        playerInventory.currency.coins -= weaponCase.price;
+        playerInventory.currency.coins = Math.floor(playerInventory.currency.coins - weaponCase.price);
+
+        // Jouer le son d'achat
+        this.playSound('purchase');
 
         // Ajouter la case à l'inventaire
         playerInventory.cases.push({
@@ -531,8 +557,13 @@ const StoreSystem = {
         this.ensureInventoryStructure();
         this.savePlayerData();
         this.updateCurrencyDisplay();
-        this.loadInventoryCases();
-        this.updateInventoryStats();
+
+        // Recharger immédiatement pour éviter les désynchronisations
+        setTimeout(() => {
+            this.loadInventoryCases();
+            this.updateInventoryStats();
+            this.updateCurrencyDisplay();
+        }, 100);
 
         if (window.NotificationSystem) {
             window.NotificationSystem.show(
@@ -588,7 +619,6 @@ const StoreSystem = {
         const caseImage = document.getElementById('case-image');
         const skinReveal = document.getElementById('skin-reveal');
         const openingActions = document.getElementById('opening-actions');
-        const progressBar = document.getElementById('opening-progress');
 
         if (!modal || !title || !caseImage) {
             console.error('Éléments de modal manquants');
@@ -597,59 +627,61 @@ const StoreSystem = {
 
         // Réinitialiser
         title.textContent = `Ouverture: ${weaponCase.name}`;
-        caseImage.classList.remove('opening');
-        const caseDisplay = caseImage.closest('.case-display');
-        if (caseDisplay) {
-            caseDisplay.classList.remove('opening');
-        }
-        // reset animation
-        void caseImage.offsetWidth;
-        caseImage.classList.add('opening');
-        if (caseDisplay) {
-            void caseDisplay.offsetWidth;
-            caseDisplay.classList.add('opening');
-        }
-        caseImage.innerHTML = `<img src="assets/case.svg" alt="Case ${weaponCase.name}" class="case-illustration">`;
+        caseImage.innerHTML = '';
         if (skinReveal) skinReveal.classList.add('hidden');
         if (openingActions) openingActions.classList.add('hidden');
-        if (progressBar) progressBar.style.width = '0%';
 
         modal.classList.remove('hidden');
 
-        // Démarrer l'animation après un délai
-        setTimeout(() => {
-            this.startCaseOpeningAnimation(weaponCase);
-        }, 1000);
+        // Créer l'animation de défilement style CS:GO
+        this.createCSGOAnimation(weaponCase, caseImage);
     },
 
-    startCaseOpeningAnimation(weaponCase) {
-        const progressBar = document.getElementById('opening-progress');
-        if (!progressBar) return;
+    playSound(soundType) {
+        // Utiliser l'API Web Audio pour générer des sons simples
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
 
-        let progress = 0;
-        
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            switch(soundType) {
+                case 'spin':
+                    oscillator.frequency.value = 200;
+                    oscillator.type = 'sine';
+                    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                    break;
+                case 'reveal':
+                    oscillator.frequency.value = 800;
+                    oscillator.type = 'sine';
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                    break;
+                case 'purchase':
+                    oscillator.frequency.value = 600;
+                    oscillator.type = 'square';
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    break;
+            }
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        } catch (error) {
+            console.log('Audio non disponible');
+        }
+    },
+
+    createCSGOAnimation(weaponCase, container) {
         // Nettoyer l'ancienne animation
         if (this.currentOpeningAnimation) {
             clearInterval(this.currentOpeningAnimation);
         }
 
-        this.currentOpeningAnimation = setInterval(() => {
-            progress += 2;
-            progressBar.style.width = progress + '%';
-
-            if (progress >= 100) {
-                clearInterval(this.currentOpeningAnimation);
-                this.currentOpeningAnimation = null;
-                
-                setTimeout(() => {
-                    this.revealSkin(weaponCase);
-                }, 500);
-            }
-        }, 30);
-    },
-
-    revealSkin(weaponCase) {
-        // Sélectionner un skin aléatoire basé sur les probabilités
+        // Pré-sélectionner le skin gagnant
         const wonSkin = this.selectRandomSkinFromCase(weaponCase);
         if (!wonSkin) {
             console.error('Impossible de sélectionner un skin');
@@ -657,6 +689,122 @@ const StoreSystem = {
             return;
         }
 
+        // Jouer le son de démarrage
+        this.playSound('spin');
+
+        // Créer la bande de défilement
+        const rouletteContainer = document.createElement('div');
+        rouletteContainer.className = 'case-roulette-container';
+        rouletteContainer.style.cssText = `
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(90deg,
+                rgba(0,0,0,0.8) 0%,
+                rgba(0,0,0,0) 45%,
+                rgba(0,0,0,0) 55%,
+                rgba(0,0,0,0.8) 100%);
+        `;
+
+        const roulette = document.createElement('div');
+        roulette.className = 'case-roulette';
+        roulette.style.cssText = `
+            display: flex;
+            gap: 15px;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: transform 5s cubic-bezier(0.22, 0.61, 0.36, 1);
+        `;
+
+        // Créer les items de la roulette
+        const caseSkins = weaponCase.contents.map(skinId =>
+            Object.values(WEAPON_SKINS).flat().find(skin => skin.id === skinId)
+        ).filter(Boolean);
+
+        // Générer 50 items aléatoires + le skin gagnant à la position centrale
+        const items = [];
+        for (let i = 0; i < 25; i++) {
+            const randomSkin = caseSkins[Math.floor(Math.random() * caseSkins.length)];
+            items.push(randomSkin);
+        }
+        // Insérer le skin gagnant au milieu
+        items.push(wonSkin);
+        for (let i = 0; i < 25; i++) {
+            const randomSkin = caseSkins[Math.floor(Math.random() * caseSkins.length)];
+            items.push(randomSkin);
+        }
+
+        // Créer les cartes
+        items.forEach(skin => {
+            const card = document.createElement('div');
+            card.className = 'roulette-item';
+            card.style.cssText = `
+                min-width: 150px;
+                height: 180px;
+                background: ${RARITIES[skin.rarity].gradient};
+                border-radius: 10px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 15px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                border: 2px solid ${RARITIES[skin.rarity].color};
+            `;
+
+            card.innerHTML = `
+                <div style="font-size: 48px; margin-bottom: 10px;">${this.getWeaponIcon(skin.weapon)}</div>
+                <div style="font-size: 12px; color: white; text-align: center; font-weight: bold;">${skin.weapon}</div>
+                <div style="font-size: 14px; color: white; text-align: center; margin-top: 5px;">${skin.name}</div>
+                <div style="font-size: 10px; color: ${RARITIES[skin.rarity].color}; margin-top: 5px; font-weight: bold;">${RARITIES[skin.rarity].name}</div>
+            `;
+
+            roulette.appendChild(card);
+        });
+
+        rouletteContainer.appendChild(roulette);
+        container.appendChild(rouletteContainer);
+
+        // Ajouter l'indicateur central
+        const indicator = document.createElement('div');
+        indicator.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 4px;
+            height: 200px;
+            background: linear-gradient(180deg, #ff4655 0%, #ff6b7a 50%, #ff4655 100%);
+            transform: translateX(-50%);
+            z-index: 10;
+            box-shadow: 0 0 20px rgba(255, 70, 85, 0.8);
+        `;
+        rouletteContainer.appendChild(indicator);
+
+        // Démarrer l'animation
+        setTimeout(() => {
+            // Calculer la position finale (item 25 = skin gagnant)
+            const itemWidth = 165; // 150px + 15px gap
+            const targetPosition = -(25 * itemWidth);
+
+            roulette.style.transform = `translateX(${targetPosition}px)`;
+
+            // Jouer un son à la fin
+            setTimeout(() => {
+                this.playSound('reveal');
+            }, 4800);
+
+            // Révéler après l'animation
+            setTimeout(() => {
+                this.revealSkinCSGO(wonSkin);
+            }, 5500);
+        }, 100);
+
+        this.currentRevealedSkin = wonSkin;
+    },
+
+    revealSkinCSGO(wonSkin) {
         // Ajouter le skin à l'inventaire
         playerInventory.skins.push({
             id: wonSkin.id,
@@ -677,42 +825,42 @@ const StoreSystem = {
         const skinWeapon = document.getElementById('revealed-skin-weapon');
         const skinRarity = document.getElementById('revealed-skin-rarity');
         const openingActions = document.getElementById('opening-actions');
+        const caseImage = document.getElementById('case-image');
 
         if (!skinReveal) return;
 
-        skinImage.innerHTML = this.getWeaponIcon(wonSkin.weapon);
-        skinName.textContent = wonSkin.name;
-        skinWeapon.textContent = wonSkin.weapon;
-        skinRarity.textContent = RARITIES[wonSkin.rarity].name;
-        skinRarity.style.color = RARITIES[wonSkin.rarity].color;
-
-        // Appliquer le gradient de rareté
-        const skinCard = skinReveal.querySelector('.skin-card');
-        if (skinCard) {
-            skinCard.style.background = RARITIES[wonSkin.rarity].gradient;
-        }
-
-        const caseImage = document.getElementById('case-image');
+        // Masquer la roulette
         if (caseImage) {
-            caseImage.classList.remove('opening');
-        }
-        const caseDisplay = caseImage ? caseImage.closest('.case-display') : null;
-        if (caseDisplay) {
-            caseDisplay.classList.remove('opening');
+            caseImage.style.opacity = '0';
+            caseImage.style.transition = 'opacity 0.5s';
         }
 
-        skinReveal.classList.remove('hidden');
-        if (openingActions) openingActions.classList.remove('hidden');
+        // Afficher le résultat avec une animation
+        setTimeout(() => {
+            skinImage.innerHTML = `<div style="font-size: 120px;">${this.getWeaponIcon(wonSkin.weapon)}</div>`;
+            skinName.textContent = wonSkin.name;
+            skinWeapon.textContent = wonSkin.weapon;
+            skinRarity.textContent = RARITIES[wonSkin.rarity].name;
+            skinRarity.style.color = RARITIES[wonSkin.rarity].color;
 
-        this.currentRevealedSkin = wonSkin;
+            // Appliquer le gradient de rareté
+            const skinCard = skinReveal.querySelector('.skin-card');
+            if (skinCard) {
+                skinCard.style.background = RARITIES[wonSkin.rarity].gradient;
+                skinCard.style.animation = 'revealPulse 1s ease-out';
+            }
 
-        if (window.NotificationSystem) {
-            window.NotificationSystem.show(
-                'Nouveau skin!',
-                `${wonSkin.weapon} | ${wonSkin.name}`,
-                'achievement'
-            );
-        }
+            skinReveal.classList.remove('hidden');
+            if (openingActions) openingActions.classList.remove('hidden');
+
+            if (window.NotificationSystem) {
+                window.NotificationSystem.show(
+                    'Nouveau skin!',
+                    `${wonSkin.weapon} | ${wonSkin.name}`,
+                    'achievement'
+                );
+            }
+        }, 500);
     },
 
     selectRandomSkinFromCase(weaponCase) {
@@ -747,11 +895,8 @@ const StoreSystem = {
         }
         const caseImage = document.getElementById('case-image');
         if (caseImage) {
-            caseImage.classList.remove('opening');
-        }
-        const caseDisplay = modal ? modal.querySelector('.case-display') : null;
-        if (caseDisplay) {
-            caseDisplay.classList.remove('opening');
+            caseImage.innerHTML = '';
+            caseImage.style.opacity = '1';
         }
 
         // Nettoyer l'animation
@@ -762,9 +907,11 @@ const StoreSystem = {
 
         this.currentRevealedSkin = null;
 
-        // Mettre à jour les inventaires et la boutique
+        // Mettre à jour les inventaires, la boutique et la currency
+        this.ensureInventoryStructure();
         this.loadInventory();
         this.loadStoreSkins();
+        this.updateCurrencyDisplay();
     },
 
     previewCase(caseId) {
@@ -926,7 +1073,10 @@ const StoreSystem = {
         }
 
         // Déduire les pièces
-        playerInventory.currency.coins -= skin.price;
+        playerInventory.currency.coins = Math.floor(playerInventory.currency.coins - skin.price);
+
+        // Jouer le son d'achat
+        this.playSound('purchase');
 
         // Ajouter le skin à l'inventaire
         playerInventory.skins.push({
@@ -938,9 +1088,14 @@ const StoreSystem = {
         this.ensureInventoryStructure();
         this.savePlayerData();
         this.updateCurrencyDisplay();
-        this.loadStoreSkins();
-        this.loadInventorySkins();
-        this.updateInventoryStats();
+
+        // Recharger avec un délai pour éviter les désynchronisations
+        setTimeout(() => {
+            this.loadStoreSkins();
+            this.loadInventorySkins();
+            this.updateInventoryStats();
+            this.updateCurrencyDisplay();
+        }, 100);
 
         if (window.NotificationSystem) {
             window.NotificationSystem.show(
@@ -1188,19 +1343,22 @@ const StoreSystem = {
             selectedButton.classList.add('active');
         }
 
-        switch (tab) {
-            case 'cases':
-                this.loadInventoryCases();
-                break;
-            case 'agents':
-                this.loadInventoryAgents();
-                break;
-            default:
-                this.loadInventorySkins();
-                break;
-        }
-
-        this.updateInventoryStats();
+        // Forcer le rafraîchissement après un court délai
+        setTimeout(() => {
+            switch (tab) {
+                case 'cases':
+                    this.loadInventoryCases();
+                    break;
+                case 'agents':
+                    this.loadInventoryAgents();
+                    break;
+                default:
+                    this.loadInventorySkins();
+                    break;
+            }
+            this.updateInventoryStats();
+            this.updateCurrencyDisplay();
+        }, 50);
     },
 
     loadAgents() {

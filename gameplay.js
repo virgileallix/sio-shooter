@@ -1045,11 +1045,46 @@ function updateOtherPlayers(dt) {
 }
 
 function updateGameTimers(dt) {
+    // En deathmatch, pas de phase d'achat ni de timer de round
+    if (game.mode === 'deathmatch') {
+        game.phase = 'active';
+        game.buyTime = 0;
+        game.roundTime = 999; // Temps illimité en deathmatch
+
+        if (game.revealPulseTimer && game.revealPulseTimer > 0) {
+            game.revealPulseTimer = Math.max(0, game.revealPulseTimer - dt);
+        }
+        return;
+    }
+
+    // Phase d'achat pour les modes compétitifs
     if (game.phase === 'buy' && game.buyTime > 0) {
         game.buyTime -= dt;
+
+        // Mettre à jour l'affichage du temps d'achat
+        const buyTimeDisplay = document.getElementById('buy-time-remaining');
+        if (buyTimeDisplay) {
+            buyTimeDisplay.textContent = Math.ceil(game.buyTime);
+        }
+
         if (game.buyTime <= 0) {
             game.phase = 'active';
             game.buyTime = 0;
+
+            // Fermer automatiquement le menu d'achat
+            closeBuyMenu();
+
+            // Notification de fin de phase d'achat
+            if (window.NotificationSystem) {
+                window.NotificationSystem.show(
+                    'Phase d\'achat terminée',
+                    'La partie commence !',
+                    'info',
+                    3000
+                );
+            }
+
+            // Donner la bombe à un attaquant si nécessaire
             if (isBombMode() && player.team === 'attackers' && !game.bomb.carrier && !game.bomb.dropped) {
                 game.bomb.carrier = 'player';
             }
@@ -1645,6 +1680,18 @@ function updateUI() {
         const seconds = Math.floor(time % 60);
         timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
+
+    // Afficher/masquer le hint d'achat selon la phase
+    const buyHint = document.getElementById('buy-hint');
+    if (buyHint) {
+        const canBuy = game.mode === 'deathmatch' || (game.phase === 'buy' && game.buyTime > 0);
+        if (canBuy) {
+            buyHint.classList.remove('hidden');
+        } else {
+            buyHint.classList.add('hidden');
+        }
+    }
+
     const mapData = MAPS[game.currentMap];
     
     // Score
@@ -2397,6 +2444,12 @@ function drawAbilityCooldowns() {
 // ========================================
 
 function isBombMode() {
+    // Vérifier si le mode a explicitement la propriété hasBomb
+    const modeConfig = window.gameModes?.[game.mode];
+    if (modeConfig && typeof modeConfig.hasBomb === 'boolean') {
+        return modeConfig.hasBomb;
+    }
+    // Fallback pour les modes legacy
     return BOMB_MODES.has(game.mode);
 }
 
@@ -2599,19 +2652,25 @@ function updateAttackDefenseMode(dt) {
 function handleKeyDown(e) {
     const key = e.key.toLowerCase();
     keys[key] = true;
-    
+
     if (key === 'r' && !player.reloading) {
         reload();
     }
-    
+
     if (key === 'shift') {
         player.sprinting = true;
     }
-    
+
     if (key === 'escape') {
         game.gamePaused = !game.gamePaused;
     }
-    
+
+    // Boutique - touche B
+    if (key === 'b') {
+        e.preventDefault();
+        toggleBuyMenu();
+    }
+
     // Abilities
     if (key === 'q') useAbility('ability1');
     if (key === 'e') useAbility('ability2');
@@ -2620,7 +2679,7 @@ function handleKeyDown(e) {
         e.preventDefault();
         attemptBombInteraction();
     }
-    
+
     // Changement d'arme
     if (key === '1') equipWeapon('phantom');
     if (key === '2') equipWeapon('sheriff');
@@ -2673,6 +2732,124 @@ function handleMouseWheel(e) {
 }
 
 // ========================================
+// SYSTÈME D'ACHAT
+// ========================================
+
+function toggleBuyMenu() {
+    const buyMenuOverlay = document.getElementById('buy-menu-overlay');
+    if (!buyMenuOverlay) return;
+
+    // Vérifier si on est en phase d'achat ou en deathmatch
+    if (game.mode === 'deathmatch') {
+        // En deathmatch, toujours permettre l'achat
+        if (buyMenuOverlay.classList.contains('hidden')) {
+            openBuyMenu();
+        } else {
+            closeBuyMenu();
+        }
+    } else if (game.phase === 'buy' && game.buyTime > 0) {
+        // Dans les autres modes, seulement pendant la phase d'achat
+        if (buyMenuOverlay.classList.contains('hidden')) {
+            openBuyMenu();
+        } else {
+            closeBuyMenu();
+        }
+    } else {
+        // Hors phase d'achat
+        if (window.NotificationSystem) {
+            window.NotificationSystem.show(
+                'Boutique fermée',
+                'La phase d\'achat est terminée',
+                'warning',
+                2000
+            );
+        }
+    }
+}
+
+function openBuyMenu() {
+    const buyMenuOverlay = document.getElementById('buy-menu-overlay');
+    if (!buyMenuOverlay) return;
+
+    buyMenuOverlay.classList.remove('hidden');
+    updateBuyMenuMoney();
+    game.gamePaused = true;
+}
+
+function closeBuyMenu() {
+    const buyMenuOverlay = document.getElementById('buy-menu-overlay');
+    if (!buyMenuOverlay) return;
+
+    buyMenuOverlay.classList.add('hidden');
+    game.gamePaused = false;
+}
+
+function updateBuyMenuMoney() {
+    const moneyDisplay = document.getElementById('buy-menu-money');
+    if (moneyDisplay) {
+        moneyDisplay.textContent = player.money || 800;
+    }
+}
+
+function buyWeapon(weaponName, price) {
+    if (!player.alive) {
+        if (window.NotificationSystem) {
+            window.NotificationSystem.show('Erreur', 'Vous devez être vivant pour acheter', 'error', 2000);
+        }
+        return;
+    }
+
+    if (player.money < price) {
+        if (window.NotificationSystem) {
+            window.NotificationSystem.show('Fonds insuffisants', `Il vous faut ${price - player.money} crédits de plus`, 'error', 2000);
+        }
+        return;
+    }
+
+    player.money -= price;
+    equipWeapon(weaponName);
+    updateBuyMenuMoney();
+    updateUI();
+
+    if (window.NotificationSystem) {
+        window.NotificationSystem.show('Achat réussi', `${WEAPONS[weaponName]?.name || weaponName} acheté`, 'success', 2000);
+    }
+}
+
+function buyArmor(type, price) {
+    if (!player.alive) {
+        if (window.NotificationSystem) {
+            window.NotificationSystem.show('Erreur', 'Vous devez être vivant pour acheter', 'error', 2000);
+        }
+        return;
+    }
+
+    if (player.money < price) {
+        if (window.NotificationSystem) {
+            window.NotificationSystem.show('Fonds insuffisants', `Il vous faut ${price - player.money} crédits de plus`, 'error', 2000);
+        }
+        return;
+    }
+
+    player.money -= price;
+
+    if (type === 'light') {
+        player.armor = 25;
+        player.maxArmor = 25;
+    } else if (type === 'heavy') {
+        player.armor = 50;
+        player.maxArmor = 50;
+    }
+
+    updateBuyMenuMoney();
+    updateUI();
+
+    if (window.NotificationSystem) {
+        window.NotificationSystem.show('Achat réussi', `Armure ${type === 'light' ? 'légère' : 'lourde'} achetée`, 'success', 2000);
+    }
+}
+
+// ========================================
 // UTILITAIRES
 // ========================================
 
@@ -2680,7 +2857,9 @@ function stopGame() {
     game.gameStarted = false;
     game.gamePaused = true;
     window.SpectatorSystem?.disable?.(true);
-    
+
+    closeBuyMenu();
+
     if (gameLoop) {
         cancelAnimationFrame(gameLoop);
         gameLoop = null;
@@ -2734,5 +2913,10 @@ window.enableOverchargeMode = enableOverchargeMode;
 window.deployTemporaryBarrier = deployTemporaryBarrier;
 window.applyArmorRegenEffect = applyArmorRegenEffect;
 window.deploySentryTurret = deploySentryTurret;
+window.toggleBuyMenu = toggleBuyMenu;
+window.openBuyMenu = openBuyMenu;
+window.closeBuyMenu = closeBuyMenu;
+window.buyWeapon = buyWeapon;
+window.buyArmor = buyArmor;
 
 console.log('Système de gameplay avancé chargé (1900+ lignes)');

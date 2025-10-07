@@ -883,6 +883,93 @@
                     <button onclick="leaveGame()" class="danger"><i class="fas fa-sign-out-alt"></i> Quitter la Partie</button>
                 </div>
             </div>
+
+            <!-- Buy Menu -->
+            <div class="buy-menu-overlay hidden" id="buy-menu-overlay">
+                <div class="buy-menu">
+                    <div class="buy-menu-header">
+                        <h3><i class="fas fa-shopping-cart"></i> Boutique d'armes</h3>
+                        <div class="player-money">
+                            <i class="fas fa-coins"></i>
+                            <span id="buy-menu-money">800</span>
+                        </div>
+                        <button class="close-buy-menu" onclick="closeBuyMenu()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="buy-menu-content">
+                        <div class="buy-category">
+                            <h4>Pistolets</h4>
+                            <div class="weapon-grid">
+                                <div class="weapon-item" onclick="buyWeapon('classic', 0)">
+                                    <div class="weapon-icon">🔫</div>
+                                    <div class="weapon-name">Classic</div>
+                                    <div class="weapon-price">Gratuit</div>
+                                </div>
+                                <div class="weapon-item" onclick="buyWeapon('sheriff', 800)">
+                                    <div class="weapon-icon">🔫</div>
+                                    <div class="weapon-name">Sheriff</div>
+                                    <div class="weapon-price">800</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="buy-category">
+                            <h4>SMG</h4>
+                            <div class="weapon-grid">
+                                <div class="weapon-item" onclick="buyWeapon('spectre', 1600)">
+                                    <div class="weapon-icon">🔫</div>
+                                    <div class="weapon-name">Spectre</div>
+                                    <div class="weapon-price">1600</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="buy-category">
+                            <h4>Fusils</h4>
+                            <div class="weapon-grid">
+                                <div class="weapon-item" onclick="buyWeapon('phantom', 2900)">
+                                    <div class="weapon-icon">🔫</div>
+                                    <div class="weapon-name">Phantom</div>
+                                    <div class="weapon-price">2900</div>
+                                </div>
+                                <div class="weapon-item" onclick="buyWeapon('vandal', 2900)">
+                                    <div class="weapon-icon">🔫</div>
+                                    <div class="weapon-name">Vandal</div>
+                                    <div class="weapon-price">2900</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="buy-category">
+                            <h4>Sniper</h4>
+                            <div class="weapon-grid">
+                                <div class="weapon-item" onclick="buyWeapon('operator', 4700)">
+                                    <div class="weapon-icon">🎯</div>
+                                    <div class="weapon-name">Operator</div>
+                                    <div class="weapon-price">4700</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="buy-category">
+                            <h4>Armure</h4>
+                            <div class="weapon-grid">
+                                <div class="weapon-item" onclick="buyArmor('light', 400)">
+                                    <div class="weapon-icon">🛡️</div>
+                                    <div class="weapon-name">Armure légère</div>
+                                    <div class="weapon-price">400</div>
+                                </div>
+                                <div class="weapon-item" onclick="buyArmor('heavy', 1000)">
+                                    <div class="weapon-icon">🛡️</div>
+                                    <div class="weapon-name">Armure lourde</div>
+                                    <div class="weapon-price">1000</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="buy-menu-footer">
+                        <p>Phase d'achat: <span id="buy-time-remaining">30</span>s</p>
+                        <p class="help-text">Appuyez sur <kbd>B</kbd> ou <kbd>Esc</kbd> pour fermer</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
