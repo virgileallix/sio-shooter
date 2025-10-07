@@ -41,53 +41,6 @@ A competitive 2D tactical shooter inspired by Valorant and Counter-Strike, featu
 - **Smooth Animations**: Polished transitions and effects
 - **Visual Feedback**: Hover effects, notifications, and status indicators
 
-## 🚀 Quick Start
-
-### Prerequisites
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- Internet connection for Firebase features
-- Local web server (recommended for full functionality)
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/sio-shooter.git
-   cd sio-shooter
-   ```
-
-2. **Open the game**
-   
-   **Option A: Direct file access**
-   ```bash
-   # Simply open index.html in your browser
-   start index.html
-   ```
-   
-   **Option B: Local server (recommended)**
-   ```bash
-   # Python 3
-   python -m http.server 8000
-   
-   # Python 2
-   python -m SimpleHTTPServer 8000
-   
-   # Node.js
-   npx serve .
-   
-   # PHP
-   php -S localhost:8000
-   ```
-
-3. **Access the game**
-   - Direct: Open `index.html` in your browser
-   - Server: Navigate to `http://localhost:8000`
-
-### First Time Setup
-1. Create an account or log in with Google
-2. Complete the tutorial (optional)
-3. Receive your starting currency (1000 SIO Coins)
-4. Visit the store to purchase your first skins!
 
 ## 🎮 How to Play
 
@@ -149,57 +102,6 @@ A competitive 2D tactical shooter inspired by Valorant and Counter-Strike, featu
 | Covert | ![#eb4b4b](https://via.placeholder.com/15/eb4b4b/000000?text=+) | 0.03% | Dragon Lore |
 | Knife | ![#ffd700](https://via.placeholder.com/15/ffd700/000000?text=+) | 0.01% | Karambit Fade |
 
-## 🔧 Technical Details
-
-### Architecture
-- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **Backend**: Firebase Realtime Database
-- **Authentication**: Firebase Auth
-- **Storage**: Firebase + localStorage fallback
-- **Styling**: Custom CSS with animations and transitions
-
-### File Structure
-```
-sio-shooter/
-├── index.html              # Main game file
-├── style.css               # Complete styling
-├── auth.js                 # Authentication system
-├── firebase-config.js      # Firebase configuration
-├── game.js                 # Core game logic
-├── gameplay.js             # Game mechanics
-├── matchmaking.js          # Multiplayer system
-├── menu.js                 # Menu navigation
-├── profile.js              # User profiles
-├── store.js                # Store & inventory system
-├── utils.js                # Utility functions
-├── renderer.js             # Game rendering
-├── README.md              # This file
-└── .gitignore             # Git ignore rules
-```
-
-### Firebase Configuration
-The game uses Firebase for:
-- User authentication and profiles
-- Real-time multiplayer features
-- Player statistics and progression
-- Store purchases and inventory
-- Friends and social features
-
-### Browser Compatibility
-- ✅ Chrome 70+
-- ✅ Firefox 65+
-- ✅ Safari 12+
-- ✅ Edge 79+
-- ⚠️ Internet Explorer (not supported)
-
-## 🎯 Roadmap
-
-### Version 1.1 (Coming Soon)
-- [ ] Agent system with unique abilities
-- [ ] Battle Pass with seasonal rewards
-- [ ] Tournament mode
-- [ ] Spectator system
-- [ ] Voice chat integration
 
 ### Version 1.2 (Planned)
 - [ ] Additional maps (Haven, Bind, Split)
@@ -229,12 +131,6 @@ We welcome contributions to SIO SHOOTER 2D! Here's how you can help:
 2. Follow the existing code style
 3. Test thoroughly before submitting PR
 
-### Development Setup
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
 
 ## 📝 License
 
