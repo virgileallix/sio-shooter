@@ -973,19 +973,44 @@ class MatchmakingSystem {
         };
         
         const positionsRef = gameRef.child('players');
+
+        // Charger d'abord tous les joueurs existants
+        positionsRef.once('value', (snapshot) => {
+            const players = snapshot.val() || {};
+            console.log('📍 Chargement des joueurs existants:', Object.keys(players).length);
+
+            for (const playerId in players) {
+                if (playerId !== currentUser.uid && window.updateOtherPlayerPosition) {
+                    window.updateOtherPlayerPosition(playerId, players[playerId]);
+                }
+            }
+        });
+
+        // Écouter les mises à jour en temps réel
         const positionHandler = (snapshot) => {
             const playerId = snapshot.key;
             const playerData = snapshot.val();
-            
+
             if (playerId !== currentUser.uid && window.updateOtherPlayerPosition) {
                 window.updateOtherPlayerPosition(playerId, playerData);
             }
         };
-        
+
+        positionsRef.on('child_added', positionHandler);
         positionsRef.on('child_changed', positionHandler);
+
+        // Gérer la déconnexion des joueurs
+        positionsRef.on('child_removed', (snapshot) => {
+            const playerId = snapshot.key;
+            if (window.otherPlayers && window.otherPlayers[playerId]) {
+                console.log('👋 Joueur déconnecté:', playerId);
+                delete window.otherPlayers[playerId];
+            }
+        });
+
         window.matchmakingState.listeners.playerPositions = {
             ref: positionsRef,
-            eventType: 'child_changed',
+            eventType: 'multiple',
             handler: positionHandler
         };
     }

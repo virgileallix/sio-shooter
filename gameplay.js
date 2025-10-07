@@ -1042,7 +1042,82 @@ function updateOtherPlayers(dt) {
             other.alive = false;
         }
     }
+
+    // Envoyer la position du joueur local toutes les 50ms
+    sendPlayerPosition();
 }
+
+// Variables pour la synchronisation
+let lastPositionUpdate = 0;
+const POSITION_UPDATE_INTERVAL = 50; // Envoyer la position toutes les 50ms
+
+function sendPlayerPosition() {
+    if (!game.gameStarted || !player.alive) return;
+    if (!window.matchmakingState?.currentMatchId) return;
+    if (!window.database) return;
+
+    const now = Date.now();
+    if (now - lastPositionUpdate < POSITION_UPDATE_INTERVAL) return;
+
+    lastPositionUpdate = now;
+
+    try {
+        const gameRef = window.database.ref(`game_sessions/${window.matchmakingState.currentMatchId}/players/${window.currentUser.uid}`);
+        gameRef.set({
+            x: player.x,
+            y: player.y,
+            angle: player.angle,
+            health: player.health,
+            armor: player.armor,
+            alive: player.alive,
+            team: player.team,
+            weapon: player.weapon?.name || 'classic',
+            sprinting: player.sprinting,
+            crouching: player.crouching,
+            username: window.currentUser.displayName || window.currentUser.email?.split('@')[0] || 'Joueur',
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+    } catch (error) {
+        console.error('Erreur envoi position:', error);
+    }
+}
+
+// Fonction pour recevoir les positions des autres joueurs
+window.updateOtherPlayerPosition = function(playerId, playerData) {
+    if (!playerData) return;
+
+    // Créer ou mettre à jour le joueur
+    if (!otherPlayers[playerId]) {
+        otherPlayers[playerId] = {
+            x: playerData.x || 0,
+            y: playerData.y || 0,
+            width: 30,
+            height: 30,
+            angle: playerData.angle || 0,
+            health: playerData.health || 100,
+            armor: playerData.armor || 0,
+            alive: playerData.alive !== false,
+            team: playerData.team || 'defenders',
+            weapon: playerData.weapon || 'classic',
+            sprinting: playerData.sprinting || false,
+            crouching: playerData.crouching || false,
+            username: playerData.username || 'Joueur'
+        };
+    } else {
+        // Mettre à jour les données existantes
+        otherPlayers[playerId].x = playerData.x || otherPlayers[playerId].x;
+        otherPlayers[playerId].y = playerData.y || otherPlayers[playerId].y;
+        otherPlayers[playerId].angle = playerData.angle || otherPlayers[playerId].angle;
+        otherPlayers[playerId].health = playerData.health !== undefined ? playerData.health : otherPlayers[playerId].health;
+        otherPlayers[playerId].armor = playerData.armor !== undefined ? playerData.armor : otherPlayers[playerId].armor;
+        otherPlayers[playerId].alive = playerData.alive !== false;
+        otherPlayers[playerId].team = playerData.team || otherPlayers[playerId].team;
+        otherPlayers[playerId].weapon = playerData.weapon || otherPlayers[playerId].weapon;
+        otherPlayers[playerId].sprinting = playerData.sprinting || false;
+        otherPlayers[playerId].crouching = playerData.crouching || false;
+        otherPlayers[playerId].username = playerData.username || otherPlayers[playerId].username;
+    }
+};
 
 function updateGameTimers(dt) {
     // En deathmatch, pas de phase d'achat ni de timer de round
@@ -2211,16 +2286,42 @@ function drawOtherPlayers() {
     for (const playerId in otherPlayers) {
         const other = otherPlayers[playerId];
         if (!other.alive) continue;
-        
+
+        // Couleur selon l'équipe
         const color = other.team === 'attackers' ? '#ff6655' : '#44d4ff';
+
+        // Corps du joueur
+        gameContext.save();
+        gameContext.translate(other.x + 15, other.y + 15);
+        gameContext.rotate(other.angle || 0);
         gameContext.fillStyle = color;
-        gameContext.fillRect(other.x, other.y, 30, 30);
-        
-        // Nom
+        gameContext.fillRect(-15, -15, 30, 30);
+
+        // Direction (petite flèche)
         gameContext.fillStyle = '#ffffff';
-        gameContext.font = '10px Arial';
+        gameContext.beginPath();
+        gameContext.moveTo(10, 0);
+        gameContext.lineTo(-5, -5);
+        gameContext.lineTo(-5, 5);
+        gameContext.closePath();
+        gameContext.fill();
+        gameContext.restore();
+
+        // Barre de vie
+        const healthPercent = Math.max(0, Math.min(1, other.health / 100));
+        gameContext.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        gameContext.fillRect(other.x, other.y - 10, 30, 4);
+        gameContext.fillStyle = healthPercent > 0.5 ? '#00ff00' : (healthPercent > 0.25 ? '#ffaa00' : '#ff0000');
+        gameContext.fillRect(other.x, other.y - 10, 30 * healthPercent, 4);
+
+        // Nom du joueur
+        gameContext.fillStyle = '#ffffff';
+        gameContext.strokeStyle = '#000000';
+        gameContext.lineWidth = 3;
+        gameContext.font = 'bold 12px Arial';
         gameContext.textAlign = 'center';
-        gameContext.fillText(other.name || 'Joueur', other.x + 15, other.y - 5);
+        gameContext.strokeText(other.username || 'Joueur', other.x + 15, other.y - 15);
+        gameContext.fillText(other.username || 'Joueur', other.x + 15, other.y - 15);
     }
 }
 
@@ -2859,6 +2960,19 @@ function stopGame() {
     window.SpectatorSystem?.disable?.(true);
 
     closeBuyMenu();
+
+    // Nettoyer la position du joueur dans Firebase
+    if (window.matchmakingState?.currentMatchId && window.database && window.currentUser) {
+        try {
+            const playerRef = window.database.ref(`game_sessions/${window.matchmakingState.currentMatchId}/players/${window.currentUser.uid}`);
+            playerRef.remove().catch(err => console.error('Erreur suppression position:', err));
+        } catch (error) {
+            console.error('Erreur nettoyage position:', error);
+        }
+    }
+
+    // Nettoyer les autres joueurs
+    window.otherPlayers = {};
 
     if (gameLoop) {
         cancelAnimationFrame(gameLoop);
