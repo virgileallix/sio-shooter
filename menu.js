@@ -1,6 +1,5 @@
 (() => {
     if (window.__menuSystemLoaded) {
-        console.warn('Menu system script already loaded, skipping duplicate execution.');
         return;
     }
     window.__menuSystemLoaded = true;
@@ -35,9 +34,7 @@ function initializeMenus() {
         setupSettingsListeners();
         setupSearchFunctionality();
         initializeAnimations();
-        console.log('✅ Menus complets initialisés');
     } catch (error) {
-        console.error('❌ Erreur initialisation menus:', error);
     }
 }
 
@@ -78,7 +75,6 @@ function setupMenuEventListeners() {
         }
     });
 
-    console.log('🎛️ Event listeners configurés');
 }
 
 function handleMenuKeyboard(e) {
@@ -138,7 +134,6 @@ function showMenuSection(section) {
                 sectionElement.classList.remove('section-enter');
             }, 300);
         } else {
-            console.warn(`Section ${section} non trouvée`);
             return;
         }
 
@@ -197,9 +192,7 @@ function showMenuSection(section) {
         // Analytics
         trackSectionVisit(section, previousSection);
 
-        console.log(`📍 Section changée: ${previousSection} → ${section}`);
     } catch (error) {
-        console.error('Erreur changement section:', error);
     }
 }
 
@@ -238,7 +231,6 @@ async function updateQueueStats() {
             }
         }
     } catch (error) {
-        console.error('Erreur mise à jour stats file:', error);
     }
 }
 
@@ -258,7 +250,6 @@ async function checkActiveMatches() {
             }
         }
     } catch (error) {
-        console.error('Erreur vérification matchs actifs:', error);
     }
 }
 
@@ -331,7 +322,6 @@ async function reconnectToMatch(matchId) {
         );
         
     } catch (error) {
-        console.error('Erreur reconnexion:', error);
         NotificationSystem.show(
             'Erreur de reconnexion',
             'Impossible de se reconnecter au match',
@@ -345,7 +335,6 @@ function selectGameMode(mode, eventTarget = null) {
     try {
         // Vérifier que le mode existe
         if (!window.gameModes || !window.gameModes[mode]) {
-            console.error('Mode de jeu non disponible:', mode);
             showMessage('Mode de jeu non disponible', 'error');
             return;
         }
@@ -395,13 +384,11 @@ function selectGameMode(mode, eventTarget = null) {
         // Sauvegarder la préférence
         saveGameModePreference(mode);
 
-        console.log('🎮 Mode de jeu sélectionné:', mode);
 
         // Analytics
         trackModeSelection(mode);
 
     } catch (error) {
-        console.error('Erreur sélection mode:', error);
     }
 }
 
@@ -445,7 +432,6 @@ function updateModeSpecificUI(mode) {
         updateModeInfo(mode, modeData);
         
     } catch (error) {
-        console.error('Erreur mise à jour UI mode:', error);
     }
 }
 
@@ -589,12 +575,10 @@ function selectMap(map, eventTarget = null) {
 
         updateMapPreview(selectedMap);
 
-        console.log('🗺️ Carte sélectionnée:', getMapDisplayName(selectedMap));
 
         trackMapSelection(selectedMap);
 
     } catch (error) {
-        console.error('Erreur sélection carte:', error);
     }
 }
 
@@ -660,7 +644,6 @@ function getMapInfo(map) {
 
 function updateAvailableMaps() {
     // Mettre à jour la liste des cartes disponibles
-    console.log('🗺️ Cartes disponibles mises à jour');
 }
 
 // Lancement du jeu avec validation et feedback
@@ -719,7 +702,6 @@ async function launchGame() {
             preferredLanguage: 'fr'
         };
         
-        console.log('🚀 Lancement du matchmaking RÉEL:', {
             mode: selectedGameMode,
             map: selectedMap === 'auto' ? null : selectedMap,
             options: options
@@ -736,7 +718,6 @@ async function launchGame() {
         clearInterval(stepInterval);
         
         if (queueId) {
-            console.log('✅ Rejoint la file d\'attente RÉELLE:', queueId);
             
             // Bouton de statut
             launchBtn.innerHTML = '<i class="fas fa-clock"></i> EN FILE D\'ATTENTE';
@@ -755,7 +736,6 @@ async function launchGame() {
         }
         
     } catch (error) {
-        console.error('❌ Erreur lors du lancement:', error);
         
         // Restaurer le bouton avec animation d'erreur
         if (launchBtn) {
@@ -777,7 +757,6 @@ async function launchGame() {
                         launchBtn.innerHTML = '<i class="fas fa-rocket"></i> RECHERCHER UNE PARTIE';
                     }
                 } catch (restoreError) {
-                    console.error('Erreur restauration bouton:', restoreError);
                     launchBtn.innerHTML = '<i class="fas fa-rocket"></i> RECHERCHER UNE PARTIE';
                 }
             }, 3000);
@@ -790,7 +769,6 @@ function loadWeapons() {
     try {
         const weaponsGrid = document.getElementById('weapons-grid');
         if (!weaponsGrid) {
-            console.warn('Grid d\'armes non trouvé');
             return;
         }
 
@@ -801,7 +779,6 @@ function loadWeapons() {
         weaponsGrid.innerHTML = '';
         
         if (!weapons[category]) {
-            console.warn(`Catégorie d'armes ${category} non trouvée`);
             return;
         }
 
@@ -810,9 +787,7 @@ function loadWeapons() {
             weaponsGrid.appendChild(weaponCard);
         });
 
-        console.log(`🔫 ${weapons[category].length} armes chargées pour ${category}`);
     } catch (error) {
-        console.error('Erreur chargement armes:', error);
     }
 }
 
@@ -890,13 +865,11 @@ function selectWeapon(weapon, eventTarget = null) {
             }
         }
 
-        console.log('🔫 Arme sélectionnée:', weapon.name);
 
         // Afficher les détails de l'arme
         showWeaponDetails(weapon);
 
     } catch (error) {
-        console.error('Erreur sélection arme:', error);
     }
 }
 
@@ -1000,7 +973,6 @@ async function loadFriends() {
     try {
         const friendsList = document.getElementById('friends-list');
         if (!friendsList) {
-            console.warn('Liste d\'amis non trouvée');
             return;
         }
 
@@ -1028,10 +1000,8 @@ async function loadFriends() {
             friendsList.appendChild(friendCard);
         });
 
-        console.log(`👥 ${Object.keys(friends).length} amis chargés`);
 
     } catch (error) {
-        console.error('Erreur chargement amis:', error);
         const friendsList = document.getElementById('friends-list');
         if (friendsList) {
             friendsList.innerHTML = '<div class="error">Erreur lors du chargement des amis</div>';
@@ -1098,7 +1068,6 @@ async function inviteFriend(friendId) {
         showMessage('Invitation envoyée !', 'success');
         
     } catch (error) {
-        console.error('Erreur envoi invitation:', error);
         showMessage('Erreur lors de l\'envoi de l\'invitation', 'error');
     }
 }
@@ -1125,7 +1094,6 @@ async function removeFriend(friendId) {
         loadFriends(); // Recharger la liste
         
     } catch (error) {
-        console.error('Erreur suppression ami:', error);
         showMessage('Erreur lors de la suppression', 'error');
     }
 }
@@ -1134,7 +1102,6 @@ async function removeFriend(friendId) {
 async function addFriend() {
     const usernameInput = document.getElementById('friend-username');
     if (!usernameInput) {
-        console.error('Input ami non trouvé');
         return;
     }
 
@@ -1255,7 +1222,6 @@ async function addFriend() {
         loadFriends();
         
     } catch (error) {
-        console.error('Erreur lors de l\'ajout d\'ami:', error);
         showMessage('Erreur lors de l\'ajout de l\'ami', 'error');
         
         // Restaurer le bouton
@@ -1306,7 +1272,6 @@ function searchFriends(searchTerm) {
         updateSearchResults(results.length, searchTerm);
         
     } catch (error) {
-        console.error('Erreur recherche amis:', error);
     }
 }
 
@@ -1447,7 +1412,6 @@ async function loadLeaderboard(type) {
         });
         
     } catch (error) {
-        console.error('Erreur chargement classement:', error);
         content.innerHTML = '<div class="error">Erreur lors du chargement du classement</div>';
     }
 }
@@ -1590,20 +1554,16 @@ function saveSettings() {
 
 // Analytics et suivi
 function trackSectionVisit(section, previousSection) {
-    console.log(`📊 Navigation: ${previousSection} → ${section}`);
     // Ici on pourrait envoyer les données à un service d'analytics
 }
 
 function trackModeSelection(mode) {
-    console.log(`📊 Mode sélectionné: ${mode}`);
 }
 
 function trackMapSelection(map) {
-    console.log(`📊 Carte sélectionnée: ${map}`);
 }
 
 function trackMatchmakingStart(mode, map, options) {
-    console.log(`📊 Matchmaking lancé:`, { mode, map, options });
 }
 
 // Fonctions utilitaires
@@ -1741,7 +1701,6 @@ function showMessage(message, type = 'info', duration = 3000) {
         window.NotificationSystem.show('Menu', message, type, duration);
     } else {
         // Fallback
-        console.log(`${type.toUpperCase()}: ${message}`);
         alert(message);
     }
 }
@@ -1759,5 +1718,4 @@ function showMessage(message, type = 'info', duration = 3000) {
     window.switchLeaderboardTab = switchLeaderboardTab;
     window.reconnectToMatch = reconnectToMatch;
 
-    console.log('✅ Menu système COMPLET chargé avec toutes les fonctionnalités corrigées !');
 })();

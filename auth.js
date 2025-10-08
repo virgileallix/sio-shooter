@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof firebase !== 'undefined' && firebase.auth) {
         firebase.auth().onAuthStateChanged((user) => {
             if (user) {
-                console.log('User already logged in:', user.email);
+                // User already logged in
             }
         });
     }
@@ -53,12 +53,10 @@ async function handleLogin(e) {
     try {
         showLoading(true);
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        console.log('Connexion réussie:', userCredential.user.email);
         showMessage('Connexion réussie !', 'success');
-        
+
         // L'utilisateur sera automatiquement redirigé par onAuthStateChanged
     } catch (error) {
-        console.error('Erreur de connexion:', error);
         showMessage(getAuthErrorMessage(error.code), 'error');
     } finally {
         showLoading(false);
@@ -91,13 +89,11 @@ async function handleRegister(e) {
         await userCredential.user.updateProfile({
             displayName: username
         });
-        
-        console.log('Inscription réussie:', userCredential.user.email);
+
         showMessage('Inscription réussie ! Bienvenue !', 'success');
-        
+
         // L'utilisateur sera automatiquement redirigé par onAuthStateChanged
     } catch (error) {
-        console.error('Erreur d\'inscription:', error);
         showMessage(getAuthErrorMessage(error.code), 'error');
     } finally {
         showLoading(false);
@@ -115,13 +111,11 @@ async function signInWithGoogle() {
         }
         
         const result = await auth.signInWithPopup(googleProvider);
-        console.log('Connexion Google réussie:', result.user.email);
         showMessage('Connexion Google réussie !', 'success');
-        
+
         // L'utilisateur sera automatiquement redirigé par onAuthStateChanged
     } catch (error) {
-        console.error('Erreur connexion Google:', error);
-        
+
         if (error.message === 'AUTH_ENV_NOT_SUPPORTED' || 
             error.code === 'auth/operation-not-supported-in-this-environment') {
             showMessage('Connexion Google non disponible dans cet environnement. Utilisez l\'authentification par email.', 'error');
@@ -143,16 +137,14 @@ async function signInWithGoogle() {
 async function logout() {
     try {
         await auth.signOut();
-        console.log('Déconnexion réussie');
         showMessage('Déconnexion réussie', 'success');
-        
+
         // Nettoyer les données locales
         gameState.friends = [];
         cleanupRealtimeListeners();
-        
+
         // L'utilisateur sera automatiquement redirigé par onAuthStateChanged
     } catch (error) {
-        console.error('Erreur de déconnexion:', error);
         showMessage('Erreur lors de la déconnexion', 'error');
     }
 }
@@ -355,5 +347,3 @@ document.head.appendChild(style);
 
 // Initialiser la validation des champs
 document.addEventListener('DOMContentLoaded', setupFieldValidation);
-
-console.log('Système d\'authentification initialisé');

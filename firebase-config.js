@@ -83,8 +83,7 @@ auth.onAuthStateChanged(async (user) => {
     if (user) {
         currentUser = user;
         window.currentUser = user;
-        console.log('Utilisateur connecté:', user.email);
-        
+
         // Charger ou créer le profil utilisateur
         await loadOrCreateUserProfile();
         
@@ -96,8 +95,7 @@ auth.onAuthStateChanged(async (user) => {
     } else {
         currentUser = null;
         window.currentUser = null;
-        console.log('Utilisateur déconnecté');
-        
+
         // Nettoyer les listeners en temps réel
         cleanupRealtimeListeners();
         
@@ -210,9 +208,8 @@ async function loadOrCreateUserProfile() {
                 createdAt: firebase.database.ServerValue.TIMESTAMP,
                 lastLogin: firebase.database.ServerValue.TIMESTAMP
             };
-            
+
             await userRef.set(newUserProfile);
-            console.log('Nouveau profil utilisateur créé');
             if (window.BattlePassSystem) {
                 window.BattlePassSystem.syncFromProfile(defaultBattlePass);
             }
@@ -230,7 +227,7 @@ async function loadOrCreateUserProfile() {
         }
 
     } catch (error) {
-        console.error('Erreur lors du chargement/création du profil:', error);
+        // Erreur lors du chargement/création du profil
     }
 }
 
@@ -318,7 +315,6 @@ async function updateUserProfileStructure(userData) {
     // Appliquer les mises à jour si nécessaire
     if (Object.keys(updates).length > 0) {
         await userRef.update(updates);
-        console.log('Structure du profil mise à jour');
     }
 }
 
@@ -348,9 +344,9 @@ async function updateUserInterface() {
                 avatarElement.className = `fas fa-${userData.avatar || 'user'}`;
             }
         }
-        
+
     } catch (error) {
-        console.error('Erreur mise à jour interface:', error);
+        // Erreur mise à jour interface
     }
 }
 
@@ -375,9 +371,9 @@ async function setUserOnlineStatus() {
                 statusRef.set('online');
             }
         });
-        
+
     } catch (error) {
-        console.error('Erreur définition statut:', error);
+        // Erreur définition statut
     }
 }
 
@@ -389,7 +385,7 @@ async function saveUserData(data) {
         const userRef = database.ref(`users/${currentUser.uid}`);
         await userRef.update(data);
     } catch (error) {
-        console.error('Erreur lors de la sauvegarde:', error);
+        // Erreur lors de la sauvegarde
     }
 }
 
@@ -435,10 +431,10 @@ async function findMatch(mode, map) {
                 startGame(matchData);
             }
         });
-        
+
+
         return newMatchRef.key;
     } catch (error) {
-        console.error('Erreur lors de la recherche de partie:', error);
         return null;
     }
 }
@@ -479,10 +475,10 @@ async function joinMatch(matchId) {
             score: 0,
             joinedAt: firebase.database.ServerValue.TIMESTAMP
         });
-        
+
+
         return true;
     } catch (error) {
-        console.error('Erreur rejoindre partie:', error);
         return false;
     }
 }
@@ -529,7 +525,7 @@ async function updatePlayerPosition(matchId, x, y, angle) {
             lastUpdate: firebase.database.ServerValue.TIMESTAMP
         });
     } catch (error) {
-        console.error('Erreur mise à jour position:', error);
+        // Erreur mise à jour position
     }
 }
 
@@ -553,7 +549,7 @@ async function sendGameEvent(matchId, eventType, data) {
             timestamp: firebase.database.ServerValue.TIMESTAMP
         });
     } catch (error) {
-        console.error('Erreur envoi événement:', error);
+        // Erreur envoi événement
     }
 }
 
@@ -639,11 +635,9 @@ async function updateGameStatistics(matchResult) {
         
         // Vérifier les nouveaux succès
         await checkAndUnlockAchievements(updates);
-        
-        console.log('Statistiques mises à jour:', updates);
-        
+
     } catch (error) {
-        console.error('Erreur mise à jour statistiques:', error);
+        // Erreur mise à jour statistiques
     }
 }
 
@@ -669,9 +663,9 @@ async function updatePlayerLevelAndRank(experience) {
         if (rankElement) {
             rankElement.textContent = `Rang: ${newRank}`;
         }
-        
+
     } catch (error) {
-        console.error('Erreur mise à jour niveau/rang:', error);
+        // Erreur mise à jour niveau/rang
     }
 }
 
@@ -688,9 +682,8 @@ function startGame(matchData = {}) {
             window.MatchmakingSystem.startGameSession(safeMatchData);
             return;
         }
-        
+
         // Fallback minimal si le système de matchmaking n'est pas disponible
-        console.warn('MatchmakingSystem indisponible, utilisation du fallback startGame');
         if (typeof showGameScreen === 'function') {
             showGameScreen();
         }
@@ -698,7 +691,7 @@ function startGame(matchData = {}) {
             initializeGame();
         }
     } catch (error) {
-        console.error('Erreur lors du démarrage de la partie:', error);
+        // Erreur lors du démarrage de la partie
     }
 }
 

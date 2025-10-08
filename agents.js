@@ -335,7 +335,7 @@ const AgentSystem = {
                 window.database.ref(`users/${window.currentUser.uid}/profile/selectedAgent`).set(agentId);
             }
         } catch (err) {
-            console.warn('Impossible de sauvegarder l’agent sur Firebase:', err);
+            // Impossible de sauvegarder l'agent sur Firebase
         }
 
         localStorage.setItem('sio_shooter_selected_agent', agentId);
@@ -358,7 +358,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             AgentSystem.init();
         } catch (error) {
-            console.error('Erreur initialisation AgentSystem:', error);
+            // Erreur initialisation AgentSystem
         }
     }, 1200);
 });

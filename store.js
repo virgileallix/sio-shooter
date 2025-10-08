@@ -589,13 +589,11 @@ const StoreSystem = {
     currentOpeningAnimation: null,
 
     async init() {
-        console.log('🛒 Initialisation du système de boutique...');
         await this.loadPlayerData();
         this.setupEventListeners();
         this.switchStoreTab('cases');
         this.switchInventoryTab('weapons');
         this.loadInventory();
-        console.log('✅ Store system initialized');
     },
 
     async loadPlayerData() {
@@ -610,12 +608,10 @@ const StoreSystem = {
                     playerInventory = { ...playerInventory, ...firebaseData };
                     this.ensureInventoryStructure();
                     this.updateCurrencyDisplay();
-                    console.log('📦 Données chargées depuis Firebase');
                     return;
                 }
             }
         } catch (error) {
-            console.error('❌ Erreur chargement Firebase:', error);
         }
         
         // Fallback vers localStorage
@@ -623,7 +619,6 @@ const StoreSystem = {
             const savedData = localStorage.getItem('sio_shooter_inventory');
             if (savedData) {
                 playerInventory = { ...playerInventory, ...JSON.parse(savedData) };
-                console.log('📦 Données chargées depuis localStorage');
             } else {
                 // Skins de départ
                 playerInventory.skins = [
@@ -633,7 +628,6 @@ const StoreSystem = {
                 this.savePlayerData();
             }
         } catch (error) {
-            console.error('❌ Erreur chargement localStorage:', error);
         }
 
         this.ensureInventoryStructure();
@@ -649,10 +643,8 @@ const StoreSystem = {
             // Sauvegarder dans Firebase si connecté
             if (window.currentUser && window.database) {
                 window.database.ref(`users/${window.currentUser.uid}/inventory`).set(playerInventory)
-                    .catch(err => console.error('Erreur sauvegarde Firebase:', err));
             }
         } catch (error) {
-            console.error('❌ Erreur sauvegarde:', error);
         }
     },
 
@@ -869,7 +861,6 @@ const StoreSystem = {
     openCase(caseId) {
         const weaponCase = WEAPON_CASES.find(c => c.id === caseId);
         if (!weaponCase) {
-            console.error('Case non trouvée:', caseId);
             return;
         }
 
@@ -905,7 +896,6 @@ const StoreSystem = {
         const openingActions = document.getElementById('opening-actions');
 
         if (!modal || !title || !caseImage) {
-            console.error('Éléments de modal manquants');
             return;
         }
 
@@ -955,7 +945,6 @@ const StoreSystem = {
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + 0.5);
         } catch (error) {
-            console.log('Audio non disponible');
         }
     },
 
@@ -968,7 +957,6 @@ const StoreSystem = {
         // Pré-sélectionner le skin gagnant
         const wonSkin = this.selectRandomSkinFromCase(weaponCase);
         if (!wonSkin) {
-            console.error('Impossible de sélectionner un skin');
             this.closeCaseOpeningModal();
             return;
         }
@@ -1157,7 +1145,6 @@ const StoreSystem = {
         ).filter(Boolean);
 
         if (caseSkins.length === 0) {
-            console.error('Aucun skin trouvé dans la case');
             return null;
         }
 
@@ -1551,21 +1538,17 @@ const StoreSystem = {
     },
 
     loadInventoryAgents() {
-        console.log('🎭 Chargement des agents de l\'inventaire...');
         const agentsGrid = document.getElementById('inventory-agents-grid');
         if (!agentsGrid) {
-            console.error('❌ Element inventory-agents-grid introuvable');
             return;
         }
 
         agentsGrid.innerHTML = '';
 
-        console.log('📋 Agents possédés:', playerInventory.agents);
         const ownedAgents = playerInventory.agents
             .map(agentId => AGENTS[agentId])
             .filter(Boolean);
 
-        console.log('✅ Agents chargés:', ownedAgents.length);
 
         if (ownedAgents.length === 0) {
             agentsGrid.innerHTML = `
@@ -1947,7 +1930,6 @@ document.addEventListener('DOMContentLoaded', () => {
         StoreSystem.init()
             .then(() => StoreSystem.checkDailyReward())
             .catch(error => {
-                console.error('❌ Erreur initialisation store:', error);
             });
     }, 2000);
 });
@@ -2000,4 +1982,3 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(updateCurrentAgentDisplay, 3000);
 });
 
-console.log('✅ Store.js chargé avec succès');

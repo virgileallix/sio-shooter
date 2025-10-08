@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             SpectatorSystem.init();
         } catch (error) {
-            console.error('Erreur initialisation SpectatorSystem:', error);
+            // Erreur initialisation SpectatorSystem
         }
     }, 1500);
 });

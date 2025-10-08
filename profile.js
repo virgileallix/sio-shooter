@@ -141,7 +141,6 @@ async function openProfileModal(userId) {
         switchProfileTab('stats');
         
     } catch (error) {
-        console.error('Erreur chargement profil:', error);
         showMessage('Erreur lors du chargement du profil', 'error');
     }
 }
@@ -159,7 +158,6 @@ async function loadProfileData(userId) {
         const snapshot = await userRef.once('value');
         return snapshot.val();
     } catch (error) {
-        console.error('Erreur chargement données profil:', error);
         return null;
     }
 }
@@ -326,7 +324,6 @@ async function loadAchievements(userId, stats) {
         document.getElementById('achievements-count').textContent = `${unlockedCount}/${Object.keys(achievements).length}`;
         
     } catch (error) {
-        console.error('Erreur chargement succès:', error);
         document.getElementById('achievements-grid').innerHTML = '<div class="error">Erreur lors du chargement des succès</div>';
     }
 }
@@ -351,9 +348,7 @@ function checkAchievementUnlocked(achievement, stats) {
 async function unlockAchievement(userId, achievementId) {
     try {
         await database.ref(`users/${userId}/achievements/${achievementId}`).set(Date.now());
-        console.log(`Succès débloqué: ${achievements[achievementId].name}`);
     } catch (error) {
-        console.error('Erreur débloquage succès:', error);
     }
 }
 
@@ -409,7 +404,6 @@ async function loadMatchHistory(userId) {
         });
         
     } catch (error) {
-        console.error('Erreur chargement historique:', error);
         matchesList.innerHTML = '<div class="error">Erreur lors du chargement de l\'historique</div>';
     }
 }
@@ -455,7 +449,6 @@ async function updateUsername() {
         showMessage('Nom d\'utilisateur mis à jour !', 'success');
         
     } catch (error) {
-        console.error('Erreur mise à jour nom:', error);
         showMessage('Erreur lors de la mise à jour', 'error');
     }
 }
@@ -467,7 +460,6 @@ async function checkUsernameAvailability(username) {
         const snapshot = await usersRef.orderByChild('displayName').equalTo(username).once('value');
         return !snapshot.exists();
     } catch (error) {
-        console.error('Erreur vérification nom:', error);
         return false;
     }
 }
@@ -496,7 +488,6 @@ async function saveAvatarSelection(avatar) {
         showMessage('Avatar mis à jour !', 'success');
         
     } catch (error) {
-        console.error('Erreur sauvegarde avatar:', error);
         showMessage('Erreur lors de la sauvegarde', 'error');
     }
 }
@@ -513,7 +504,6 @@ async function loadPrivacySettings() {
         document.getElementById('allow-friend-requests').checked = privacy.allowFriendRequests !== false;
         
     } catch (error) {
-        console.error('Erreur chargement paramètres:', error);
     }
 }
 
@@ -530,7 +520,6 @@ async function savePrivacySettings() {
         showMessage('Paramètres de confidentialité sauvegardés', 'success');
         
     } catch (error) {
-        console.error('Erreur sauvegarde paramètres:', error);
         showMessage('Erreur lors de la sauvegarde', 'error');
     }
 }
@@ -575,7 +564,6 @@ async function resetStats() {
         showMessage('Statistiques réinitialisées', 'success');
         
     } catch (error) {
-        console.error('Erreur réinitialisation stats:', error);
         showMessage('Erreur lors de la réinitialisation', 'error');
     }
 }
@@ -664,7 +652,6 @@ async function loadLeaderboard(type) {
         });
         
     } catch (error) {
-        console.error('Erreur chargement classement:', error);
         content.innerHTML = '<div class="error">Erreur lors du chargement du classement</div>';
     }
 }
@@ -725,7 +712,6 @@ async function updatePlayerStats(statUpdates) {
         await checkAndUnlockAchievements(updatedStats);
         
     } catch (error) {
-        console.error('Erreur mise à jour stats:', error);
     }
 }
 
@@ -747,7 +733,6 @@ async function checkAndUnlockAchievements(stats) {
         });
         
     } catch (error) {
-        console.error('Erreur vérification succès:', error);
     }
 }
 
@@ -767,7 +752,6 @@ async function addMatchToHistory(matchData) {
         await newMatchRef.set(matchEntry);
         
     } catch (error) {
-        console.error('Erreur ajout historique:', error);
     }
 }
 
@@ -807,7 +791,6 @@ async function loadUserAvatar() {
         }
         
     } catch (error) {
-        console.error('Erreur chargement avatar:', error);
     }
 }
 
@@ -829,6 +812,5 @@ async function updateUserRankDisplay() {
         }
         
     } catch (error) {
-        console.error('Erreur chargement rang:', error);
     }
 }

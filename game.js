@@ -314,7 +314,6 @@ const StatsTracker = {
             // Vérifier les succès après chaque événement
             this.checkRealtimeAchievements();
         } catch (error) {
-            console.error('Erreur tracking événement:', error);
         }
     },
     
@@ -337,7 +336,6 @@ const StatsTracker = {
                 await window.AchievementManager.checkAchievement('headshot_master', { headshots: totalHeadshots });
             }
         } catch (error) {
-            console.error('Erreur vérification succès kills:', error);
         }
     },
     
@@ -351,7 +349,6 @@ const StatsTracker = {
             const snapshot = await statsRef.once('value');
             return snapshot.val() || {};
         } catch (error) {
-            console.error('Erreur récupération stats:', error);
             return {};
         }
     },
@@ -361,7 +358,6 @@ const StatsTracker = {
         
         try {
             if (!database || !database.ref) {
-                console.warn('Database non disponible pour sauvegarder les stats');
                 return;
             }
             
@@ -394,13 +390,11 @@ const StatsTracker = {
             // Réinitialiser les stats de session
             this.resetSessionStats();
             
-            console.log('📊 Statistiques de session sauvegardées:', updates);
             
             // Afficher un résumé
             this.showSessionSummary(updates, xpGained);
             
         } catch (error) {
-            console.error('Erreur sauvegarde stats session:', error);
         }
     },
     
@@ -430,7 +424,6 @@ const StatsTracker = {
     
     async updateLevelAndRank(experience) {
         if (!window.calculateLevel || !window.calculateRank) {
-            console.warn('Fonctions de calcul niveau/rang non disponibles');
             return;
         }
 
@@ -451,7 +444,6 @@ const StatsTracker = {
                 window.updateUserRankDisplay();
             }
         } catch (error) {
-            console.error('Erreur mise à jour niveau/rang:', error);
         }
     },
     
@@ -502,7 +494,6 @@ const StatsTracker = {
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + 0.5);
         } catch (error) {
-            console.error('Erreur lecture son:', error);
         }
     },
 
@@ -528,11 +519,9 @@ let onlineServices = {
 document.addEventListener('DOMContentLoaded', initializeApp);
 
 function initializeApp() {
-    console.log('🚀 Initialisation de SIO SHOOTER 2D...');
     
     // Vérifier si Firebase est chargé
     if (typeof firebase === 'undefined') {
-        console.error('❌ Firebase non chargé');
         showErrorMessage('Erreur de chargement. Veuillez actualiser la page.');
         return;
     }
@@ -550,12 +539,10 @@ function initializeApp() {
         
         // Marquer comme initialisé
         AppState.initialized = true;
-        console.log('✅ Application initialisée avec succès');
         
         // Animation d'entrée
         playEntryAnimation();
     } catch (error) {
-        console.error('❌ Erreur initialisation:', error);
         showErrorMessage('Erreur lors de l\'initialisation');
     }
 }
@@ -566,24 +553,20 @@ function initializeCore() {
     preloadAssets();
     
     // Initialiser les systèmes de base
-    console.log('🔧 Systèmes de base initialisés');
 }
 
 // Initialisation de Firebase
 function initializeFirebase() {
     try {
         if (typeof auth === 'undefined' || typeof database === 'undefined') {
-            console.warn('⚠️ Firebase services non disponibles');
             return;
         }
         
-        console.log('🔥 Firebase connecté');
         
         // Écouter les changements d'authentification
         auth.onAuthStateChanged(handleAuthStateChange);
         
     } catch (error) {
-        console.error('❌ Erreur Firebase:', error);
         showErrorMessage('Erreur de connexion à Firebase');
     }
 }
@@ -594,7 +577,6 @@ async function handleAuthStateChange(user) {
         if (user) {
             AppState.user = user;
             AppState.currentScreen = 'menu';
-            console.log('👤 Utilisateur connecté:', user.email);
             
             // Initialiser les systèmes utilisateur
             await initializeUserSystems();
@@ -602,13 +584,11 @@ async function handleAuthStateChange(user) {
         } else {
             AppState.user = null;
             AppState.currentScreen = 'auth';
-            console.log('👤 Utilisateur déconnecté');
             
             // Arrêter les services
             stopUserSystems();
         }
     } catch (error) {
-        console.error('❌ Erreur gestion auth state:', error);
     }
 }
 
@@ -632,10 +612,8 @@ async function initializeUserSystems() {
             await window.MatchmakingSystem.handleReconnection();
         }
         
-        console.log('✅ Systèmes utilisateur initialisés');
         
     } catch (error) {
-        console.error('❌ Erreur initialisation systèmes utilisateur:', error);
     }
 }
 
@@ -645,7 +623,6 @@ async function initializeUserProfile() {
         AppState.profileSystem.loaded = false;
         
         if (!database || !database.ref) {
-            console.warn('Database non disponible pour le profil');
             return;
         }
         
@@ -661,10 +638,8 @@ async function initializeUserProfile() {
         }
         
         AppState.profileSystem.loaded = true;
-        console.log('📊 Système de profils chargé');
         
     } catch (error) {
-        console.error('❌ Erreur chargement profil:', error);
     }
 }
 
@@ -685,9 +660,7 @@ function startOnlineServices() {
                 .on('child_added', handleFriendInvitation);
         }
         
-        console.log('🌐 Services en ligne démarrés');
     } catch (error) {
-        console.error('❌ Erreur démarrage services en ligne:', error);
     }
 }
 
@@ -716,7 +689,6 @@ function stopUserSystems() {
         StatsTracker.saveSessionStats();
     }
     
-    console.log('🌐 Systèmes utilisateur arrêtés');
 }
 
 // Gestion des invitations d'amis
@@ -726,7 +698,6 @@ function handleFriendInvitation(snapshot) {
         const invitationId = snapshot.key;
         
         if (!window.gameModes) {
-            console.warn('Modes de jeu non disponibles pour l\'invitation');
             return;
         }
         
@@ -753,7 +724,6 @@ function handleFriendInvitation(snapshot) {
             ]
         );
     } catch (error) {
-        console.error('❌ Erreur gestion invitation ami:', error);
     }
 }
 
@@ -788,7 +758,6 @@ async function acceptGameInvitation(invitationId, invitation) {
         }
         
     } catch (error) {
-        console.error('Erreur acceptation invitation:', error);
         NotificationSystem.show('Erreur', 'Impossible d\'accepter l\'invitation', 'error');
     }
 }
@@ -800,7 +769,6 @@ async function declineGameInvitation(invitationId) {
         }
         NotificationSystem.show('Invitation refusée', '', 'info', 2000);
     } catch (error) {
-        console.error('Erreur refus invitation:', error);
     }
 }
 
@@ -950,7 +918,6 @@ function hideTooltip() {
 
 // Préchargement des ressources
 function preloadAssets() {
-    console.log('📦 Chargement des ressources...');
     
     const assets = [
         'Système de matchmaking',
@@ -971,10 +938,8 @@ function preloadAssets() {
 
 function updateLoadingProgress(loaded, total, currentAsset) {
     const progress = (loaded / total) * 100;
-    console.log(`📦 Chargement: ${currentAsset} (${progress.toFixed(1)}%)`);
     
     if (loaded === total) {
-        console.log('✅ Toutes les ressources sont chargées');
     }
 }
 
@@ -990,7 +955,6 @@ function loadSettingsFromStorage() {
         try {
             AppState.gameSettings = { ...AppState.gameSettings, ...JSON.parse(savedSettings) };
         } catch (error) {
-            console.error('Erreur chargement paramètres:', error);
         }
     }
 }
@@ -1027,7 +991,6 @@ async function loadUserSettings() {
             applySettings();
         }
     } catch (error) {
-        console.error('Erreur chargement paramètres utilisateur:', error);
     }
 }
 
@@ -1047,7 +1010,6 @@ function toggleMasterVolume() {
 function toggleFullscreen() {
     if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch(err => {
-            console.error('Erreur plein écran:', err);
             NotificationSystem.show('Erreur', 'Impossible de passer en plein écran', 'error');
         });
     } else {
@@ -1148,7 +1110,6 @@ function playEntryAnimation() {
 
 // Gestion des erreurs globales
 window.addEventListener('error', (e) => {
-    console.error('❌ Erreur globale:', e.error);
     
     if (e.error && e.error.message && e.error.message.includes('Loading')) {
         return;
@@ -1162,7 +1123,6 @@ window.addEventListener('error', (e) => {
 });
 
 window.addEventListener('unhandledrejection', (e) => {
-    console.error('❌ Promesse rejetée:', e.reason);
     e.preventDefault();
 });
 
@@ -1224,7 +1184,5 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
         }
     };
     
-    console.log('🛠️ Mode debug activé. Utilisez window.DEBUG pour accéder aux outils.');
 }
 
-console.log('🎮 Orchestrateur de jeu corrigé chargé avec logique Valorant complète');

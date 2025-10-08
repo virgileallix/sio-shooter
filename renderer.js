@@ -912,7 +912,6 @@ let gameRenderer = null;
 // Initialiser le renderer
 function initializeRenderer(canvas, context) {
     gameRenderer = new GameRenderer(canvas, context);
-    console.log('🎨 Système de rendu initialisé');
     return gameRenderer;
 }
 
@@ -988,5 +987,3 @@ window.GameRenderer = {
     createImpactEffect,
     VisualEffect
 };
-
-console.log('🎨 Système de rendu avancé chargé');

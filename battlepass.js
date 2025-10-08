@@ -309,7 +309,7 @@ const BattlePassSystem = {
                 claimedRewards: this.state.claimedRewards
             }));
         } catch (error) {
-            console.warn('Impossible de sauvegarder le Battle Pass en local', error);
+            // Impossible de sauvegarder le Battle Pass en local
         }
     },
 
@@ -323,7 +323,7 @@ const BattlePassSystem = {
             this.state.premium = parsed.premium || false;
             this.state.claimedRewards = parsed.claimedRewards || {};
         } catch (error) {
-            console.warn('Impossible de charger le Battle Pass local', error);
+            // Impossible de charger le Battle Pass local
         }
     },
 
@@ -338,7 +338,7 @@ const BattlePassSystem = {
                 claimedRewards: this.state.claimedRewards
             });
         } catch (error) {
-            console.warn('Impossible de sauvegarder le Battle Pass sur Firebase', error);
+            // Impossible de sauvegarder le Battle Pass sur Firebase
         }
     }
 };
@@ -348,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             BattlePassSystem.init();
         } catch (error) {
-            console.error('Erreur initialisation BattlePassSystem:', error);
+            // Erreur initialisation BattlePassSystem
         }
     }, 1300);
 });

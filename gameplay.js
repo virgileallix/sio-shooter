@@ -717,32 +717,33 @@ const MAPS = {
 // ========================================
 
 function initializeGame() {
-    console.log('Initialisation du gameplay avancé...');
-    
     gameCanvas = document.getElementById('game-canvas');
     if (!gameCanvas) {
-        console.error('Canvas non trouvé');
         return false;
     }
-    
+
     gameContext = gameCanvas.getContext('2d');
     gameCanvas.width = 1200;
     gameCanvas.height = 800;
     game.gamePaused = false;
     game.gameStarted = false;
-    
+
+    // Assurer qu'on a une map valide
+    if (!game.currentMap || !MAPS[game.currentMap]) {
+        game.currentMap = 'haven';
+    }
+
     applyModeSettings();
     setupControls();
     loadObjectSprites();
     initializeMap();
     initializeMinimap();
-    equipWeapon('classic'); // Spawn avec le Classic (pistolet de base)
+    equipWeapon('classic');
     resetGameState(true);
-    setupMultiplayerSync(); // Écouter les autres joueurs
+    setupMultiplayerSync();
     startGameLoop();
 
     game.gameStarted = true;
-    console.log('Gameplay initialisé');
     return true;
 }
 
@@ -823,9 +824,12 @@ function initializeMap() {
 }
 
 function resetGameState(isNewMatch = false) {
-    const map = MAPS[game.currentMap] || MAPS['haven'];
+    // Assurer qu'on a une map valide
+    if (!game.currentMap || !MAPS[game.currentMap]) {
+        game.currentMap = 'haven';
+    }
+    const map = MAPS[game.currentMap];
     if (!map) {
-        console.error('Carte introuvable:', game.currentMap);
         return;
     }
     const spawnPoints = map.spawnPoints?.[player.team] || map.spawnPoints?.attackers || [{ x: 0, y: 0 }];
@@ -944,7 +948,6 @@ function setupControls() {
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('wheel', handleMouseWheel);
     
-    console.log('Contrôles configurés');
 }
 
 // ========================================
@@ -1379,7 +1382,6 @@ function sendPlayerPosition() {
             timestamp: firebase.database.ServerValue.TIMESTAMP
         });
     } catch (error) {
-        console.error('Erreur envoi position:', error);
     }
 }
 
@@ -1388,18 +1390,15 @@ let multiplayerListener = null;
 
 function setupMultiplayerSync() {
     if (!window.matchmakingState?.currentMatchId) {
-        console.log('Pas de match actif, pas de sync multijoueur');
         return;
     }
     if (!window.database) {
-        console.error('Firebase database non disponible');
         return;
     }
 
     const matchId = window.matchmakingState.currentMatchId;
     const playersRef = window.database.ref(`game_sessions/${matchId}/players`);
 
-    console.log('🔄 Configuration de la synchronisation multijoueur pour le match:', matchId);
 
     // Écouter les changements sur tous les joueurs
     multiplayerListener = playersRef.on('child_changed', (snapshot) => {
@@ -1409,7 +1408,6 @@ function setupMultiplayerSync() {
         // Ne pas mettre à jour notre propre joueur
         if (playerId === window.currentUser?.uid) return;
 
-        console.log('📡 Mise à jour du joueur:', playerId, playerData);
         window.updateOtherPlayerPosition(playerId, playerData);
     });
 
@@ -1421,7 +1419,6 @@ function setupMultiplayerSync() {
         // Ne pas ajouter notre propre joueur
         if (playerId === window.currentUser?.uid) return;
 
-        console.log('👥 Nouveau joueur détecté:', playerId, playerData);
         window.updateOtherPlayerPosition(playerId, playerData);
     });
 
@@ -1432,13 +1429,11 @@ function setupMultiplayerSync() {
         // Ne pas supprimer notre propre joueur
         if (playerId === window.currentUser?.uid) return;
 
-        console.log('👋 Joueur parti:', playerId);
         if (otherPlayers[playerId]) {
             delete otherPlayers[playerId];
         }
     });
 
-    console.log('✅ Synchronisation multijoueur configurée');
 }
 
 // Fonction pour arrêter la synchronisation (quand on quitte le match)
@@ -1452,7 +1447,6 @@ function stopMultiplayerSync() {
     playersRef.off();
     multiplayerListener = null;
 
-    console.log('🔴 Synchronisation multijoueur arrêtée');
 }
 
 // Fonction pour recevoir les positions des autres joueurs
@@ -1476,7 +1470,6 @@ window.updateOtherPlayerPosition = function(playerId, playerData) {
             crouching: playerData.crouching || false,
             username: playerData.username || 'Joueur'
         };
-        console.log('✨ Joueur créé dans otherPlayers:', playerId, otherPlayers[playerId]);
     } else {
         // Mettre à jour les données existantes
         otherPlayers[playerId].x = playerData.x || otherPlayers[playerId].x;
@@ -1890,7 +1883,6 @@ function useAbility(abilityKey) {
             ability.execute();
             executed = true;
         } catch (error) {
-            console.error('Erreur exécution capacité:', error);
         }
     }
 
@@ -1981,7 +1973,6 @@ function throwFlashbang() {
 
 function activateUltimate() {
     // Ultimate: Révèle les ennemis pendant 5 secondes
-    console.log('ULTIMATE ACTIVÉ!');
     
     // Effet visuel
     for (let i = 0; i < 100; i++) {
@@ -2100,7 +2091,6 @@ function updateTacticalDevices(dt) {
                 try {
                     device.onImpact(device);
                 } catch (error) {
-                    console.error('Erreur exécution impact dispositif tactique:', error);
                 }
             }
             tacticalDevices.splice(i, 1);
@@ -2669,7 +2659,6 @@ function loadObjectSprites() {
             objectSprites[type].loaded = true;
         };
         img.onerror = () => {
-            console.warn(`Impossible de charger le sprite: ${path}`);
         };
         img.src = path;
     });
@@ -2677,7 +2666,6 @@ function loadObjectSprites() {
 
 function endRound(reason) {
     if (game.phase === 'ended' || game.phase === 'match_over') return;
-    console.log('Round terminé:', reason);
 
     cancelBombInteraction();
 
@@ -2843,9 +2831,12 @@ function finishMatch(winner, reason = 'completed') {
 
 function render() {
     if (!gameContext) return;
-    
-    const map = MAPS[game.currentMap];
-    
+
+    const map = MAPS[game.currentMap] || MAPS['haven'];
+    if (!map) {
+        return;
+    }
+
     // Fond
     gameContext.fillStyle = map.backgroundColor;
     gameContext.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
@@ -3728,9 +3719,7 @@ function stopGame() {
     if (window.matchmakingState?.currentMatchId && window.database && window.currentUser) {
         try {
             const playerRef = window.database.ref(`game_sessions/${window.matchmakingState.currentMatchId}/players/${window.currentUser.uid}`);
-            playerRef.remove().catch(err => console.error('Erreur suppression position:', err));
         } catch (error) {
-            console.error('Erreur nettoyage position:', error);
         }
     }
 
@@ -3763,7 +3752,6 @@ async function leaveGame() {
                 }
             }
         } catch (error) {
-            console.error('Erreur lors de l\'abandon de la partie:', error);
         }
     }
 
@@ -3796,4 +3784,3 @@ window.closeBuyMenu = closeBuyMenu;
 window.buyWeapon = buyWeapon;
 window.buyArmor = buyArmor;
 
-console.log('Système de gameplay avancé chargé (1900+ lignes)');

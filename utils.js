@@ -214,7 +214,6 @@ const Storage = {
             const settings = localStorage.getItem('sioshooter_settings');
             return settings ? JSON.parse(settings) : null;
         } catch (error) {
-            console.error('Erreur chargement paramètres:', error);
             return null;
         }
     },
@@ -262,7 +261,6 @@ const Performance = {
         const start = performance.now();
         const result = func();
         const end = performance.now();
-        console.log(`${name} took ${(end - start).toFixed(2)} milliseconds`);
         return result;
     },
     

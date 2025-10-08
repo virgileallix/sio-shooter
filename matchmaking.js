@@ -102,8 +102,6 @@ const rankSystem = {
     'Radiant': { mmr: 2000, variance: 10 }
 };
 
-console.log('✅ window.gameModes défini avec succès');
-console.log('✅ rankSystem défini avec succès');
 
 // ========================================
 // APRÈS CETTE SECTION, CONTINUEZ AVEC LE RESTE DE VOTRE CODE matchmaking.js
@@ -141,7 +139,6 @@ class MatchmakingSystem {
 
     // Fonction principale pour rejoindre la file d'attente RÉELLE
     async findMatch(mode, map = null, options = {}) {
-        console.log('🔍 Recherche de match RÉELLE:', { mode, map, options });
         
         if (window.matchmakingState.inQueue) {
             throw new Error('Déjà en file d\'attente');
@@ -171,7 +168,6 @@ class MatchmakingSystem {
             
             return queueId;
         } catch (error) {
-            console.error('Erreur findMatch:', error);
             this.hideMatchmakingUI();
             throw error;
         }
@@ -206,7 +202,6 @@ class MatchmakingSystem {
         window.matchmakingState.selectedMap = map || null;
         window.matchmakingState.currentQueueId = newQueueRef.key;
         
-        console.log('✅ Entrée file d\'attente créée:', newQueueRef.key);
         return newQueueRef.key;
     }
 
@@ -262,7 +257,6 @@ class MatchmakingSystem {
             await this.createNewMatch(queueId, mode, playerData);
             
         } catch (error) {
-            console.error('Erreur recherche matchs:', error);
         }
     }
 
@@ -358,11 +352,9 @@ class MatchmakingSystem {
             
             window.matchmakingState.currentMatchId = matchId;
             
-            console.log('✅ Match rejoint:', matchId);
             return true;
             
         } catch (error) {
-            console.error('Erreur rejoindre match:', error);
             return false;
         }
     }
@@ -410,10 +402,8 @@ class MatchmakingSystem {
             
             window.matchmakingState.currentMatchId = newMatchRef.key;
             
-            console.log('✅ Nouveau match créé:', newMatchRef.key);
             
         } catch (error) {
-            console.error('Erreur création match:', error);
         }
     }
 
@@ -460,7 +450,6 @@ class MatchmakingSystem {
         const statusHandler = (snapshot) => {
             const matchData = snapshot.val();
             if (!matchData) {
-                console.log('Match supprimé');
                 return;
             }
             
@@ -512,7 +501,6 @@ class MatchmakingSystem {
 
     // Gérer quand un joueur rejoint le match
     handlePlayerJoined(playerId, playerData) {
-        console.log(`👤 Joueur rejoint: ${playerData.name}`);
         
         // Afficher une notification
         if (window.NotificationSystem) {
@@ -533,7 +521,6 @@ class MatchmakingSystem {
 
     // Gérer quand un joueur quitte le match
     handlePlayerLeft(playerId) {
-        console.log(`👋 Joueur parti: ${playerId}`);
         
         // Afficher une notification
         if (window.NotificationSystem) {
@@ -557,7 +544,6 @@ class MatchmakingSystem {
 
     // Gérer quand un match est trouvé
     async handleMatchFound(matchId) {
-        console.log('✅ Match trouvé:', matchId);
         
         // Nettoyer la file d'attente
         if (window.matchmakingState.currentQueueId) {
@@ -606,7 +592,6 @@ class MatchmakingSystem {
                 this.showMatchLobby(matchData);
             }
         } catch (error) {
-            console.error('Erreur rafraîchissement lobby:', error);
         }
     }
 
@@ -629,18 +614,15 @@ class MatchmakingSystem {
             
             // Si moins de 2 joueurs, annuler le match
             if (playerCount < 2 && matchData.status === 'waiting') {
-                console.log('⚠️ Pas assez de joueurs, match annulé');
                 await matchRef.remove();
                 this.handleMatchCancelled();
             }
         } catch (error) {
-            console.error('Erreur vérification match:', error);
         }
     }
 
     // Gérer l'annulation du match
     handleMatchCancelled() {
-        console.log('❌ Match annulé');
         
         if (window.NotificationSystem) {
             window.NotificationSystem.show(
@@ -657,7 +639,6 @@ class MatchmakingSystem {
 
     // Gérer la fin du match
     async handleMatchEnded(matchData) {
-        console.log('🏁 Match terminé');
         
         // Afficher les résultats
         this.showMatchResults(matchData);
@@ -874,13 +855,11 @@ class MatchmakingSystem {
 
     // Démarrer la session de jeu
     startGameSession(matchData) {
-        console.log('🚀 Démarrage de la session de jeu');
         
         this.hideAllMatchmakingUI();
         
         const resolvedMatchId = matchData?.id || window.matchmakingState.currentMatchId;
         if (!resolvedMatchId) {
-            console.error('Impossible de démarrer la partie: matchId manquant', matchData);
             if (window.NotificationSystem) {
                 window.NotificationSystem.show(
                     'Erreur de match',
@@ -936,7 +915,6 @@ class MatchmakingSystem {
     // Configurer la synchronisation de jeu en temps réel
     setupGameSync(matchId) {
         if (!matchId) {
-            console.error('Impossible de configurer la synchronisation: matchId manquant');
             return;
         }
 
@@ -982,7 +960,6 @@ class MatchmakingSystem {
         // Charger d'abord tous les joueurs existants
         positionsRef.once('value', (snapshot) => {
             const players = snapshot.val() || {};
-            console.log('📍 Chargement des joueurs existants:', Object.keys(players).length);
 
             for (const playerId in players) {
                 if (playerId !== currentUser.uid && window.updateOtherPlayerPosition) {
@@ -1008,7 +985,6 @@ class MatchmakingSystem {
         positionsRef.on('child_removed', (snapshot) => {
             const playerId = snapshot.key;
             if (window.otherPlayers && window.otherPlayers[playerId]) {
-                console.log('👋 Joueur déconnecté:', playerId);
                 delete window.otherPlayers[playerId];
             }
         });
@@ -1087,7 +1063,6 @@ class MatchmakingSystem {
             try {
                 await sessionRef.child(`players/${currentUser.uid}`).remove();
             } catch (playerRemovalError) {
-                console.warn('Suppression joueur session échouée:', playerRemovalError);
             }
             
             if (options.recordEvent !== false) {
@@ -1099,7 +1074,6 @@ class MatchmakingSystem {
                         timestamp: firebase.database.ServerValue.TIMESTAMP
                     });
                 } catch (eventError) {
-                    console.warn('Enregistrement événement abandon échoué:', eventError);
                 }
             }
             
@@ -1112,13 +1086,11 @@ class MatchmakingSystem {
                 try {
                     await sessionRef.remove();
                 } catch (sessionRemovalError) {
-                    console.warn('Suppression session échouée:', sessionRemovalError);
                 }
             } else {
                 await matchRef.child('lastActivity').set(firebase.database.ServerValue.TIMESTAMP);
             }
         } catch (error) {
-            console.error('Erreur lors de l\'abandon du match:', error);
         } finally {
             this.clearCurrentMatchState();
             this.handlePostMatchCleanup();
@@ -1154,7 +1126,6 @@ class MatchmakingSystem {
                 endedAt: firebase.database.ServerValue.TIMESTAMP
             });
         } catch (error) {
-            console.error('Erreur finalisation match:', error);
         }
     }
 
@@ -1190,7 +1161,6 @@ class MatchmakingSystem {
         this.cleanup();
         this.hideMatchmakingUI();
         
-        console.log('❌ File d\'attente quittée');
     }
 
     // Nettoyer les listeners et intervalles
@@ -1306,9 +1276,7 @@ class MatchmakingSystem {
     async cancelMatchmaking() {
         try {
             await this.leaveQueue();
-            console.log('🚫 Matchmaking annulé');
         } catch (error) {
-            console.error('Erreur annulation matchmaking:', error);
         }
     }
 
@@ -1339,7 +1307,6 @@ class MatchmakingSystem {
             const snapshot = await userRef.once('value');
             return snapshot.val() || this.getDefaultPlayerData();
         } catch (error) {
-            console.error('Erreur récupération données joueur:', error);
             return this.getDefaultPlayerData();
         }
     }
@@ -1392,13 +1359,11 @@ class MatchmakingSystem {
             const queueRef = database.ref(`matchmaking_queue/${queueId}`);
             await queueRef.child('lastActivity').set(firebase.database.ServerValue.TIMESTAMP);
         } catch (error) {
-            console.error('Erreur mise à jour activité:', error);
         }
     }
 
     // Gérer le timeout de file d'attente
     async handleQueueTimeout(queueId) {
-        console.log('⏰ Timeout de file d\'attente');
         await this.leaveQueue(queueId);
         
         if (window.NotificationSystem) {
@@ -1458,15 +1423,12 @@ if (database && database.ref) {
                     // Supprimer les entrées inactives depuis plus de 10 minutes
                     if (timeSinceActivity > 600000) {
                         await queueRef.child(queueId).remove();
-                        console.log('🧹 Entrée de file d\'attente inactive supprimée:', queueId);
                     }
                 }
             }
         } catch (error) {
-            console.error('Erreur nettoyage file d\'attente:', error);
         }
     }, 60000); // Vérifier toutes les minutes
 }
 
-console.log('🎮 Système de matchmaking RÉEL chargé avec Firebase !');
 

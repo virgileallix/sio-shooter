@@ -101,7 +101,6 @@ const TournamentSystem = {
             nameInput.value = '';
             NotificationSystem?.show?.('Tournoi créé', `${name} est prêt à accueillir des joueurs !`, 'success');
         }).catch(error => {
-            console.error('Erreur création tournoi:', error);
             NotificationSystem?.show?.('Tournoi', 'Impossible de créer le tournoi.', 'error');
         });
     },
@@ -250,7 +249,6 @@ const TournamentSystem = {
                 NotificationSystem?.show?.('Tournoi', 'Inscription confirmée !', 'success');
             })
             .catch(error => {
-                console.error('Erreur inscription tournoi:', error);
                 NotificationSystem?.show?.('Tournoi', 'Impossible de rejoindre le tournoi.', 'error');
             });
     },
@@ -358,7 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             TournamentSystem.init();
         } catch (error) {
-            console.error('Erreur initialisation TournamentSystem:', error);
+            // Erreur initialisation TournamentSystem
         }
     }, 1400);
 });
