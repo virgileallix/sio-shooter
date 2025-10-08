@@ -10,7 +10,7 @@
     // Variables globales pour les menus
     let currentMenuSection = window.currentMenuSection || 'play';
     let selectedGameMode = window.selectedGameMode || 'competitive';
-    let selectedMap = window.selectedMap || 'dust2_complex';
+    let selectedMap = window.selectedMap || 'haven';
     let selectedWeaponCategory = 'rifles';
     let searchResults = [];
     let currentSearchQuery = '';
@@ -455,11 +455,11 @@ function updateMapSelectionForMode(mode) {
 
     // Cartes disponibles selon le mode
     const availableMaps = {
-        deathmatch: ['dust2', 'haven'],
-        competitive: ['dust2', 'haven'],
-        attack_defense: ['dust2', 'haven'],
-        duel: ['dust2'],
-        unrated: ['dust2', 'haven']
+        deathmatch: ['haven', 'ascent', 'bind'],
+        competitive: ['haven', 'ascent', 'bind'],
+        attack_defense: ['haven', 'ascent', 'bind'],
+        duel: ['haven', 'ascent', 'bind'],
+        unrated: ['haven', 'ascent', 'bind']
     };
 
     const maps = availableMaps[mode] || ['dust2', 'haven'];
@@ -534,12 +534,12 @@ function updateModeInfo(mode, modeData) {
 function resolveMapSelection(map) {
     const value = (map || '').toLowerCase();
     switch (value) {
-        case 'dust2':
-        case 'dust2_complex':
-            return 'dust2_complex';
         case 'haven':
-        case 'haven_complex':
-            return 'haven_complex';
+            return 'haven';
+        case 'ascent':
+            return 'ascent';
+        case 'bind':
+            return 'bind';
         case 'auto':
         case 'random':
             return 'auto';
@@ -550,8 +550,9 @@ function resolveMapSelection(map) {
 
 function getMapDisplayName(mapKey) {
     const names = {
-        'dust2_complex': 'Dust2',
-        'haven_complex': 'Haven',
+        'haven': 'Haven',
+        'ascent': 'Ascent',
+        'bind': 'Bind',
         'auto': 'Aléatoire'
     };
     return names[mapKey] || mapKey;

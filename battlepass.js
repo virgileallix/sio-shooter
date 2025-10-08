@@ -109,7 +109,8 @@ const BattlePassSystem = {
     canClaim(level, track) {
         const levelEntry = BattlePassConfig.levels.find(l => l.level === level);
         if (!levelEntry) return false;
-        if (this.state.xp < levelEntry.xpRequired) return false;
+        // Peut claim si le niveau actuel est >= au niveau de la récompense
+        if (this.state.level < level) return false;
         if (track === 'premium' && !this.state.premium) return false;
         return !this.isRewardClaimed(level, track);
     },

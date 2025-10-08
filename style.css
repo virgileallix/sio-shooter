@@ -2308,6 +2308,31 @@ body {
     z-index: 120;
 }
 
+.bomb-hint {
+    position: absolute;
+    bottom: 150px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 70, 70, 0.9);
+    padding: 15px 25px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 200, 50, 0.8);
+    pointer-events: none;
+    z-index: 121;
+    animation: bombPulse 1.5s infinite;
+}
+
+@keyframes bombPulse {
+    0%, 100% {
+        transform: translateX(-50%) scale(1);
+        box-shadow: 0 0 10px rgba(255, 200, 50, 0.5);
+    }
+    50% {
+        transform: translateX(-50%) scale(1.05);
+        box-shadow: 0 0 20px rgba(255, 200, 50, 0.8);
+    }
+}
+
 .hint-content {
     display: flex;
     align-items: center;

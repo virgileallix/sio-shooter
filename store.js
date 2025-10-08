@@ -245,8 +245,23 @@ const WEAPON_SKINS = {
 // Définition des cases
 const WEAPON_CASES = [
     {
+        id: 'starter_case',
+        name: 'Caisse Débutant',
+        price: 100,
+        description: 'Parfaite pour commencer votre collection',
+        contents: [
+            'ak47_jungle_spray',
+            'm4a4_tornado',
+            'p250_sand_dune',
+            'usp_orion',
+            'glock_fade',
+            'mp9_bulldozer',
+            'ak47_case_hardened'
+        ]
+    },
+    {
         id: 'chroma_case',
-        name: 'Chroma Case',
+        name: 'Caisse Chroma',
         price: 250,
         description: 'Contient des skins colorés avec finitions vibrantes',
         contents: [
@@ -264,7 +279,7 @@ const WEAPON_CASES = [
     },
     {
         id: 'spectrum_case',
-        name: 'Spectrum Case',
+        name: 'Caisse Spectrum',
         price: 300,
         description: 'Collection de skins avec un large spectre de couleurs',
         contents: [
@@ -278,8 +293,8 @@ const WEAPON_CASES = [
     },
     {
         id: 'phoenix_case',
-        name: 'Phoenix Case',
-        price: 200,
+        name: 'Caisse Phoenix',
+        price: 400,
         description: 'Skins légendaires du monde de Phoenix',
         contents: [
             'ak47_vulcan',
@@ -287,13 +302,274 @@ const WEAPON_CASES = [
             'awp_dragon_lore',
             'butterfly_crimson_web'
         ]
+    },
+    {
+        id: 'elite_case',
+        name: 'Caisse Élite',
+        price: 500,
+        description: 'Les meilleurs skins pour les joueurs d\'élite',
+        contents: [
+            'ak47_vulcan',
+            'ak47_redline',
+            'm4a4_asiimov',
+            'm4a4_howl',
+            'awp_asiimov',
+            'awp_dragon_lore',
+            'deagle_blaze',
+            'karambit_fade',
+            'butterfly_crimson_web'
+        ]
+    },
+    {
+        id: 'premium_case',
+        name: 'Caisse Premium',
+        price: 750,
+        description: 'Contenu exclusif avec chances améliorées de skins rares',
+        contents: [
+            'ak47_vulcan',
+            'm4a4_howl',
+            'awp_dragon_lore',
+            'butterfly_crimson_web',
+            'karambit_fade',
+            'deagle_blaze',
+            'p90_asiimov'
+        ]
     }
 ];
+
+// Définition des agents
+const AGENTS = {
+    reyna: {
+        id: 'reyna',
+        name: 'Reyna',
+        role: 'Duelliste',
+        price: 1500,
+        description: 'Reyna se nourrit des éliminations pour régénérer sa santé et devenir invincible.',
+        icon: '👁️',
+        rarity: 'covert',
+        abilities: {
+            ability1: {
+                name: 'Dévorer',
+                description: 'Consomme une âme pour régénérer rapidement la santé',
+                cooldown: 0,
+                charges: 'per_kill',
+                effect: 'heal'
+            },
+            ability2: {
+                name: 'Rejeter',
+                description: 'Devient invincible pendant 2 secondes',
+                cooldown: 0,
+                charges: 'per_kill',
+                effect: 'invincible'
+            },
+            ultimate: {
+                name: 'Impératrice',
+                description: 'Augmente la cadence de tir et améliore la vision',
+                points: 6,
+                duration: 10,
+                effect: 'fire_rate_boost'
+            }
+        }
+    },
+    jett: {
+        id: 'jett',
+        name: 'Jett',
+        role: 'Duelliste',
+        price: 1500,
+        description: 'Agent agile capable de se déplacer rapidement et de planer dans les airs.',
+        icon: '💨',
+        rarity: 'covert',
+        abilities: {
+            ability1: {
+                name: 'Updraft',
+                description: 'Propulse vers le haut',
+                cooldown: 35,
+                effect: 'dash_up'
+            },
+            ability2: {
+                name: 'Tailwind',
+                description: 'Dash rapide dans la direction du mouvement',
+                cooldown: 30,
+                effect: 'dash'
+            },
+            ultimate: {
+                name: 'Lames Tourbillonnantes',
+                description: 'Équipe des couteaux de lancer ultra-précis',
+                points: 7,
+                effect: 'knife_throw'
+            }
+        }
+    },
+    sage: {
+        id: 'sage',
+        name: 'Sage',
+        role: 'Sentinelle',
+        price: 1200,
+        description: 'Guérisseuse et protectrice, capable de créer des barrières et de ressusciter.',
+        icon: '❄️',
+        rarity: 'classified',
+        abilities: {
+            ability1: {
+                name: 'Orbe de Soin',
+                description: 'Soigne soi-même ou un allié',
+                cooldown: 45,
+                effect: 'heal_orb'
+            },
+            ability2: {
+                name: 'Orbe de Ralentissement',
+                description: 'Crée une zone qui ralentit les ennemis',
+                cooldown: 30,
+                effect: 'slow_orb'
+            },
+            ultimate: {
+                name: 'Résurrection',
+                description: 'Ressuscite un allié mort',
+                points: 8,
+                effect: 'resurrect'
+            }
+        }
+    },
+    phoenix: {
+        id: 'phoenix',
+        name: 'Phoenix',
+        role: 'Duelliste',
+        price: 1200,
+        description: 'Maître du feu capable de se soigner et de renaître de ses cendres.',
+        icon: '🔥',
+        rarity: 'classified',
+        abilities: {
+            ability1: {
+                name: 'Mains Brûlantes',
+                description: 'Lance une boule de feu qui soigne Phoenix',
+                cooldown: 25,
+                effect: 'fire_heal'
+            },
+            ability2: {
+                name: 'Flammes Incendiaires',
+                description: 'Crée un mur de feu',
+                cooldown: 30,
+                effect: 'fire_wall'
+            },
+            ultimate: {
+                name: 'Renaissance',
+                description: 'Place un marqueur. Si Phoenix meurt, il renaît au marqueur',
+                points: 6,
+                duration: 10,
+                effect: 'respawn'
+            }
+        }
+    },
+    omen: {
+        id: 'omen',
+        name: 'Omen',
+        role: 'Contrôleur',
+        price: 1200,
+        description: 'Manipulateur des ombres, capable de se téléporter et d\'aveugler.',
+        icon: '👻',
+        rarity: 'classified',
+        abilities: {
+            ability1: {
+                name: 'Linceul Ténébreux',
+                description: 'Lance un projectile qui aveugle',
+                cooldown: 25,
+                effect: 'blind'
+            },
+            ability2: {
+                name: 'Foulée Ténébreuse',
+                description: 'Téléportation courte distance',
+                cooldown: 35,
+                effect: 'teleport_short'
+            },
+            ultimate: {
+                name: 'Depuis l\'Ombre',
+                description: 'Téléportation n\'importe où sur la map',
+                points: 7,
+                effect: 'teleport_map'
+            }
+        }
+    },
+    viper: {
+        id: 'viper',
+        name: 'Viper',
+        role: 'Contrôleur',
+        price: 1300,
+        description: 'Experte en toxines, déploie des écrans de fumée empoisonnée.',
+        icon: '☠️',
+        rarity: 'classified',
+        abilities: {
+            ability1: {
+                name: 'Nuage Toxique',
+                description: 'Déploie un nuage de gaz empoisonné',
+                cooldown: 30,
+                effect: 'poison_cloud'
+            },
+            ability2: {
+                name: 'Écran Toxique',
+                description: 'Crée un mur de gaz toxique',
+                cooldown: 35,
+                effect: 'poison_wall'
+            },
+            ultimate: {
+                name: 'Fosse à Vipères',
+                description: 'Crée une énorme zone de gaz toxique',
+                points: 7,
+                duration: 15,
+                effect: 'poison_zone'
+            }
+        }
+    },
+    cypher: {
+        id: 'cypher',
+        name: 'Cypher',
+        role: 'Sentinelle',
+        price: 1400,
+        description: 'Espion marocain utilisant des gadgets pour surveiller et piéger.',
+        icon: '🎩',
+        rarity: 'restricted',
+        abilities: {
+            ability1: {
+                name: 'Fil Piège',
+                description: 'Place un fil qui révèle et ralentit les ennemis',
+                cooldown: 30,
+                effect: 'tripwire'
+            },
+            ability2: {
+                name: 'Cage Cyber',
+                description: 'Place une cage qui bloque la vision',
+                cooldown: 25,
+                effect: 'cyber_cage'
+            },
+            ultimate: {
+                name: 'Assaut Neuronal',
+                description: 'Révèle la position de tous les ennemis vivants',
+                points: 6,
+                duration: 5,
+                effect: 'reveal_all'
+            }
+        }
+    },
+    default: {
+        id: 'default',
+        name: 'Agent Standard',
+        role: 'Polyvalent',
+        price: 0,
+        description: 'Agent de base sans capacités spéciales',
+        icon: '🎯',
+        rarity: 'consumer',
+        abilities: {
+            ability1: null,
+            ability2: null,
+            ultimate: null
+        }
+    }
+};
 
 // État global de l'inventaire
 let playerInventory = {
     skins: [],
     cases: [],
+    agents: ['default'], // Agent par défaut débloqué
+    equippedAgent: 'default',
     equippedSkins: {
         rifles: {},
         pistols: {},
@@ -428,13 +704,21 @@ const StoreSystem = {
             playerInventory.cases = [];
         }
 
+        if (!Array.isArray(playerInventory.agents)) {
+            playerInventory.agents = ['default'];
+        }
+
+        if (!playerInventory.equippedAgent) {
+            playerInventory.equippedAgent = 'default';
+        }
+
         if (!playerInventory.currency) {
-            playerInventory.currency = { coins: 0, vp: 0 };
+            playerInventory.currency = { coins: 1000, vp: 0 };
         }
 
         playerInventory.currency.coins = Number.isFinite(playerInventory.currency.coins)
             ? playerInventory.currency.coins
-            : 0;
+            : 1000;
         playerInventory.currency.vp = Number.isFinite(playerInventory.currency.vp)
             ? playerInventory.currency.vp
             : 0;
@@ -715,7 +999,7 @@ const StoreSystem = {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            transition: transform 5s cubic-bezier(0.22, 0.61, 0.36, 1);
+            transition: transform 6s cubic-bezier(0.17, 0.67, 0.35, 0.96);
         `;
 
         // Créer les items de la roulette
@@ -723,17 +1007,20 @@ const StoreSystem = {
             Object.values(WEAPON_SKINS).flat().find(skin => skin.id === skinId)
         ).filter(Boolean);
 
-        // Générer 50 items aléatoires + le skin gagnant à la position centrale
+        // Générer beaucoup d'items aléatoires + le skin gagnant loin dans la liste
         const items = [];
-        for (let i = 0; i < 25; i++) {
-            const randomSkin = caseSkins[Math.floor(Math.random() * caseSkins.length)];
-            items.push(randomSkin);
-        }
-        // Insérer le skin gagnant au milieu
-        items.push(wonSkin);
-        for (let i = 0; i < 25; i++) {
-            const randomSkin = caseSkins[Math.floor(Math.random() * caseSkins.length)];
-            items.push(randomSkin);
+        const totalItems = 80; // Total d'items
+        const winningPosition = 65; // Position du skin gagnant (proche de la fin)
+
+        for (let i = 0; i < totalItems; i++) {
+            if (i === winningPosition) {
+                // Insérer le skin gagnant à cette position
+                items.push(wonSkin);
+            } else {
+                // Ajouter un skin aléatoire
+                const randomSkin = caseSkins[Math.floor(Math.random() * caseSkins.length)];
+                items.push(randomSkin);
+            }
         }
 
         // Créer les cartes
@@ -784,21 +1071,21 @@ const StoreSystem = {
 
         // Démarrer l'animation
         setTimeout(() => {
-            // Calculer la position finale (item 25 = skin gagnant)
+            // Calculer la position finale (item 65 = skin gagnant)
             const itemWidth = 165; // 150px + 15px gap
-            const targetPosition = -(25 * itemWidth);
+            const targetPosition = -(65 * itemWidth);
 
             roulette.style.transform = `translateX(${targetPosition}px)`;
 
             // Jouer un son à la fin
             setTimeout(() => {
                 this.playSound('reveal');
-            }, 4800);
+            }, 5800);
 
             // Révéler après l'animation
             setTimeout(() => {
                 this.revealSkinCSGO(wonSkin);
-            }, 5500);
+            }, 6500);
         }, 100);
 
         this.currentRevealedSkin = wonSkin;
@@ -1218,10 +1505,8 @@ const StoreSystem = {
             return;
         }
 
-        ownedSkins.forEach(skin => {
-            const skinCard = this.createSkinCard(skin, 'inventory');
-            weaponsGrid.appendChild(skinCard);
-        });
+        // Charger la catégorie rifles par défaut
+        showInventoryCategory('rifles');
     },
 
     loadInventoryCases() {
@@ -1269,13 +1554,83 @@ const StoreSystem = {
         const agentsGrid = document.getElementById('inventory-agents-grid');
         if (!agentsGrid) return;
 
-        agentsGrid.innerHTML = `
-            <div class="empty-inventory">
-                <i class="fas fa-user-ninja"></i>
-                <p>Aucun agent débloqué pour le moment</p>
-                <p style="font-size: 14px; opacity: 0.7;">Les agents seront disponibles dans une future mise à jour.</p>
-            </div>
-        `;
+        agentsGrid.innerHTML = '';
+
+        const ownedAgents = playerInventory.agents
+            .map(agentId => AGENTS[agentId])
+            .filter(Boolean);
+
+        if (ownedAgents.length === 0) {
+            agentsGrid.innerHTML = `
+                <div class="empty-inventory">
+                    <i class="fas fa-user-ninja"></i>
+                    <p>Aucun agent dans votre collection</p>
+                    <button class="btn-primary" onclick="showMenuSection('store'); StoreSystem.switchStoreTab('agents')">Acheter des agents</button>
+                </div>
+            `;
+            return;
+        }
+
+        ownedAgents.forEach(agent => {
+            const isEquipped = playerInventory.equippedAgent === agent.id;
+
+            const agentCard = document.createElement('div');
+            agentCard.className = 'agent-card';
+            agentCard.style.cssText = `
+                background: ${RARITIES[agent.rarity].gradient};
+                border: 2px solid ${isEquipped ? '#ffd700' : RARITIES[agent.rarity].color};
+                border-radius: 15px;
+                padding: 20px;
+                position: relative;
+                cursor: pointer;
+                transition: transform 0.2s;
+                ${isEquipped ? 'box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);' : ''}
+            `;
+
+            agentCard.innerHTML = `
+                ${isEquipped ? '<div style="position: absolute; top: 10px; right: 10px; background: #ffd700; color: black; padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 12px;"><i class="fas fa-star"></i> ÉQUIPÉ</div>' : ''}
+                <div style="font-size: 64px; text-align: center; margin-bottom: 10px;">${agent.icon}</div>
+                <h3 style="color: white; text-align: center; margin-bottom: 5px;">${agent.name}</h3>
+                <p style="color: rgba(255,255,255,0.7); text-align: center; font-size: 12px; margin-bottom: 10px;">${agent.role}</p>
+
+                <div style="margin-bottom: 15px;">
+                    ${agent.abilities.ability1 ? `
+                        <div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 8px; margin-bottom: 5px;">
+                            <strong style="color: #00d4ff;">${agent.abilities.ability1.name}</strong>
+                        </div>
+                    ` : ''}
+                    ${agent.abilities.ability2 ? `
+                        <div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 8px; margin-bottom: 5px;">
+                            <strong style="color: #00d4ff;">${agent.abilities.ability2.name}</strong>
+                        </div>
+                    ` : ''}
+                    ${agent.abilities.ultimate ? `
+                        <div style="background: rgba(255,215,0,0.2); padding: 8px; border-radius: 8px;">
+                            <strong style="color: #ffd700;">ULT: ${agent.abilities.ultimate.name}</strong>
+                        </div>
+                    ` : ''}
+                </div>
+
+                ${isEquipped ? `
+                    <button class="btn-secondary" style="width: 100%; opacity: 0.5;" disabled>
+                        <i class="fas fa-star"></i> Agent actif
+                    </button>
+                ` : `
+                    <button class="btn-primary" style="width: 100%;" onclick="StoreSystem.equipAgent('${agent.id}')">
+                        <i class="fas fa-check"></i> Équiper cet agent
+                    </button>
+                `}
+            `;
+
+            agentCard.addEventListener('mouseenter', () => {
+                agentCard.style.transform = 'scale(1.05)';
+            });
+            agentCard.addEventListener('mouseleave', () => {
+                agentCard.style.transform = 'scale(1)';
+            });
+
+            agentsGrid.appendChild(agentCard);
+        });
     },
 
     updateInventoryStats() {
@@ -1379,13 +1734,134 @@ const StoreSystem = {
         const agentsGrid = document.getElementById('agents-grid');
         if (!agentsGrid) return;
 
-        agentsGrid.innerHTML = `
-            <div class="empty-inventory">
-                <i class="fas fa-user-ninja"></i>
-                <p>Agents bientôt disponibles!</p>
-                <p style="font-size: 14px; opacity: 0.7;">Cette fonctionnalité sera ajoutée dans une future mise à jour.</p>
-            </div>
-        `;
+        agentsGrid.innerHTML = '';
+
+        Object.values(AGENTS).forEach(agent => {
+            const isOwned = playerInventory.agents.includes(agent.id);
+            const isEquipped = playerInventory.equippedAgent === agent.id;
+
+            const agentCard = document.createElement('div');
+            agentCard.className = 'agent-card';
+            agentCard.style.cssText = `
+                background: ${RARITIES[agent.rarity].gradient};
+                border: 2px solid ${RARITIES[agent.rarity].color};
+                border-radius: 15px;
+                padding: 20px;
+                position: relative;
+                cursor: pointer;
+                transition: transform 0.2s;
+            `;
+
+            agentCard.innerHTML = `
+                <div style="font-size: 64px; text-align: center; margin-bottom: 10px;">${agent.icon}</div>
+                <h3 style="color: white; text-align: center; margin-bottom: 5px;">${agent.name}</h3>
+                <p style="color: rgba(255,255,255,0.7); text-align: center; font-size: 12px; margin-bottom: 10px;">${agent.role}</p>
+                <p style="color: rgba(255,255,255,0.8); text-align: center; font-size: 14px; margin-bottom: 15px;">${agent.description}</p>
+
+                <div style="margin-bottom: 15px;">
+                    ${agent.abilities.ability1 ? `
+                        <div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 8px; margin-bottom: 5px;">
+                            <strong style="color: #00d4ff;">${agent.abilities.ability1.name}</strong>
+                            <p style="font-size: 12px; color: rgba(255,255,255,0.7);">${agent.abilities.ability1.description}</p>
+                        </div>
+                    ` : ''}
+                    ${agent.abilities.ability2 ? `
+                        <div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 8px; margin-bottom: 5px;">
+                            <strong style="color: #00d4ff;">${agent.abilities.ability2.name}</strong>
+                            <p style="font-size: 12px; color: rgba(255,255,255,0.7);">${agent.abilities.ability2.description}</p>
+                        </div>
+                    ` : ''}
+                    ${agent.abilities.ultimate ? `
+                        <div style="background: rgba(255,215,0,0.2); padding: 8px; border-radius: 8px;">
+                            <strong style="color: #ffd700;">ULT: ${agent.abilities.ultimate.name}</strong>
+                            <p style="font-size: 12px; color: rgba(255,255,255,0.7);">${agent.abilities.ultimate.description}</p>
+                        </div>
+                    ` : ''}
+                </div>
+
+                ${isOwned ? `
+                    <div style="text-align: center; color: #00ff00; font-weight: bold; margin-bottom: 10px;">
+                        <i class="fas fa-check-circle"></i> Possédé
+                    </div>
+                ` : `
+                    <div style="text-align: center; margin-bottom: 10px;">
+                        <span style="color: #ffd700; font-size: 18px; font-weight: bold;">
+                            <i class="fas fa-coins"></i> ${agent.price}
+                        </span>
+                    </div>
+                `}
+
+                ${isEquipped ? `
+                    <button class="btn-secondary" style="width: 100%; opacity: 0.5;" disabled>
+                        <i class="fas fa-star"></i> Équipé
+                    </button>
+                ` : isOwned ? `
+                    <button class="btn-primary" style="width: 100%;" onclick="StoreSystem.equipAgent('${agent.id}')">
+                        <i class="fas fa-check"></i> Équiper
+                    </button>
+                ` : `
+                    <button class="btn-primary" style="width: 100%;" onclick="StoreSystem.buyAgent('${agent.id}')">
+                        <i class="fas fa-shopping-cart"></i> Acheter
+                    </button>
+                `}
+            `;
+
+            agentCard.addEventListener('mouseenter', () => {
+                agentCard.style.transform = 'scale(1.05)';
+            });
+            agentCard.addEventListener('mouseleave', () => {
+                agentCard.style.transform = 'scale(1)';
+            });
+
+            agentsGrid.appendChild(agentCard);
+        });
+    },
+
+    buyAgent(agentId) {
+        const agent = AGENTS[agentId];
+        if (!agent) return;
+
+        if (playerInventory.agents.includes(agentId)) {
+            if (window.NotificationSystem) {
+                window.NotificationSystem.show('Agent déjà possédé', `Vous possédez déjà ${agent.name}`, 'info', 3000);
+            }
+            return;
+        }
+
+        if (playerInventory.currency.coins < agent.price) {
+            if (window.NotificationSystem) {
+                window.NotificationSystem.show('Crédits insuffisants', `Vous avez besoin de ${agent.price} SIO Coins`, 'error', 3000);
+            }
+            return;
+        }
+
+        // Acheter l'agent
+        playerInventory.currency.coins -= agent.price;
+        playerInventory.agents.push(agentId);
+
+        this.ensureInventoryStructure();
+        this.savePlayerData();
+        this.updateCurrencyDisplay();
+        this.loadAgents();
+        this.loadInventoryAgents();
+
+        if (window.NotificationSystem) {
+            window.NotificationSystem.show('Agent acheté !', `${agent.name} a été ajouté à votre collection`, 'success', 3000);
+        }
+    },
+
+    equipAgent(agentId) {
+        if (!playerInventory.agents.includes(agentId)) return;
+
+        playerInventory.equippedAgent = agentId;
+        this.savePlayerData();
+        this.loadAgents();
+        this.loadInventoryAgents();
+
+        const agent = AGENTS[agentId];
+        if (window.NotificationSystem) {
+            window.NotificationSystem.show('Agent équipé', `${agent.name} est maintenant votre agent actif`, 'success', 2000);
+        }
     }
 };
 
@@ -1470,5 +1946,46 @@ window.playerInventory = playerInventory;
 window.WEAPON_SKINS = WEAPON_SKINS;
 window.WEAPON_CASES = WEAPON_CASES;
 window.RARITIES = RARITIES;
+window.AGENTS = AGENTS;
+
+// Fonction pour afficher l'agent actuel dans le menu
+function updateCurrentAgentDisplay() {
+    const displayElement = document.getElementById('current-agent-display');
+    if (!displayElement) return;
+
+    const currentAgentId = playerInventory?.equippedAgent || 'default';
+    const agent = AGENTS[currentAgentId];
+
+    if (!agent) {
+        displayElement.innerHTML = '<p style="color: rgba(255,255,255,0.5);">Aucun agent sélectionné</p>';
+        return;
+    }
+
+    displayElement.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+            <div style="font-size: 48px;">${agent.icon}</div>
+            <div style="text-align: left;">
+                <div style="font-size: 18px; font-weight: bold; color: white;">${agent.name}</div>
+                <div style="font-size: 12px; color: rgba(255,255,255,0.7);">${agent.role}</div>
+            </div>
+        </div>
+    `;
+}
+
+// Appeler la fonction quand on change de section de menu
+const originalShowMenuSection = window.showMenuSection;
+if (originalShowMenuSection) {
+    window.showMenuSection = function(section) {
+        originalShowMenuSection(section);
+        if (section === 'play') {
+            setTimeout(updateCurrentAgentDisplay, 100);
+        }
+    };
+}
+
+// Mettre à jour au chargement
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(updateCurrentAgentDisplay, 3000);
+});
 
 console.log('✅ Store.js chargé avec succès');

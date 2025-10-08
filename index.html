@@ -180,18 +180,25 @@
                         <div class="map-selection">
                             <h3>Sélection de Carte</h3>
                             <div class="maps-grid">
-                                <div class="map-card active" onclick="selectMap('dust2')">
-                                    <div class="map-preview dust2"></div>
-                                    <div class="map-info">
-                                        <div class="map-name">Dust2</div>
-                                        <div class="map-layout">2 sites</div>
-                                    </div>
-                                </div>
-                                <div class="map-card" onclick="selectMap('haven')">
+                                <div class="map-card active" onclick="selectMap('haven')">
                                     <div class="map-preview haven"></div>
                                     <div class="map-info">
                                         <div class="map-name">Haven</div>
                                         <div class="map-layout">3 sites</div>
+                                    </div>
+                                </div>
+                                <div class="map-card" onclick="selectMap('ascent')">
+                                    <div class="map-preview ascent"></div>
+                                    <div class="map-info">
+                                        <div class="map-name">Ascent</div>
+                                        <div class="map-layout">2 sites</div>
+                                    </div>
+                                </div>
+                                <div class="map-card" onclick="selectMap('bind')">
+                                    <div class="map-preview bind"></div>
+                                    <div class="map-info">
+                                        <div class="map-name">Bind</div>
+                                        <div class="map-layout">2 sites</div>
                                     </div>
                                 </div>
                                 <div class="map-card" onclick="selectMap('auto')">
@@ -225,18 +232,19 @@
                                 </div>
                             </div>
 
-                            <div class="agent-selection">
-                                <h3>Agents</h3>
-                                <div id="selected-agent-display" class="selected-agent-display">
-                                    <!-- Filled by AgentSystem -->
-                                </div>
-                                <div class="agent-selection-grid" id="agent-selection-grid">
-                                    <!-- Agents rendered dynamically -->
-                                </div>
-                            </div>
                         </div>
 
-                        <button class="launch-game-btn" onclick="launchGame()">
+                        <div class="selected-agent-info" style="background: rgba(0, 212, 255, 0.1); border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 10px; padding: 15px; margin-top: 20px; text-align: center;">
+                            <h4 style="color: #00d4ff; margin-bottom: 10px;">
+                                <i class="fas fa-user-ninja"></i> Agent sélectionné
+                            </h4>
+                            <div id="current-agent-display"></div>
+                            <p style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 10px;">
+                                Changez d'agent dans <strong>Inventaire > Agents</strong>
+                            </p>
+                        </div>
+
+                        <button class="launch-game-btn" onclick="launchGame()" style="margin-top: 20px;">
                             <i class="fas fa-rocket"></i> RECHERCHER UNE PARTIE
                         </button>
                     </div>
@@ -843,6 +851,14 @@
                     <div class="hint-content">
                         <i class="fas fa-shopping-cart"></i>
                         <span>Appuyez sur <kbd>B</kbd> pour ouvrir la boutique</span>
+                    </div>
+                </div>
+
+                <!-- Bomb Interaction Hint -->
+                <div class="bomb-hint hidden" id="bomb-hint">
+                    <div class="hint-content">
+                        <i class="fas fa-bomb"></i>
+                        <span id="bomb-hint-text">Appuyez sur <kbd>E</kbd> pour planter la spike</span>
                     </div>
                 </div>
 

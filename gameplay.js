@@ -239,6 +239,19 @@ const OBJECT_TYPES = {
         color: '#8B0000',
         width: 35,
         height: 35
+    },
+    spawn_barrier: {
+        name: 'Barrière de spawn',
+        health: Infinity,
+        maxHealth: Infinity,
+        penetrable: false,
+        damageReduction: 0,
+        destructible: false,
+        color: '#00ff00',
+        width: 30,
+        height: 100,
+        isSpawnBarrier: true,
+        team: null // Sera défini par la map
     }
 };
 
@@ -303,7 +316,7 @@ window.game = {
     gameStarted: false,
     gamePaused: false,
     mode: 'deathmatch',
-    currentMap: 'dust2_complex',
+    currentMap: 'haven',
     round: 1,
     half: 1,
     maxRounds: 13,
@@ -408,68 +421,293 @@ const TACTICAL_DEVICE_STYLES = {
 // ========================================
 
 const MAPS = {
-    dust2_complex: {
-        name: 'Dust 2',
-        width: 2400,
-        height: 1600,
-        backgroundColor: '#2a2416',
+    haven: {
+        name: 'Haven',
+        width: 3000,
+        height: 2000,
+        backgroundColor: '#1a1f2e',
         walls: [
-            // Bordures
-            { x: 0, y: 0, width: 2400, height: 20, type: 'concrete_wall' },
-            { x: 0, y: 0, width: 20, height: 1600, type: 'concrete_wall' },
-            { x: 0, y: 1580, width: 2400, height: 20, type: 'concrete_wall' },
-            { x: 2380, y: 0, width: 20, height: 1600, type: 'concrete_wall' },
-            
-            // Murs intérieurs
-            { x: 400, y: 200, width: 600, height: 20, type: 'concrete_wall' },
-            { x: 400, y: 1380, width: 600, height: 20, type: 'concrete_wall' },
-            { x: 1400, y: 200, width: 600, height: 20, type: 'concrete_wall' },
-            { x: 1400, y: 1380, width: 600, height: 20, type: 'concrete_wall' },
-            
-            // Couloirs
-            { x: 800, y: 500, width: 20, height: 600, type: 'concrete_wall' },
-            { x: 1600, y: 500, width: 20, height: 600, type: 'concrete_wall' }
+            // === BORDURES DE LA MAP ===
+            { x: 0, y: 0, width: 3000, height: 30, type: 'concrete_wall' },
+            { x: 0, y: 0, width: 30, height: 2000, type: 'concrete_wall' },
+            { x: 0, y: 1970, width: 3000, height: 30, type: 'concrete_wall' },
+            { x: 2970, y: 0, width: 30, height: 2000, type: 'concrete_wall' },
+
+            // === SPAWN ATTAQUANTS (Gauche) - Barrière de spawn ===
+            { x: 450, y: 30, width: 30, height: 400, type: 'spawn_barrier', team: 'attackers' },
+            { x: 450, y: 1570, width: 30, height: 400, type: 'spawn_barrier', team: 'attackers' },
+
+            // === SPAWN DÉFENSEURS (Droite) - Barrière de spawn ===
+            { x: 2520, y: 30, width: 30, height: 400, type: 'spawn_barrier', team: 'defenders' },
+            { x: 2520, y: 1570, width: 30, height: 400, type: 'spawn_barrier', team: 'defenders' },
+
+            // === SITE A (Haut gauche) - Structure ===
+            { x: 600, y: 200, width: 400, height: 30, type: 'concrete_wall' },
+            { x: 600, y: 200, width: 30, height: 300, type: 'concrete_wall' },
+            { x: 970, y: 200, width: 30, height: 150, type: 'concrete_wall' },
+
+            // === COULOIR CENTRAL ===
+            { x: 1300, y: 500, width: 30, height: 400, type: 'concrete_wall' },
+            { x: 1670, y: 500, width: 30, height: 400, type: 'concrete_wall' },
+            { x: 1300, y: 870, width: 400, height: 30, type: 'concrete_wall' },
+
+            // === SITE B (Centre droit) - Structure ===
+            { x: 2000, y: 800, width: 400, height: 30, type: 'concrete_wall' },
+            { x: 2370, y: 830, width: 30, height: 300, type: 'concrete_wall' },
+            { x: 2000, y: 1100, width: 30, height: 200, type: 'concrete_wall' },
+
+            // === SITE C (Bas gauche) - Structure ===
+            { x: 600, y: 1500, width: 400, height: 30, type: 'concrete_wall' },
+            { x: 600, y: 1530, width: 30, height: 300, type: 'concrete_wall' },
+            { x: 970, y: 1700, width: 30, height: 130, type: 'concrete_wall' },
+
+            // === MURS DE SÉPARATION ===
+            { x: 1100, y: 100, width: 30, height: 300, type: 'concrete_wall' },
+            { x: 1100, y: 1600, width: 30, height: 300, type: 'concrete_wall' },
+            { x: 1850, y: 400, width: 30, height: 300, type: 'concrete_wall' },
+            { x: 1850, y: 1300, width: 30, height: 300, type: 'concrete_wall' }
         ],
         objects: [
-            // Caisses en bois
-            { x: 300, y: 300, type: 'wood_crate' },
-            { x: 360, y: 300, type: 'wood_crate' },
-            { x: 300, y: 360, type: 'wood_crate' },
-            { x: 500, y: 500, type: 'wood_crate' },
-            { x: 600, y: 600, type: 'wood_crate' },
-            { x: 1800, y: 300, type: 'wood_crate' },
-            { x: 1900, y: 400, type: 'wood_crate' },
-            { x: 1050, y: 950, type: 'light_cover' },
-            { x: 1120, y: 1000, type: 'light_cover' },
-            { x: 1450, y: 620, type: 'light_cover' },
-            { x: 1550, y: 620, type: 'light_cover' },
-            
-            // Caisses métalliques
-            { x: 700, y: 700, type: 'metal_crate' },
-            { x: 1700, y: 700, type: 'metal_crate' },
-            
-            // Portes
-            { x: 1000, y: 400, type: 'wood_door' },
-            { x: 1400, y: 800, type: 'wood_door' },
-            
-            // Barils explosifs
-            { x: 450, y: 800, type: 'barrel' },
-            { x: 1200, y: 600, type: 'barrel' },
-            { x: 2000, y: 1200, type: 'barrel' }
+            // === SITE A - Cover ===
+            { x: 700, y: 300, type: 'wood_crate' },
+            { x: 760, y: 300, type: 'wood_crate' },
+            { x: 820, y: 350, type: 'metal_crate' },
+            { x: 880, y: 280, type: 'wood_crate' },
+            { x: 750, y: 400, type: 'light_cover' },
+
+            // === COULOIR CENTRAL - Cover ===
+            { x: 1400, y: 650, type: 'metal_crate' },
+            { x: 1500, y: 700, type: 'wood_crate' },
+            { x: 1400, y: 750, type: 'barrel' },
+
+            // === SITE B - Cover ===
+            { x: 2100, y: 900, type: 'wood_crate' },
+            { x: 2160, y: 900, type: 'wood_crate' },
+            { x: 2220, y: 950, type: 'metal_crate' },
+            { x: 2100, y: 1000, type: 'light_cover' },
+            { x: 2280, y: 920, type: 'barrel' },
+
+            // === SITE C - Cover ===
+            { x: 700, y: 1600, type: 'wood_crate' },
+            { x: 760, y: 1600, type: 'wood_crate' },
+            { x: 820, y: 1650, type: 'metal_crate' },
+            { x: 750, y: 1720, type: 'light_cover' },
+
+            // === COUVERTS ADDITIONNELS ===
+            { x: 1200, y: 300, type: 'wood_crate' },
+            { x: 1950, y: 600, type: 'metal_crate' },
+            { x: 1200, y: 1700, type: 'wood_crate' },
+            { x: 900, y: 1000, type: 'barrel' }
         ],
         spawnPoints: {
             attackers: [
-                { x: 100, y: 100 }, { x: 150, y: 100 }, { x: 100, y: 150 },
-                { x: 200, y: 100 }, { x: 100, y: 200 }
+                { x: 100, y: 900 }, { x: 150, y: 950 }, { x: 100, y: 1000 },
+                { x: 200, y: 900 }, { x: 250, y: 1050 }
             ],
             defenders: [
-                { x: 2200, y: 1400 }, { x: 2250, y: 1400 }, { x: 2200, y: 1450 },
-                { x: 2150, y: 1400 }, { x: 2200, y: 1350 }
+                { x: 2800, y: 900 }, { x: 2750, y: 950 }, { x: 2800, y: 1000 },
+                { x: 2700, y: 900 }, { x: 2650, y: 1050 }
             ]
         },
         bombSites: [
-            { x: 300, y: 1200, width: 300, height: 200, name: 'A' },
-            { x: 1900, y: 300, width: 300, height: 200, name: 'B' }
+            { x: 700, y: 250, width: 250, height: 200, name: 'A' },
+            { x: 2100, y: 850, width: 250, height: 200, name: 'B' },
+            { x: 700, y: 1550, width: 250, height: 200, name: 'C' }
+        ]
+    },
+
+    ascent: {
+        name: 'Ascent',
+        width: 2800,
+        height: 1800,
+        backgroundColor: '#2d3a2e',
+        walls: [
+            // === BORDURES DE LA MAP ===
+            { x: 0, y: 0, width: 2800, height: 30, type: 'concrete_wall' },
+            { x: 0, y: 0, width: 30, height: 1800, type: 'concrete_wall' },
+            { x: 0, y: 1770, width: 2800, height: 30, type: 'concrete_wall' },
+            { x: 2770, y: 0, width: 30, height: 1800, type: 'concrete_wall' },
+
+            // === SPAWN ATTAQUANTS (Gauche) - Barrière de spawn ===
+            { x: 400, y: 30, width: 30, height: 300, type: 'spawn_barrier', team: 'attackers' },
+            { x: 400, y: 1470, width: 30, height: 300, type: 'spawn_barrier', team: 'attackers' },
+
+            // === SPAWN DÉFENSEURS (Droite) - Barrière de spawn ===
+            { x: 2370, y: 30, width: 30, height: 300, type: 'spawn_barrier', team: 'defenders' },
+            { x: 2370, y: 1470, width: 30, height: 300, type: 'spawn_barrier', team: 'defenders' },
+
+            // === SITE A (Haut) - Structure en U ===
+            { x: 700, y: 200, width: 500, height: 30, type: 'concrete_wall' },
+            { x: 700, y: 200, width: 30, height: 250, type: 'concrete_wall' },
+            { x: 1170, y: 200, width: 30, height: 250, type: 'concrete_wall' },
+            { x: 850, y: 350, width: 200, height: 30, type: 'concrete_wall' },
+
+            // === MID (Centre) - Couloir long ===
+            { x: 1250, y: 700, width: 30, height: 400, type: 'concrete_wall' },
+            { x: 1520, y: 700, width: 30, height: 400, type: 'concrete_wall' },
+            { x: 1280, y: 850, width: 240, height: 30, type: 'concrete_wall' },
+            { x: 1280, y: 1020, width: 240, height: 30, type: 'concrete_wall' },
+
+            // === SITE B (Bas) - Structure en L ===
+            { x: 700, y: 1350, width: 500, height: 30, type: 'concrete_wall' },
+            { x: 700, y: 1380, width: 30, height: 250, type: 'concrete_wall' },
+            { x: 1170, y: 1450, width: 30, height: 180, type: 'concrete_wall' },
+
+            // === CONNEXIONS ET PASSAGES ===
+            { x: 600, y: 600, width: 30, height: 200, type: 'concrete_wall' },
+            { x: 600, y: 1000, width: 30, height: 200, type: 'concrete_wall' },
+            { x: 2170, y: 600, width: 30, height: 200, type: 'concrete_wall' },
+            { x: 2170, y: 1000, width: 30, height: 200, type: 'concrete_wall' },
+
+            // === PORTES (destructibles) ===
+            { x: 1000, y: 550, width: 80, height: 30, type: 'wood_door' },
+            { x: 1000, y: 1220, width: 80, height: 30, type: 'wood_door' },
+            { x: 1720, y: 550, width: 80, height: 30, type: 'wood_door' },
+            { x: 1720, y: 1220, width: 80, height: 30, type: 'wood_door' }
+        ],
+        objects: [
+            // === SITE A - Cover stratégique ===
+            { x: 800, y: 280, type: 'metal_crate' },
+            { x: 900, y: 250, type: 'wood_crate' },
+            { x: 1000, y: 280, type: 'wood_crate' },
+            { x: 1060, y: 280, type: 'metal_crate' },
+            { x: 850, y: 400, type: 'light_cover' },
+            { x: 950, y: 420, type: 'light_cover' },
+
+            // === MID - Cover central ===
+            { x: 1350, y: 800, type: 'metal_crate' },
+            { x: 1350, y: 900, type: 'wood_crate' },
+            { x: 1420, y: 950, type: 'barrel' },
+            { x: 1380, y: 1050, type: 'light_cover' },
+
+            // === SITE B - Cover défensif ===
+            { x: 800, y: 1430, type: 'metal_crate' },
+            { x: 900, y: 1460, type: 'wood_crate' },
+            { x: 1000, y: 1430, type: 'wood_crate' },
+            { x: 1060, y: 1500, type: 'metal_crate' },
+            { x: 850, y: 1550, type: 'light_cover' },
+
+            // === COVER ADDITIONNELS ===
+            { x: 700, y: 900, type: 'metal_crate' },
+            { x: 2100, y: 900, type: 'metal_crate' },
+            { x: 1400, y: 450, type: 'barrel' },
+            { x: 1400, y: 1350, type: 'barrel' },
+            { x: 500, y: 700, type: 'wood_crate' },
+            { x: 2300, y: 700, type: 'wood_crate' }
+        ],
+        spawnPoints: {
+            attackers: [
+                { x: 100, y: 850 }, { x: 150, y: 900 }, { x: 100, y: 950 },
+                { x: 200, y: 850 }, { x: 250, y: 900 }
+            ],
+            defenders: [
+                { x: 2600, y: 850 }, { x: 2550, y: 900 }, { x: 2600, y: 950 },
+                { x: 2500, y: 850 }, { x: 2650, y: 900 }
+            ]
+        },
+        bombSites: [
+            { x: 800, y: 250, width: 300, height: 180, name: 'A' },
+            { x: 800, y: 1400, width: 300, height: 180, name: 'B' }
+        ]
+    },
+
+    bind: {
+        name: 'Bind',
+        width: 2600,
+        height: 1800,
+        backgroundColor: '#2a1f1a',
+        walls: [
+            // === BORDURES DE LA MAP ===
+            { x: 0, y: 0, width: 2600, height: 30, type: 'concrete_wall' },
+            { x: 0, y: 0, width: 30, height: 1800, type: 'concrete_wall' },
+            { x: 0, y: 1770, width: 2600, height: 30, type: 'concrete_wall' },
+            { x: 2570, y: 0, width: 30, height: 1800, type: 'concrete_wall' },
+
+            // === SPAWN ATTAQUANTS (Gauche) - Barrière de spawn ===
+            { x: 380, y: 30, width: 30, height: 350, type: 'spawn_barrier', team: 'attackers' },
+            { x: 380, y: 1420, width: 30, height: 350, type: 'spawn_barrier', team: 'attackers' },
+
+            // === SPAWN DÉFENSEURS (Droite) - Barrière de spawn ===
+            { x: 2190, y: 30, width: 30, height: 350, type: 'spawn_barrier', team: 'defenders' },
+            { x: 2190, y: 1420, width: 30, height: 350, type: 'spawn_barrier', team: 'defenders' },
+
+            // === SITE A (Haut gauche) - Forme en arc ===
+            { x: 600, y: 250, width: 400, height: 30, type: 'concrete_wall' },
+            { x: 600, y: 280, width: 30, height: 200, type: 'concrete_wall' },
+            { x: 970, y: 280, width: 30, height: 100, type: 'concrete_wall' },
+            { x: 750, y: 380, width: 150, height: 30, type: 'concrete_wall' },
+
+            // === HOOKAH (Couloir vers A) ===
+            { x: 1100, y: 400, width: 30, height: 300, type: 'concrete_wall' },
+            { x: 1130, y: 550, width: 200, height: 30, type: 'concrete_wall' },
+
+            // === MID (Téléporteurs) - Zone centrale ===
+            { x: 1200, y: 800, width: 200, height: 30, type: 'concrete_wall' },
+            { x: 1200, y: 970, width: 200, height: 30, type: 'concrete_wall' },
+            { x: 1200, y: 800, width: 30, height: 200, type: 'concrete_wall' },
+            { x: 1370, y: 800, width: 30, height: 200, type: 'concrete_wall' },
+
+            // === SITE B (Bas droit) - Structure rectangulaire ===
+            { x: 1800, y: 1350, width: 400, height: 30, type: 'concrete_wall' },
+            { x: 1800, y: 1380, width: 30, height: 200, type: 'concrete_wall' },
+            { x: 2170, y: 1380, width: 30, height: 100, type: 'concrete_wall' },
+            { x: 1900, y: 1480, width: 200, height: 30, type: 'concrete_wall' },
+
+            // === LONG B (Couloir long vers B) ===
+            { x: 1600, y: 1200, width: 30, height: 300, type: 'concrete_wall' },
+            { x: 1630, y: 1350, width: 150, height: 30, type: 'concrete_wall' },
+
+            // === CONNEXIONS ===
+            { x: 900, y: 700, width: 30, height: 200, type: 'concrete_wall' },
+            { x: 1700, y: 700, width: 30, height: 200, type: 'concrete_wall' }
+        ],
+        objects: [
+            // === SITE A - Cover ===
+            { x: 700, y: 330, type: 'metal_crate' },
+            { x: 770, y: 310, type: 'wood_crate' },
+            { x: 840, y: 330, type: 'wood_crate' },
+            { x: 900, y: 300, type: 'metal_crate' },
+            { x: 750, y: 430, type: 'light_cover' },
+            { x: 850, y: 450, type: 'light_cover' },
+
+            // === HOOKAH - Cover ===
+            { x: 1150, y: 500, type: 'wood_crate' },
+            { x: 1220, y: 480, type: 'barrel' },
+
+            // === MID - Cover stratégique ===
+            { x: 1250, y: 850, type: 'metal_crate' },
+            { x: 1320, y: 900, type: 'wood_crate' },
+
+            // === LONG B - Cover ===
+            { x: 1650, y: 1280, type: 'metal_crate' },
+            { x: 1650, y: 1420, type: 'wood_crate' },
+
+            // === SITE B - Cover ===
+            { x: 1900, y: 1420, type: 'metal_crate' },
+            { x: 1970, y: 1440, type: 'wood_crate' },
+            { x: 2040, y: 1420, type: 'wood_crate' },
+            { x: 2100, y: 1450, type: 'metal_crate' },
+            { x: 1950, y: 1530, type: 'light_cover' },
+
+            // === COVER ADDITIONNELS ===
+            { x: 500, y: 900, type: 'barrel' },
+            { x: 2100, y: 900, type: 'barrel' },
+            { x: 1300, y: 600, type: 'wood_crate' },
+            { x: 1300, y: 1200, type: 'wood_crate' }
+        ],
+        spawnPoints: {
+            attackers: [
+                { x: 100, y: 850 }, { x: 150, y: 900 }, { x: 100, y: 950 },
+                { x: 200, y: 850 }, { x: 250, y: 900 }
+            ],
+            defenders: [
+                { x: 2400, y: 850 }, { x: 2350, y: 900 }, { x: 2400, y: 950 },
+                { x: 2300, y: 850 }, { x: 2450, y: 900 }
+            ]
+        },
+        bombSites: [
+            { x: 700, y: 300, width: 280, height: 160, name: 'A' },
+            { x: 1900, y: 1400, width: 280, height: 160, name: 'B' }
         ]
     }
 };
@@ -498,10 +736,11 @@ function initializeGame() {
     loadObjectSprites();
     initializeMap();
     initializeMinimap();
-    equipWeapon('phantom');
+    equipWeapon('classic'); // Spawn avec le Classic (pistolet de base)
     resetGameState(true);
+    setupMultiplayerSync(); // Écouter les autres joueurs
     startGameLoop();
-    
+
     game.gameStarted = true;
     console.log('Gameplay initialisé');
     return true;
@@ -584,7 +823,7 @@ function initializeMap() {
 }
 
 function resetGameState(isNewMatch = false) {
-    const map = MAPS[game.currentMap] || MAPS['dust2_complex'];
+    const map = MAPS[game.currentMap] || MAPS['haven'];
     if (!map) {
         console.error('Carte introuvable:', game.currentMap);
         return;
@@ -818,9 +1057,11 @@ function updatePlayer(dt) {
         player.y = Math.min(Math.max(player.y, 0), Math.max(0, maxY));
     }
     
-    // Angle vers la souris
-    const dx_mouse = mouse.worldX - player.x;
-    const dy_mouse = mouse.worldY - player.y;
+    // Angle vers la souris (centré sur le joueur)
+    const playerCenterX = player.x + player.width / 2;
+    const playerCenterY = player.y + player.height / 2;
+    const dx_mouse = mouse.worldX - playerCenterX;
+    const dy_mouse = mouse.worldY - playerCenterY;
     player.angle = Math.atan2(dy_mouse, dx_mouse);
 }
 
@@ -1142,6 +1383,78 @@ function sendPlayerPosition() {
     }
 }
 
+// Configuration du système de synchronisation multijoueur
+let multiplayerListener = null;
+
+function setupMultiplayerSync() {
+    if (!window.matchmakingState?.currentMatchId) {
+        console.log('Pas de match actif, pas de sync multijoueur');
+        return;
+    }
+    if (!window.database) {
+        console.error('Firebase database non disponible');
+        return;
+    }
+
+    const matchId = window.matchmakingState.currentMatchId;
+    const playersRef = window.database.ref(`game_sessions/${matchId}/players`);
+
+    console.log('🔄 Configuration de la synchronisation multijoueur pour le match:', matchId);
+
+    // Écouter les changements sur tous les joueurs
+    multiplayerListener = playersRef.on('child_changed', (snapshot) => {
+        const playerId = snapshot.key;
+        const playerData = snapshot.val();
+
+        // Ne pas mettre à jour notre propre joueur
+        if (playerId === window.currentUser?.uid) return;
+
+        console.log('📡 Mise à jour du joueur:', playerId, playerData);
+        window.updateOtherPlayerPosition(playerId, playerData);
+    });
+
+    // Écouter les nouveaux joueurs qui rejoignent
+    playersRef.on('child_added', (snapshot) => {
+        const playerId = snapshot.key;
+        const playerData = snapshot.val();
+
+        // Ne pas ajouter notre propre joueur
+        if (playerId === window.currentUser?.uid) return;
+
+        console.log('👥 Nouveau joueur détecté:', playerId, playerData);
+        window.updateOtherPlayerPosition(playerId, playerData);
+    });
+
+    // Écouter les joueurs qui partent
+    playersRef.on('child_removed', (snapshot) => {
+        const playerId = snapshot.key;
+
+        // Ne pas supprimer notre propre joueur
+        if (playerId === window.currentUser?.uid) return;
+
+        console.log('👋 Joueur parti:', playerId);
+        if (otherPlayers[playerId]) {
+            delete otherPlayers[playerId];
+        }
+    });
+
+    console.log('✅ Synchronisation multijoueur configurée');
+}
+
+// Fonction pour arrêter la synchronisation (quand on quitte le match)
+function stopMultiplayerSync() {
+    if (!window.matchmakingState?.currentMatchId || !window.database) return;
+
+    const matchId = window.matchmakingState.currentMatchId;
+    const playersRef = window.database.ref(`game_sessions/${matchId}/players`);
+
+    // Arrêter tous les listeners
+    playersRef.off();
+    multiplayerListener = null;
+
+    console.log('🔴 Synchronisation multijoueur arrêtée');
+}
+
 // Fonction pour recevoir les positions des autres joueurs
 window.updateOtherPlayerPosition = function(playerId, playerData) {
     if (!playerData) return;
@@ -1163,6 +1476,7 @@ window.updateOtherPlayerPosition = function(playerId, playerData) {
             crouching: playerData.crouching || false,
             username: playerData.username || 'Joueur'
         };
+        console.log('✨ Joueur créé dans otherPlayers:', playerId, otherPlayers[playerId]);
     } else {
         // Mettre à jour les données existantes
         otherPlayers[playerId].x = playerData.x || otherPlayers[playerId].x;
@@ -1362,7 +1676,7 @@ function destroyObject(obj) {
         });
     }
     
-    addCameraShake(5);
+    addCameraShake(0.5); // Réduit de 5 à 0.5 pour moins de secousses
 }
 
 function createExplosion(x, y, radius, damage) {
@@ -1404,7 +1718,7 @@ function createExplosion(x, y, radius, damage) {
         }
     }
     
-    addCameraShake(10);
+    addCameraShake(1.5); // Réduit de 10 à 1.5 pour moins de secousses
 }
 
 function checkBulletPlayerCollision(bullet, targetPlayer) {
@@ -2036,7 +2350,13 @@ function deploySentryTurret(options = {}) {
 function checkCollision(x, y, width, height) {
     for (const obj of gameObjects) {
         if (obj.destroyed) continue;
-        
+
+        // Les barrières de spawn disparaissent après la phase d'achat
+        if (obj.isSpawnBarrier && game.phase !== 'buy') continue;
+
+        // Les barrières de spawn ne bloquent que l'équipe adverse
+        if (obj.isSpawnBarrier && obj.team && obj.team !== player.team) continue;
+
         if (x + width > obj.x &&
             x < obj.x + obj.width &&
             y + height > obj.y &&
@@ -2129,6 +2449,62 @@ function updateUI() {
 
     updateAmmoDisplay();
     updateMinimap();
+    updateBombHint();
+}
+
+function updateBombHint() {
+    const bombHint = document.getElementById('bomb-hint');
+    const bombHintText = document.getElementById('bomb-hint-text');
+    if (!bombHint || !isBombMode() || !player.alive || game.phase !== 'active') {
+        if (bombHint) bombHint.classList.add('hidden');
+        return;
+    }
+
+    const center = getPlayerCenter();
+    let shouldShow = false;
+    let hintText = '';
+
+    // Attaquant avec la bombe dans un site - vérifier si on est dans un site ET si on est en train de planter ou peut planter
+    if (player.team === 'attackers' && playerHasBomb() && !game.bomb.planted) {
+        const site = getBombSiteAt(center.x, center.y);
+        if (site && !player.isPlanting) {
+            shouldShow = true;
+            hintText = `Appuyez sur <kbd>E</kbd> pour planter la spike (Site ${site.name})`;
+        } else if (player.isPlanting) {
+            shouldShow = true;
+            const progress = Math.floor((player.actionProgress || 0) * 100);
+            hintText = `Plantation en cours... ${progress}%`;
+        }
+    }
+    // Attaquant récupérant la bombe tombée
+    else if (player.team === 'attackers' && game.bomb.dropped && game.bomb.x !== null && game.bomb.y !== null) {
+        const distance = Math.hypot(center.x - game.bomb.x, center.y - game.bomb.y);
+        if (distance <= 100) {
+            shouldShow = true;
+            hintText = 'Appuyez sur <kbd>E</kbd> pour récupérer la spike';
+        }
+    }
+    // Défenseur désamorçant - montrer seulement si la bombe est plantée
+    else if (player.team === 'defenders' && game.bomb.planted && game.bomb.x !== null && game.bomb.y !== null) {
+        const distance = Math.hypot(center.x - game.bomb.x, center.y - game.bomb.y);
+        if (distance <= 100) {
+            if (!player.isDefusing) {
+                shouldShow = true;
+                hintText = 'Appuyez sur <kbd>E</kbd> pour désamorcer la spike';
+            } else {
+                shouldShow = true;
+                const progress = Math.floor((player.actionProgress || 0) * 100);
+                hintText = `Désamorçage en cours... ${progress}%`;
+            }
+        }
+    }
+
+    if (shouldShow && bombHintText) {
+        bombHint.classList.remove('hidden');
+        bombHintText.innerHTML = hintText;
+    } else {
+        bombHint.classList.add('hidden');
+    }
 }
 
 function updateAmmoDisplay() {
@@ -2487,6 +2863,7 @@ function render() {
     
     // Dessiner la carte
     drawMap();
+    drawBombSites(); // Dessiner les sites de bombe
     drawSlowFields();
     drawRevealBeacons();
     drawTacticalDevices();
@@ -2553,8 +2930,55 @@ function drawMap() {
             gameContext.fillRect(obj.x, obj.y - 8, obj.width * healthPercent, 4);
         }
 
+        // Rendre les barrières de spawn semi-transparentes et vertes
+        if (obj.isSpawnBarrier && game.phase === 'buy') {
+            gameContext.globalAlpha = 0.5;
+            gameContext.fillStyle = obj.team === player.team ? '#00ff00' : '#ff0000';
+            gameContext.fillRect(obj.x, obj.y, obj.width, obj.height);
+            gameContext.globalAlpha = 1;
+        }
+
         gameContext.restore();
     }
+}
+
+function drawBombSites() {
+    if (!isBombMode()) return;
+
+    const map = MAPS[game.currentMap];
+    if (!map || !map.bombSites) return;
+
+    map.bombSites.forEach(site => {
+        // Dessiner le contour du site
+        gameContext.strokeStyle = 'rgba(255, 200, 50, 0.6)';
+        gameContext.lineWidth = 3;
+        gameContext.setLineDash([10, 5]);
+        gameContext.strokeRect(site.x, site.y, site.width, site.height);
+        gameContext.setLineDash([]);
+
+        // Fond semi-transparent
+        gameContext.fillStyle = 'rgba(255, 200, 50, 0.1)';
+        gameContext.fillRect(site.x, site.y, site.width, site.height);
+
+        // Nom du site au centre
+        gameContext.save();
+        gameContext.font = 'bold 48px Arial';
+        gameContext.fillStyle = 'rgba(255, 200, 50, 0.4)';
+        gameContext.textAlign = 'center';
+        gameContext.textBaseline = 'middle';
+        gameContext.fillText(
+            site.name,
+            site.x + site.width / 2,
+            site.y + site.height / 2
+        );
+        gameContext.restore();
+
+        // Indicateur si la bombe est plantée sur ce site
+        if (game.bomb.planted && game.bomb.site === site.name) {
+            gameContext.fillStyle = 'rgba(255, 0, 0, 0.3)';
+            gameContext.fillRect(site.x, site.y, site.width, site.height);
+        }
+    });
 }
 
 function drawPlayer() {
@@ -2804,23 +3228,23 @@ function drawDamageNumbers() {
 }
 
 function drawHUD() {
-    // Crosshair
-    const centerX = gameCanvas.width / 2;
-    const centerY = gameCanvas.height / 2;
-    
-    gameContext.strokeStyle = '#00ff00';
-    gameContext.lineWidth = 2;
-    gameContext.beginPath();
-    gameContext.moveTo(centerX - 10, centerY);
-    gameContext.lineTo(centerX - 3, centerY);
-    gameContext.moveTo(centerX + 3, centerY);
-    gameContext.lineTo(centerX + 10, centerY);
-    gameContext.moveTo(centerX, centerY - 10);
-    gameContext.lineTo(centerX, centerY - 3);
-    gameContext.moveTo(centerX, centerY + 3);
-    gameContext.lineTo(centerX, centerY + 10);
-    gameContext.stroke();
-    
+    // Crosshair désactivé - on vise avec la souris
+    // const centerX = gameCanvas.width / 2;
+    // const centerY = gameCanvas.height / 2;
+    //
+    // gameContext.strokeStyle = '#00ff00';
+    // gameContext.lineWidth = 2;
+    // gameContext.beginPath();
+    // gameContext.moveTo(centerX - 10, centerY);
+    // gameContext.lineTo(centerX - 3, centerY);
+    // gameContext.moveTo(centerX + 3, centerY);
+    // gameContext.lineTo(centerX + 10, centerY);
+    // gameContext.moveTo(centerX, centerY - 10);
+    // gameContext.lineTo(centerX, centerY - 3);
+    // gameContext.moveTo(centerX, centerY + 3);
+    // gameContext.lineTo(centerX, centerY + 10);
+    // gameContext.stroke();
+
     // Cooldowns des abilities
     drawAbilityCooldowns();
 
