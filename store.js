@@ -1551,14 +1551,21 @@ const StoreSystem = {
     },
 
     loadInventoryAgents() {
+        console.log('🎭 Chargement des agents de l\'inventaire...');
         const agentsGrid = document.getElementById('inventory-agents-grid');
-        if (!agentsGrid) return;
+        if (!agentsGrid) {
+            console.error('❌ Element inventory-agents-grid introuvable');
+            return;
+        }
 
         agentsGrid.innerHTML = '';
 
+        console.log('📋 Agents possédés:', playerInventory.agents);
         const ownedAgents = playerInventory.agents
             .map(agentId => AGENTS[agentId])
             .filter(Boolean);
+
+        console.log('✅ Agents chargés:', ownedAgents.length);
 
         if (ownedAgents.length === 0) {
             agentsGrid.innerHTML = `
@@ -1857,6 +1864,11 @@ const StoreSystem = {
         this.savePlayerData();
         this.loadAgents();
         this.loadInventoryAgents();
+
+        // Mettre à jour l'affichage dans le menu play
+        if (typeof updateCurrentAgentDisplay === 'function') {
+            updateCurrentAgentDisplay();
+        }
 
         const agent = AGENTS[agentId];
         if (window.NotificationSystem) {

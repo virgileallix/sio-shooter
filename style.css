@@ -425,7 +425,51 @@ body {
 }
 
 .map-preview.haven {
-    background: linear-gradient(45deg, #4a90e2, #357abd);
+    background: linear-gradient(135deg, #1a1f2e 0%, #2d3a4f 50%, #1a1f2e 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.map-preview.haven::before {
+    content: '🏛️';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 48px;
+    opacity: 0.6;
+}
+
+.map-preview.ascent {
+    background: linear-gradient(135deg, #2d3a2e 0%, #4a6b4d 50%, #2d3a2e 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.map-preview.ascent::before {
+    content: '⛰️';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 48px;
+    opacity: 0.6;
+}
+
+.map-preview.bind {
+    background: linear-gradient(135deg, #2a1f1a 0%, #5c3d2e 50%, #2a1f1a 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.map-preview.bind::before {
+    content: '🌴';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 48px;
+    opacity: 0.6;
 }
 
 .map-preview.auto {
