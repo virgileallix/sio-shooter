@@ -674,7 +674,6 @@ async function launchGame() {
     
     try {
         // Animation du bouton avec étapes
-        const originalHTML = launchBtn.innerHTML;
         const loadingSteps = [
             '<i class="fas fa-search"></i> RECHERCHE...',
             '<i class="fas fa-spinner fa-spin"></i> CONNEXION...',
@@ -702,10 +701,6 @@ async function launchGame() {
             preferredLanguage: 'fr'
         };
         
-            mode: selectedGameMode,
-            map: selectedMap === 'auto' ? null : selectedMap,
-            options: options
-        });
         
         // Utiliser le système de matchmaking RÉEL
         const queueId = await window.MatchmakingSystem.findMatch(
