@@ -372,7 +372,19 @@ class GameRenderer {
     
     renderPlayerIndicators(playerObj, isCurrentPlayer) {
         // Indicateur de bombe
-        if (game.bomb.carrier === (isCurrentPlayer ? currentUser.uid : playerObj.id)) {
+        const localCarrierCheck = typeof window.isLocalBombCarrier === 'function'
+            ? window.isLocalBombCarrier(game.bomb.carrier)
+            : (game.bomb.carrier === 'player' || (window.currentUser?.uid && game.bomb.carrier === window.currentUser.uid));
+
+        let hasBomb = false;
+        if (isCurrentPlayer) {
+            hasBomb = localCarrierCheck;
+        } else {
+            const candidateIds = [playerObj.id, playerObj.uid, playerObj.playerId].filter(Boolean);
+            hasBomb = candidateIds.some(id => game.bomb.carrier === id);
+        }
+
+        if (hasBomb) {
             this.ctx.fillStyle = '#ffd700';
             this.ctx.beginPath();
             this.ctx.arc(playerObj.x - 20, playerObj.y - 20, 6, 0, Math.PI * 2);

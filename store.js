@@ -2,6 +2,10 @@
 // STORE.JS - BOUTIQUE ET INVENTAIRE CORRIGÉS
 // ========================================
 
+const STORE_DEFAULT_AGENT_ICON = (typeof window !== 'undefined' && window.DEFAULT_AGENT_ICON)
+    ? window.DEFAULT_AGENT_ICON
+    : "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' ry='12' fill='%23242a3a'/%3E%3Ctext x='32' y='36' text-anchor='middle' dominant-baseline='middle' font-family='Arial' font-size='30' fill='%23ffffff'%3EA%3C/text%3E%3C/svg%3E";
+
 // Système de rarités
 const RARITIES = {
     consumer: {
@@ -122,6 +126,24 @@ const WEAPON_SKINS = {
             pattern: 'spray',
             price: 150,
             description: 'Motif tourbillon gris.'
+        },
+        {
+            id: 'phantom_holocore',
+            weapon: 'Phantom',
+            name: 'HoloCore',
+            rarity: 'classified',
+            pattern: 'tech',
+            price: 4500,
+            description: 'Finition holographique alimentée par un noyau lumineux.'
+        },
+        {
+            id: 'vandal_fulgurance',
+            weapon: 'Vandal',
+            name: 'Fulgurance',
+            rarity: 'covert',
+            pattern: 'energy',
+            price: 5200,
+            description: 'Vandal auréolé d\'énergie éclatante et de lignes futuristes.'
         }
     ],
     pistols: [
@@ -180,6 +202,15 @@ const WEAPON_SKINS = {
             pattern: 'industrial',
             price: 400,
             description: 'Style construction jaune et noir.'
+        },
+        {
+            id: 'spectre_neon_pulse',
+            weapon: 'Spectre',
+            name: 'Néon Pulse',
+            rarity: 'restricted',
+            pattern: 'neon',
+            price: 3200,
+            description: 'Circuit lumineux pulsé aux teintes néon électriques.'
         }
     ],
     snipers: [
@@ -218,6 +249,15 @@ const WEAPON_SKINS = {
             pattern: 'camo',
             price: 80,
             description: 'Camouflage maillé simple.'
+        },
+        {
+            id: 'operator_nexus_mythique',
+            weapon: 'Operator',
+            name: 'Nexus (Mythique)',
+            rarity: 'covert',
+            pattern: 'mythic',
+            price: 12500,
+            description: 'Operator mythique aux reflets nexus et gravures arcaniques.'
         }
     ],
     knives: [
@@ -238,6 +278,15 @@ const WEAPON_SKINS = {
             pattern: 'spider_web',
             price: 45000,
             description: 'Toile d\'araignée rouge sur manche noir.'
+        },
+        {
+            id: 'knife_flux',
+            weapon: 'Couteau Tactique',
+            name: 'Flux',
+            rarity: 'knife',
+            pattern: 'energy',
+            price: 52000,
+            description: 'Lame tactique enveloppée d\'un flux énergétique lumineux.'
         }
     ]
 };
@@ -1444,16 +1493,21 @@ const StoreSystem = {
             'AK-47': '🔫',
             'M4A4': '🔫',
             'M4A1-S': '🔫',
+            'Phantom': '🔫',
+            'Vandal': '🔫',
             'Glock-18': '🔫',
             'USP-S': '🔫',
             'Desert Eagle': '🔫',
             'P250': '🔫',
+            'Spectre': '🔫',
             'P90': '🔫',
             'MP9': '🔫',
             'AWP': '🎯',
             'Scout SSG 08': '🎯',
+            'Operator': '🎯',
             'Karambit': '🔪',
-            'Butterfly Knife': '🔪'
+            'Butterfly Knife': '🔪',
+            'Couteau Tactique': '🔪'
         };
         return icons[weaponName] || '🔫';
     },
@@ -1579,7 +1633,9 @@ const StoreSystem = {
 
             agentCard.innerHTML = `
                 ${isEquipped ? '<div style="position: absolute; top: 10px; right: 10px; background: #ffd700; color: black; padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 12px;"><i class="fas fa-star"></i> ÉQUIPÉ</div>' : ''}
-                <div style="font-size: 64px; text-align: center; margin-bottom: 10px;">${agent.icon}</div>
+                <div style="display: flex; justify-content: center; margin-bottom: 10px;">
+                    <img class="agent-icon-img" src="${agent.icon || STORE_DEFAULT_AGENT_ICON}" alt="${agent.name}" style="width: 64px; height: 64px;">
+                </div>
                 <h3 style="color: white; text-align: center; margin-bottom: 5px;">${agent.name}</h3>
                 <p style="color: rgba(255,255,255,0.7); text-align: center; font-size: 12px; margin-bottom: 10px;">${agent.role}</p>
 
@@ -1743,7 +1799,9 @@ const StoreSystem = {
             `;
 
             agentCard.innerHTML = `
-                <div style="font-size: 64px; text-align: center; margin-bottom: 10px;">${agent.icon}</div>
+                <div style="display: flex; justify-content: center; margin-bottom: 10px;">
+                    <img class="agent-icon-img" src="${agent.icon || STORE_DEFAULT_AGENT_ICON}" alt="${agent.name}" style="width: 64px; height: 64px;">
+                </div>
                 <h3 style="color: white; text-align: center; margin-bottom: 5px;">${agent.name}</h3>
                 <p style="color: rgba(255,255,255,0.7); text-align: center; font-size: 12px; margin-bottom: 10px;">${agent.role}</p>
                 <p style="color: rgba(255,255,255,0.8); text-align: center; font-size: 14px; margin-bottom: 15px;">${agent.description}</p>
@@ -1957,7 +2015,7 @@ function updateCurrentAgentDisplay() {
 
     displayElement.innerHTML = `
         <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
-            <div style="font-size: 48px;">${agent.icon}</div>
+            <img class="agent-icon-img" src="${agent.icon || STORE_DEFAULT_AGENT_ICON}" alt="${agent.name}" style="width: 56px; height: 56px;">
             <div style="text-align: left;">
                 <div style="font-size: 18px; font-weight: bold; color: white;">${agent.name}</div>
                 <div style="font-size: 12px; color: rgba(255,255,255,0.7);">${agent.role}</div>
@@ -1981,4 +2039,3 @@ if (originalShowMenuSection) {
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(updateCurrentAgentDisplay, 3000);
 });
-

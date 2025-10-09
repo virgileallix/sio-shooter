@@ -156,6 +156,8 @@ const MINIMAP_SETTINGS = {
     bomb: '#ffd166'
 };
 
+const DEFAULT_ABILITY_ICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' ry='12' fill='%23242a3a'/%3E%3Ctext x='32' y='36' text-anchor='middle' dominant-baseline='middle' font-family='Arial' font-size='30' fill='%23ffffff'%3E%3F%3C/text%3E%3C/svg%3E";
+
 // ========================================
 // TYPES D'OBJETS DESTRUCTIBLES
 // ========================================
@@ -353,6 +355,26 @@ window.game = {
     revealPulseTimer: 0
 };
 
+function getLocalPlayerId() {
+    return window.currentUser?.uid || window.player?.id || 'player';
+}
+
+function isLocalBombCarrier(carrier) {
+    if (!carrier) return false;
+    const identifiers = new Set(['player', getLocalPlayerId()]);
+    if (window.player?.uid) identifiers.add(window.player.uid);
+    if (window.player?.id) identifiers.add(window.player.id);
+    if (window.currentUser?.uid) identifiers.add(window.currentUser.uid);
+    return identifiers.has(carrier);
+}
+
+function assignBombToLocalPlayer() {
+    game.bomb.carrier = getLocalPlayerId();
+}
+
+window.getLocalPlayerId = getLocalPlayerId;
+window.isLocalBombCarrier = isLocalBombCarrier;
+
 // ========================================
 // AUTRES ENTITÉS
 // ========================================
@@ -369,6 +391,7 @@ let revealBeacons = [];
 let slowFields = [];
 let sentryTurrets = [];
 let armorRegenEffects = [];
+let droppedWeapons = []; // Armes tombées au sol
 
 const DEFAULT_TACTICAL_DEVICE_STYLE = {
     size: 7,
@@ -893,6 +916,7 @@ function resetGameState(isNewMatch = false) {
     slowFields = [];
     sentryTurrets = [];
     armorRegenEffects = [];
+    droppedWeapons = []; // Nettoyer les armes au sol
     if (player.throwAnimation) {
         player.throwAnimation.timer = 0;
         player.throwAnimation.duration = 0;
@@ -928,7 +952,10 @@ function resetBombState() {
     game.bomb.x = null;
     game.bomb.y = null;
     game.bomb.dropped = false;
-    game.bomb.carrier = isBombMode() && player.team === 'attackers' ? 'player' : null;
+    game.bomb.carrier = null;
+    if (isBombMode() && player.team === 'attackers') {
+        assignBombToLocalPlayer();
+    }
 }
 
 function equipWeapon(weaponName) {
@@ -940,6 +967,51 @@ function equipWeapon(weaponName) {
         };
         player.recoilKick = 0;
         refreshWeaponUI();
+    }
+}
+
+function pickupNearbyWeapon() {
+    if (!player.alive) return;
+
+    const pickupRadius = 50; // Rayon de ramassage
+    const playerCenterX = player.x + player.width / 2;
+    const playerCenterY = player.y + player.height / 2;
+
+    // Trouver l'arme la plus proche
+    let closestWeapon = null;
+    let closestDistance = pickupRadius;
+
+    for (let i = 0; i < droppedWeapons.length; i++) {
+        const weapon = droppedWeapons[i];
+        const dx = weapon.x - playerCenterX;
+        const dy = weapon.y - playerCenterY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < closestDistance) {
+            closestDistance = distance;
+            closestWeapon = { ...weapon, index: i };
+        }
+    }
+
+    if (closestWeapon) {
+        // Équiper l'arme ramassée
+        player.weapon = { ...closestWeapon.weapon };
+        player.weaponSkin = closestWeapon.skin;
+        player.recoilKick = 0;
+        refreshWeaponUI();
+
+        // Supprimer l'arme du sol
+        droppedWeapons.splice(closestWeapon.index, 1);
+
+        if (window.NotificationSystem) {
+            const skinText = closestWeapon.skin ? ` (${closestWeapon.skin})` : '';
+            window.NotificationSystem.show(
+                'Arme ramassée',
+                `${closestWeapon.weapon.name}${skinText}`,
+                'info',
+                2000
+            );
+        }
     }
 }
 
@@ -1602,7 +1674,7 @@ function updateGameTimers(dt) {
 
             // Donner la bombe à un attaquant si nécessaire
             if (isBombMode() && player.team === 'attackers' && !game.bomb.carrier && !game.bomb.dropped) {
-                game.bomb.carrier = 'player';
+                assignBombToLocalPlayer();
             }
         }
     } else if (game.phase === 'active' && game.roundTime > 0) {
@@ -1812,7 +1884,18 @@ function hitPlayer(targetPlayer, damage, ownerId) {
     if (targetPlayer.health <= 0) {
         targetPlayer.health = 0;
         targetPlayer.alive = false;
-        
+
+        // Dropper l'arme du joueur tué
+        if (targetPlayer.weapon && targetPlayer !== player) {
+            droppedWeapons.push({
+                x: targetPlayer.x + targetPlayer.width / 2,
+                y: targetPlayer.y + targetPlayer.height / 2,
+                weapon: { ...targetPlayer.weapon },
+                skin: targetPlayer.weaponSkin || null,
+                ownerId: targetPlayer.id || 'unknown'
+            });
+        }
+
         if (ownerId === 'player') {
             player.kills++;
             player.abilities.ultimate.points = Math.min(
@@ -2527,11 +2610,14 @@ function updateAbilitiesDisplay() {
     // Ability 1 (C)
     const ability1 = player.abilities.ability1;
     const ability1Slot = document.getElementById('ability-c');
-    const ability1Icon = ability1Slot?.querySelector('.ability-icon i');
+    const ability1Icon = ability1Slot?.querySelector('.ability-icon img');
     const ability1Cooldown = document.getElementById('ability-c-cooldown');
 
     if (ability1Slot && agentData.abilities.ability1) {
-        ability1Icon.className = `fas fa-${agentData.abilities.ability1.icon}`;
+        if (ability1Icon) {
+            ability1Icon.src = agentData.abilities.ability1.icon || DEFAULT_ABILITY_ICON;
+            ability1Icon.alt = agentData.abilities.ability1.name || 'Capacité';
+        }
 
         if (ability1.cooldown > 0) {
             ability1Slot.classList.add('on-cooldown');
@@ -2547,16 +2633,24 @@ function updateAbilitiesDisplay() {
                 ability1Cooldown.style.display = 'none';
             }
         }
+    } else {
+        if (ability1Icon) {
+            ability1Icon.src = DEFAULT_ABILITY_ICON;
+            ability1Icon.alt = 'Capacité';
+        }
     }
 
     // Ability 2 (A)
     const ability2 = player.abilities.ability2;
     const ability2Slot = document.getElementById('ability-a');
-    const ability2Icon = ability2Slot?.querySelector('.ability-icon i');
+    const ability2Icon = ability2Slot?.querySelector('.ability-icon img');
     const ability2Cooldown = document.getElementById('ability-a-cooldown');
 
     if (ability2Slot && agentData.abilities.ability2) {
-        ability2Icon.className = `fas fa-${agentData.abilities.ability2.icon}`;
+        if (ability2Icon) {
+            ability2Icon.src = agentData.abilities.ability2.icon || DEFAULT_ABILITY_ICON;
+            ability2Icon.alt = agentData.abilities.ability2.name || 'Capacité';
+        }
 
         if (ability2.cooldown > 0) {
             ability2Slot.classList.add('on-cooldown');
@@ -2572,16 +2666,24 @@ function updateAbilitiesDisplay() {
                 ability2Cooldown.style.display = 'none';
             }
         }
+    } else {
+        if (ability2Icon) {
+            ability2Icon.src = DEFAULT_ABILITY_ICON;
+            ability2Icon.alt = 'Capacité';
+        }
     }
 
     // Ultimate (X)
     const ultimate = player.abilities.ultimate;
     const ultimateSlot = document.getElementById('ability-x');
-    const ultimateIcon = ultimateSlot?.querySelector('.ability-icon i');
+    const ultimateIcon = ultimateSlot?.querySelector('.ability-icon img');
     const ultimatePoints = document.getElementById('ability-x-points');
 
     if (ultimateSlot && agentData.abilities.ultimate) {
-        ultimateIcon.className = `fas fa-${agentData.abilities.ultimate.icon}`;
+        if (ultimateIcon) {
+            ultimateIcon.src = agentData.abilities.ultimate.icon || DEFAULT_ABILITY_ICON;
+            ultimateIcon.alt = agentData.abilities.ultimate.name || 'Capacité';
+        }
 
         if (ultimatePoints) {
             ultimatePoints.textContent = `${ultimate.points}/${ultimate.maxPoints}`;
@@ -2592,6 +2694,9 @@ function updateAbilitiesDisplay() {
         } else {
             ultimateSlot.classList.remove('ready');
         }
+    } else if (ultimateIcon) {
+        ultimateIcon.src = DEFAULT_ABILITY_ICON;
+        ultimateIcon.alt = 'Capacité';
     }
 }
 
@@ -3126,10 +3231,13 @@ function render() {
     // Fumée & structures
     drawSmokeGrenades();
     drawSentryTurrets();
-    
+
+    // Armes au sol
+    drawDroppedWeapons();
+
     // Autres joueurs
     drawOtherPlayers();
-    
+
     // Joueur
     drawPlayer();
     
@@ -3343,13 +3451,52 @@ function drawOtherPlayers() {
     }
 }
 
+function drawDroppedWeapons() {
+    for (const weapon of droppedWeapons) {
+        // Dessiner un rectangle pour représenter l'arme
+        gameContext.save();
+
+        // Ombre
+        gameContext.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        gameContext.fillRect(weapon.x - 15, weapon.y + 3, 30, 10);
+
+        // Arme
+        gameContext.fillStyle = weapon.skin ? '#00d4ff' : '#888888';
+        gameContext.strokeStyle = weapon.skin ? '#00ffff' : '#ffffff';
+        gameContext.lineWidth = 2;
+
+        // Rectangle de l'arme
+        gameContext.fillRect(weapon.x - 15, weapon.y - 5, 30, 10);
+        gameContext.strokeRect(weapon.x - 15, weapon.y - 5, 30, 10);
+
+        // Icône si skin
+        if (weapon.skin) {
+            gameContext.fillStyle = '#ffffff';
+            gameContext.font = '10px Arial';
+            gameContext.textAlign = 'center';
+            gameContext.fillText('✨', weapon.x, weapon.y + 2);
+        }
+
+        // Nom de l'arme au-dessus
+        gameContext.fillStyle = '#ffffff';
+        gameContext.font = 'bold 10px Arial';
+        gameContext.textAlign = 'center';
+        gameContext.strokeStyle = '#000000';
+        gameContext.lineWidth = 3;
+        gameContext.strokeText(weapon.weapon.name, weapon.x, weapon.y - 12);
+        gameContext.fillText(weapon.weapon.name, weapon.x, weapon.y - 12);
+
+        gameContext.restore();
+    }
+}
+
 function drawBullets() {
     gameContext.fillStyle = '#ffff00';
     for (const bullet of bullets) {
         gameContext.beginPath();
         gameContext.arc(bullet.x, bullet.y, bullet.size, 0, Math.PI * 2);
         gameContext.fill();
-        
+
         // Traînée
         gameContext.strokeStyle = 'rgba(255, 255, 0, 0.3)';
         gameContext.lineWidth = bullet.size;
@@ -3589,7 +3736,7 @@ function getBombSiteAt(x, y) {
 }
 
 function playerHasBomb() {
-    return game.bomb.carrier === 'player';
+    return isLocalBombCarrier(game.bomb.carrier);
 }
 
 function attemptBombInteraction() {
@@ -3620,7 +3767,7 @@ function attemptBombInteraction() {
 }
 
 function pickUpBomb() {
-    game.bomb.carrier = 'player';
+    assignBombToLocalPlayer();
     game.bomb.dropped = false;
     game.bomb.x = null;
     game.bomb.y = null;
@@ -3727,7 +3874,7 @@ function updateAttackDefenseMode(dt) {
         bomb.defuseProgress = 0;
         bomb.timer = BOMB_SETTINGS.detonationTime;
         if (player.team === 'attackers' && !bomb.carrier && !bomb.dropped) {
-            bomb.carrier = 'player';
+            assignBombToLocalPlayer();
         }
         return;
     }
@@ -3801,10 +3948,16 @@ function handleKeyDown(e) {
     if (key === 'a') useAbility('ability2');
     if (key === 'x') useAbility('ultimate');
 
-    // Planter/Désamorcer le spike - changé de F à E
+    // Planter/Désamorcer le spike - E
     if (key === 'e') {
         e.preventDefault();
         attemptBombInteraction();
+    }
+
+    // Ramasser arme au sol - F
+    if (key === 'f') {
+        e.preventDefault();
+        pickupNearbyWeapon();
     }
 
     // Changement d'arme

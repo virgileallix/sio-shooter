@@ -74,6 +74,7 @@ function getDefaultBattlePassState() {
         xp: 0,
         level: 1,
         premium: false,
+        premiumVerified: false,
         claimedRewards: {}
     };
 }

@@ -2,6 +2,14 @@
 // AGENTS.JS - SYSTÈME D'AGENTS VALORANT
 // ========================================
 
+const DEFAULT_AGENT_ICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' ry='12' fill='%23242a3a'/%3E%3Ctext x='32' y='36' text-anchor='middle' dominant-baseline='middle' font-family='Arial' font-size='30' fill='%23ffffff'%3EA%3C/text%3E%3C/svg%3E";
+const DEFAULT_ABILITY_ICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' ry='12' fill='%23242a3a'/%3E%3Ctext x='32' y='36' text-anchor='middle' dominant-baseline='middle' font-family='Arial' font-size='30' fill='%23ffffff'%3E%3F%3C/text%3E%3C/svg%3E";
+
+if (typeof window !== 'undefined') {
+    window.DEFAULT_AGENT_ICON = DEFAULT_AGENT_ICON;
+    window.DEFAULT_ABILITY_ICON = DEFAULT_ABILITY_ICON;
+}
+
 const AgentsRegistry = {
     reyna: {
         id: 'reyna',
@@ -10,13 +18,13 @@ const AgentsRegistry = {
         role: 'Duelliste',
         description: 'Reyna se nourrit des éliminations pour régénérer sa santé et devenir invincible.',
         difficulty: 'Moyen',
-        icon: '👁️',
-        portrait: 'https://images.contentstack.io/v3/assets/bltb6530b271fddd0b1/blt6d840ff49f5c83d6/5eb7cdc6ee88132a6f6cfc25/V_AGENTS_587x900_Reyna.png',
+        icon: 'https://media.valorant-api.com/agents/a3bfb853-43b2-7238-a4f1-ad90e9e46bcc/displayicon.png',
+        portrait: 'https://media.valorant-api.com/agents/a3bfb853-43b2-7238-a4f1-ad90e9e46bcc/fullportrait.png',
         abilities: {
             ability1: {
                 key: 'ability1',
                 name: 'Dévorer',
-                icon: 'skull',
+                icon: 'https://media.valorant-api.com/agents/a3bfb853-43b2-7238-a4f1-ad90e9e46bcc/abilities/ability1/displayicon.png',
                 maxCooldown: 0,
                 description: 'Consomme une âme pour régénérer rapidement toute la santé en 2 secondes',
                 execute: (ctx) => {
@@ -52,7 +60,7 @@ const AgentsRegistry = {
             ability2: {
                 key: 'ability2',
                 name: 'Rejeter',
-                icon: 'ghost',
+                icon: 'https://media.valorant-api.com/agents/a3bfb853-43b2-7238-a4f1-ad90e9e46bcc/abilities/ability2/displayicon.png',
                 maxCooldown: 0,
                 description: 'Devient invincible pendant 2 secondes',
                 execute: (ctx) => {
@@ -62,7 +70,7 @@ const AgentsRegistry = {
             ultimate: {
                 key: 'ultimate',
                 name: 'Impératrice',
-                icon: 'fire',
+                icon: 'https://media.valorant-api.com/agents/a3bfb853-43b2-7238-a4f1-ad90e9e46bcc/abilities/ultimate/displayicon.png',
                 maxPoints: 6,
                 description: 'Augmente la cadence de tir pour tout le round',
                 execute: (ctx) => {
@@ -101,13 +109,13 @@ const AgentsRegistry = {
         role: 'Duelliste',
         description: 'Agent agile capable de se déplacer rapidement et de planer dans les airs.',
         difficulty: 'Difficile',
-        icon: '💨',
-        portrait: 'https://images.contentstack.io/v3/assets/bltb6530b271fddd0b1/blt1b1fdce6ad10a2d0/5eb7cdc16509f3370a5a93b6/V_AGENTS_587x900_Jett.png',
+        icon: 'https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/displayicon.png',
+        portrait: 'https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/fullportrait.png',
         abilities: {
             ability1: {
                 key: 'ability1',
                 name: 'Updraft',
-                icon: 'arrow-up',
+                icon: 'https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/abilities/ability1/displayicon.png',
                 maxCooldown: 35,
                 description: 'Propulse vers le haut',
                 execute: (ctx) => {
@@ -117,7 +125,7 @@ const AgentsRegistry = {
             ability2: {
                 key: 'ability2',
                 name: 'Tailwind',
-                icon: 'wind',
+                icon: 'https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/abilities/ability2/displayicon.png',
                 maxCooldown: 30,
                 description: 'Dash rapide dans la direction du mouvement',
                 execute: (ctx) => {
@@ -127,7 +135,7 @@ const AgentsRegistry = {
             ultimate: {
                 key: 'ultimate',
                 name: 'Lames Tourbillonnantes',
-                icon: 'bullseye',
+                icon: 'https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/abilities/ultimate/displayicon.png',
                 maxPoints: 7,
                 description: 'Équipe des couteaux de lancer ultra-précis',
                 execute: (ctx) => {
@@ -148,13 +156,13 @@ const AgentsRegistry = {
         role: 'Sentinelle',
         description: 'Guérisseuse et protectrice, capable de créer des barrières et de ressusciter.',
         difficulty: 'Facile',
-        icon: '❄️',
-        portrait: 'https://images.contentstack.io/v3/assets/bltb6530b271fddd0b1/blt7beef5b879e4985a/5eb7cdc1d7a595370a5a52ee/V_AGENTS_587x900_Sage.png',
+        icon: 'https://media.valorant-api.com/agents/569fdd95-4d10-43ab-ca70-79becc718b46/displayicon.png',
+        portrait: 'https://media.valorant-api.com/agents/569fdd95-4d10-43ab-ca70-79becc718b46/fullportrait.png',
         abilities: {
             ability1: {
                 key: 'ability1',
                 name: 'Orbe de Soin',
-                icon: 'heart',
+                icon: 'https://media.valorant-api.com/agents/569fdd95-4d10-43ab-ca70-79becc718b46/abilities/ability2/displayicon.png',
                 maxCooldown: 45,
                 description: 'Soigne soi-même de 60 HP',
                 execute: (ctx) => {
@@ -168,7 +176,7 @@ const AgentsRegistry = {
             ability2: {
                 key: 'ability2',
                 name: 'Orbe de Ralentissement',
-                icon: 'snowflake',
+                icon: 'https://media.valorant-api.com/agents/569fdd95-4d10-43ab-ca70-79becc718b46/abilities/ability1/displayicon.png',
                 maxCooldown: 30,
                 description: 'Crée une zone qui ralentit les ennemis',
                 execute: (ctx) => {
@@ -178,7 +186,7 @@ const AgentsRegistry = {
             ultimate: {
                 key: 'ultimate',
                 name: 'Barrière',
-                icon: 'shield-alt',
+                icon: 'https://media.valorant-api.com/agents/569fdd95-4d10-43ab-ca70-79becc718b46/abilities/grenade/displayicon.png',
                 maxPoints: 8,
                 description: 'Crée un mur indestructible pendant 30 secondes',
                 execute: (ctx) => {
@@ -202,13 +210,13 @@ const AgentsRegistry = {
         role: 'Duelliste',
         description: 'Maître du feu capable de se soigner et de renaître de ses cendres.',
         difficulty: 'Facile',
-        icon: '🔥',
-        portrait: 'https://images.contentstack.io/v3/assets/bltb6530b271fddd0b1/bltb750e63f6e479e2b/5eb7cdc1d66ad0110129eb6e/V_AGENTS_587x900_Phoenix.png',
+        icon: 'https://media.valorant-api.com/agents/eb93336a-449b-9c1b-0a54-a891f7921d69/displayicon.png',
+        portrait: 'https://media.valorant-api.com/agents/eb93336a-449b-9c1b-0a54-a891f7921d69/fullportrait.png',
         abilities: {
             ability1: {
                 key: 'ability1',
                 name: 'Mains Brûlantes',
-                icon: 'fire',
+                icon: 'https://media.valorant-api.com/agents/eb93336a-449b-9c1b-0a54-a891f7921d69/abilities/ability1/displayicon.png',
                 maxCooldown: 25,
                 description: 'Lance une boule de feu qui inflige des dégâts et soigne Phoenix',
                 execute: (ctx) => {
@@ -218,7 +226,7 @@ const AgentsRegistry = {
             ability2: {
                 key: 'ability2',
                 name: 'Mur de Feu',
-                icon: 'fire-alt',
+                icon: 'https://media.valorant-api.com/agents/eb93336a-449b-9c1b-0a54-a891f7921d69/abilities/grenade/displayicon.png',
                 maxCooldown: 30,
                 description: 'Crée un mur de feu qui bloque la vision et inflige des dégâts',
                 execute: (ctx) => {
@@ -228,7 +236,7 @@ const AgentsRegistry = {
             ultimate: {
                 key: 'ultimate',
                 name: 'Renaissance',
-                icon: 'redo',
+                icon: 'https://media.valorant-api.com/agents/eb93336a-449b-9c1b-0a54-a891f7921d69/abilities/ultimate/displayicon.png',
                 maxPoints: 6,
                 description: 'Place un marqueur. Si vous mourez, vous renaissez au marqueur avec toute votre santé',
                 execute: (ctx) => {
@@ -249,13 +257,13 @@ const AgentsRegistry = {
         role: 'Contrôleur',
         description: 'Manipulateur des ombres, capable de se téléporter et d\'aveugler.',
         difficulty: 'Moyen',
-        icon: '👻',
-        portrait: 'https://images.contentstack.io/v3/assets/bltb6530b271fddd0b1/blt4932d92937e0bab5/5eb7cdc1bf68c65232c7dfdd/V_AGENTS_587x900_Omen.png',
+        icon: 'https://media.valorant-api.com/agents/8e253930-4c05-31dd-1b6c-968525494517/displayicon.png',
+        portrait: 'https://media.valorant-api.com/agents/8e253930-4c05-31dd-1b6c-968525494517/fullportrait.png',
         abilities: {
             ability1: {
                 key: 'ability1',
                 name: 'Linceul Ténébreux',
-                icon: 'eye-slash',
+                icon: 'https://media.valorant-api.com/agents/8e253930-4c05-31dd-1b6c-968525494517/abilities/ability1/displayicon.png',
                 maxCooldown: 25,
                 description: 'Lance un projectile qui aveugle les ennemis touchés',
                 execute: (ctx) => {
@@ -265,7 +273,7 @@ const AgentsRegistry = {
             ability2: {
                 key: 'ability2',
                 name: 'Foulée Ténébreuse',
-                icon: 'shoe-prints',
+                icon: 'https://media.valorant-api.com/agents/8e253930-4c05-31dd-1b6c-968525494517/abilities/grenade/displayicon.png',
                 maxCooldown: 35,
                 description: 'Téléportation courte distance (15 mètres)',
                 execute: (ctx) => {
@@ -275,7 +283,7 @@ const AgentsRegistry = {
             ultimate: {
                 key: 'ultimate',
                 name: 'Depuis l\'Ombre',
-                icon: 'map-marker-alt',
+                icon: 'https://media.valorant-api.com/agents/8e253930-4c05-31dd-1b6c-968525494517/abilities/ultimate/displayicon.png',
                 maxPoints: 7,
                 description: 'Téléportation n\'importe où sur la map',
                 execute: (ctx) => {
@@ -296,13 +304,13 @@ const AgentsRegistry = {
         role: 'Contrôleur',
         description: 'Tacticien orbital capable de fournir un support de fumées et de frappes.',
         difficulty: 'Facile',
-        icon: '🎖️',
-        portrait: 'https://images.contentstack.io/v3/assets/bltb6530b271fddd0b1/blt8b019b24d3d93e95/5eb7cdc144bf8261a04d87f8/V_AGENTS_587x900_Brimstone.png',
+        icon: 'https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/displayicon.png',
+        portrait: 'https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/fullportrait.png',
         abilities: {
             ability1: {
                 key: 'ability1',
                 name: 'Fumée Incendiaire',
-                icon: 'fire-extinguisher',
+                icon: 'https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/abilities/ability2/displayicon.png',
                 maxCooldown: 20,
                 description: 'Lance un projectile de fumée',
                 execute: (ctx) => {
@@ -312,7 +320,7 @@ const AgentsRegistry = {
             ability2: {
                 key: 'ability2',
                 name: 'Beacon Stim',
-                icon: 'running',
+                icon: 'https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/abilities/grenade/displayicon.png',
                 maxCooldown: 30,
                 description: 'Déploie une balise qui augmente la vitesse de tir',
                 execute: (ctx) => {
@@ -322,7 +330,7 @@ const AgentsRegistry = {
             ultimate: {
                 key: 'ultimate',
                 name: 'Frappe Orbitale',
-                icon: 'satellite',
+                icon: 'https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/abilities/ultimate/displayicon.png',
                 maxPoints: 7,
                 description: 'Lance une frappe laser dévastatrice',
                 execute: (ctx) => {
@@ -343,13 +351,13 @@ const AgentsRegistry = {
         role: 'Initiateur',
         description: 'Maître de la reconnaissance, capable de repérer les ennemis.',
         difficulty: 'Difficile',
-        icon: '🏹',
-        portrait: 'https://images.contentstack.io/v3/assets/bltb6530b271fddd0b1/blt9230bbdf64dafb6e/5eb7cdc1b1f2e27c950418e2/V_AGENTS_587x900_Sova.png',
+        icon: 'https://media.valorant-api.com/agents/320b2a48-4d9b-a075-30f1-1f93a9b638fa/displayicon.png',
+        portrait: 'https://media.valorant-api.com/agents/320b2a48-4d9b-a075-30f1-1f93a9b638fa/fullportrait.png',
         abilities: {
             ability1: {
                 key: 'ability1',
                 name: 'Drone Hibou',
-                icon: 'binoculars',
+                icon: 'https://media.valorant-api.com/agents/320b2a48-4d9b-a075-30f1-1f93a9b638fa/abilities/grenade/displayicon.png',
                 maxCooldown: 40,
                 description: 'Révèle les ennemis dans une zone',
                 execute: (ctx) => {
@@ -359,7 +367,7 @@ const AgentsRegistry = {
             ability2: {
                 key: 'ability2',
                 name: 'Flèche de Choc',
-                icon: 'bolt',
+                icon: 'https://media.valorant-api.com/agents/320b2a48-4d9b-a075-30f1-1f93a9b638fa/abilities/ability1/displayicon.png',
                 maxCooldown: 20,
                 description: 'Tire une flèche explosive',
                 execute: (ctx) => {
@@ -369,7 +377,7 @@ const AgentsRegistry = {
             ultimate: {
                 key: 'ultimate',
                 name: 'Fureur du Chasseur',
-                icon: 'crosshairs',
+                icon: 'https://media.valorant-api.com/agents/320b2a48-4d9b-a075-30f1-1f93a9b638fa/abilities/ultimate/displayicon.png',
                 maxPoints: 8,
                 description: 'Tire 3 traits d\'énergie à travers les murs',
                 execute: (ctx) => {
@@ -472,7 +480,7 @@ const AgentSystem = {
                     <div class="agent-abilities">
                         ${Object.values(agent.abilities).map(ability => `
                             <div class="agent-ability" title="${ability.description}">
-                                <i class="fas fa-${ability.icon}"></i>
+                                <img src="${ability.icon || DEFAULT_ABILITY_ICON}" alt="${ability.name}" />
                                 <span>${ability.name}</span>
                             </div>
                         `).join('')}
@@ -580,7 +588,7 @@ const AgentSystem = {
         if (displayEl) {
             displayEl.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 15px; justify-content: center;">
-                    <div style="font-size: 40px;">${agent.icon || '🎯'}</div>
+                    <img class="agent-icon-img" src="${agent.icon || DEFAULT_AGENT_ICON}" alt="${agent.name}">
                     <div style="text-align: left;">
                         <div style="font-size: 18px; font-weight: bold; color: #00d4ff;">${agent.name}</div>
                         <div style="font-size: 14px; color: rgba(255,255,255,0.7);">${agent.role}</div>
