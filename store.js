@@ -52,7 +52,7 @@ const RARITIES = {
     }
 };
 
-// Base de données des skins d'armes
+// Base de données des skins d'armes (REFONTE COMPLÈTE)
 const WEAPON_SKINS = {
     rifles: [
         {
@@ -144,6 +144,150 @@ const WEAPON_SKINS = {
             pattern: 'energy',
             price: 5200,
             description: 'Vandal auréolé d\'énergie éclatante et de lignes futuristes.'
+        },
+        {
+            id: 'ak47_neon_rider',
+            weapon: 'AK-47',
+            name: 'Neon Rider',
+            rarity: 'classified',
+            pattern: 'neon',
+            price: 3800,
+            description: 'Design cyberpunk avec néons colorés.'
+        },
+        {
+            id: 'ak47_aquamarine',
+            weapon: 'AK-47',
+            name: 'Aquamarine Revenge',
+            rarity: 'covert',
+            pattern: 'aqua',
+            price: 6500,
+            description: 'Motif marin avec vagues et pieuvre.'
+        },
+        {
+            id: 'm4a4_neo_noir',
+            weapon: 'M4A4',
+            name: 'Neo-Noir',
+            rarity: 'covert',
+            pattern: 'noir',
+            price: 7200,
+            description: 'Style noir et blanc avec éclaboussures rouges.'
+        },
+        {
+            id: 'm4a4_desolate_space',
+            weapon: 'M4A4',
+            name: 'Desolate Space',
+            rarity: 'classified',
+            pattern: 'space',
+            price: 3400,
+            description: 'Thème spatial avec galaxies et étoiles.'
+        },
+        {
+            id: 'phantom_oni',
+            weapon: 'Phantom',
+            name: 'Oni',
+            rarity: 'covert',
+            pattern: 'demon',
+            price: 8900,
+            description: 'Masque de démon japonais avec effets VFX.'
+        },
+        {
+            id: 'phantom_singularity',
+            weapon: 'Phantom',
+            name: 'Singularity',
+            rarity: 'covert',
+            pattern: 'quantum',
+            price: 7600,
+            description: 'Trou noir et distorsion spatiale.'
+        },
+        {
+            id: 'vandal_prime',
+            weapon: 'Vandal',
+            name: 'Prime',
+            rarity: 'covert',
+            pattern: 'luxury',
+            price: 8400,
+            description: 'Design premium or et blanc avec VFX.'
+        },
+        {
+            id: 'vandal_reaver',
+            weapon: 'Vandal',
+            name: 'Reaver',
+            rarity: 'covert',
+            pattern: 'death',
+            price: 7800,
+            description: 'Style gothique sombre avec âmes.'
+        },
+        {
+            id: 'vandal_gaia',
+            weapon: 'Vandal',
+            name: 'Gaia\'s Vengeance',
+            rarity: 'covert',
+            pattern: 'nature',
+            price: 8100,
+            description: 'Thème nature avec plantes et terre.'
+        },
+        {
+            id: 'phantom_champion',
+            weapon: 'Phantom',
+            name: 'Champions 2021',
+            rarity: 'covert',
+            pattern: 'gold',
+            price: 15000,
+            description: 'Édition limitée Champions dorée.'
+        },
+        {
+            id: 'phantom_ruination',
+            weapon: 'Phantom',
+            name: 'Ruination',
+            rarity: 'covert',
+            pattern: 'dark',
+            price: 7200,
+            description: 'Corruption sombre et verte.'
+        },
+        {
+            id: 'vandal_chronovoid',
+            weapon: 'Vandal',
+            name: 'ChronoVoid',
+            rarity: 'covert',
+            pattern: 'time',
+            price: 8600,
+            description: 'Distorsion temporelle violette.'
+        },
+        {
+            id: 'vandal_araxys',
+            weapon: 'Vandal',
+            name: 'Araxys',
+            rarity: 'covert',
+            pattern: 'alien',
+            price: 9100,
+            description: 'Technologie alien biomécanique.'
+        },
+        {
+            id: 'phantom_protocol',
+            weapon: 'Phantom',
+            name: 'Protocol 781-A',
+            rarity: 'covert',
+            pattern: 'tech',
+            price: 8400,
+            description: 'Hologrammes et technologie avancée.'
+        },
+        {
+            id: 'vandal_neptune',
+            weapon: 'Vandal',
+            name: 'Neptune',
+            rarity: 'classified',
+            pattern: 'ocean',
+            price: 4200,
+            description: 'Thème océan profond bleu.'
+        },
+        {
+            id: 'phantom_spectrum',
+            weapon: 'Phantom',
+            name: 'Spectrum',
+            rarity: 'covert',
+            pattern: 'rainbow',
+            price: 9800,
+            description: 'Arc-en-ciel chromatique avec audio.'
         }
     ],
     pistols: [
@@ -182,6 +326,114 @@ const WEAPON_SKINS = {
             pattern: 'solid',
             price: 10,
             description: 'Finition sable basique.'
+        },
+        {
+            id: 'deagle_kumicho_dragon',
+            weapon: 'Desert Eagle',
+            name: 'Kumicho Dragon',
+            rarity: 'covert',
+            pattern: 'dragon',
+            price: 9800,
+            description: 'Dragon japonais doré gravé.'
+        },
+        {
+            id: 'deagle_code_red',
+            weapon: 'Desert Eagle',
+            name: 'Code Red',
+            rarity: 'classified',
+            pattern: 'digital',
+            price: 2200,
+            description: 'Camouflage digital rouge et noir.'
+        },
+        {
+            id: 'glock_water_elemental',
+            weapon: 'Glock-18',
+            name: 'Water Elemental',
+            rarity: 'classified',
+            pattern: 'water',
+            price: 1800,
+            description: 'Créature aquatique mystique.'
+        },
+        {
+            id: 'glock_gamma_doppler',
+            weapon: 'Glock-18',
+            name: 'Gamma Doppler',
+            rarity: 'restricted',
+            pattern: 'doppler',
+            price: 1400,
+            description: 'Dégradé gamma vert et bleu.'
+        },
+        {
+            id: 'usp_kill_confirmed',
+            weapon: 'USP-S',
+            name: 'Kill Confirmed',
+            rarity: 'classified',
+            pattern: 'skull',
+            price: 2100,
+            description: 'Crânes et marques de mort.'
+        },
+        {
+            id: 'usp_neo_noir',
+            weapon: 'USP-S',
+            name: 'Neo-Noir',
+            rarity: 'restricted',
+            pattern: 'noir',
+            price: 950,
+            description: 'Style comic book noir et blanc.'
+        },
+        {
+            id: 'sheriff_ion',
+            weapon: 'Sheriff',
+            name: 'Ion',
+            rarity: 'covert',
+            pattern: 'energy',
+            price: 5200,
+            description: 'Énergie bleue électrique pulsante.'
+        },
+        {
+            id: 'sheriff_reaver',
+            weapon: 'Sheriff',
+            name: 'Reaver',
+            rarity: 'covert',
+            pattern: 'death',
+            price: 4800,
+            description: 'Âmes et énergie violette.'
+        },
+        {
+            id: 'classic_recon',
+            weapon: 'Classic',
+            name: 'Recon',
+            rarity: 'restricted',
+            pattern: 'military',
+            price: 800,
+            description: 'Camouflage militaire tactique.'
+        },
+        {
+            id: 'sheriff_sentinels',
+            weapon: 'Sheriff',
+            name: 'Sentinels of Light',
+            rarity: 'covert',
+            pattern: 'light',
+            price: 5600,
+            description: 'Or et lumière divine.'
+        },
+        {
+            id: 'ghost_sovereign',
+            weapon: 'Ghost',
+            name: 'Sovereign',
+            rarity: 'covert',
+            pattern: 'royal',
+            price: 4200,
+            description: 'Or royal avec ornements.'
+        },
+        {
+            id: 'sheriff_magepunk',
+            weapon: 'Sheriff',
+            name: 'Magepunk',
+            rarity: 'classified',
+            pattern: 'steampunk',
+            price: 3400,
+            description: 'Steampunk magique orange.'
         }
     ],
     smgs: [
@@ -211,6 +463,60 @@ const WEAPON_SKINS = {
             pattern: 'neon',
             price: 3200,
             description: 'Circuit lumineux pulsé aux teintes néon électriques.'
+        },
+        {
+            id: 'p90_death_by_kitty',
+            weapon: 'P90',
+            name: 'Death by Kitty',
+            rarity: 'classified',
+            pattern: 'kawaii',
+            price: 4200,
+            description: 'Chats kawaï mignons et roses.'
+        },
+        {
+            id: 'p90_tigris',
+            weapon: 'P90',
+            name: 'Tigris',
+            rarity: 'classified',
+            pattern: 'tiger',
+            price: 3900,
+            description: 'Motif de tigre blanc et orange.'
+        },
+        {
+            id: 'spectre_elderflame',
+            weapon: 'Spectre',
+            name: 'Elderflame',
+            rarity: 'covert',
+            pattern: 'dragon_fire',
+            price: 9200,
+            description: 'Dragon de feu ancestral animé.'
+        },
+        {
+            id: 'spectre_protocol',
+            weapon: 'Spectre',
+            name: 'Protocol 781-A',
+            rarity: 'restricted',
+            pattern: 'tech',
+            price: 2800,
+            description: 'Technologie holographique futuriste.'
+        },
+        {
+            id: 'spectre_reaver',
+            weapon: 'Spectre',
+            name: 'Reaver',
+            rarity: 'covert',
+            pattern: 'death',
+            price: 6200,
+            description: 'Corruption violette et âmes.'
+        },
+        {
+            id: 'stinger_sovereign',
+            weapon: 'Stinger',
+            name: 'Sovereign',
+            rarity: 'classified',
+            pattern: 'royal',
+            price: 3100,
+            description: 'Design royal doré élégant.'
         }
     ],
     snipers: [
@@ -258,6 +564,51 @@ const WEAPON_SKINS = {
             pattern: 'mythic',
             price: 12500,
             description: 'Operator mythique aux reflets nexus et gravures arcaniques.'
+        },
+        {
+            id: 'awp_hyper_beast',
+            weapon: 'AWP',
+            name: 'Hyper Beast',
+            rarity: 'covert',
+            pattern: 'beast',
+            price: 11000,
+            description: 'Créature féroce multicolore.'
+        },
+        {
+            id: 'awp_wildfire',
+            weapon: 'AWP',
+            name: 'Wildfire',
+            rarity: 'restricted',
+            pattern: 'fire',
+            price: 1600,
+            description: 'Flammes sauvages orange et jaune.'
+        },
+        {
+            id: 'awp_medusa',
+            weapon: 'AWP',
+            name: 'Medusa',
+            rarity: 'covert',
+            pattern: 'mythic',
+            price: 25000,
+            description: 'Méduse mythologique extrêmement rare.'
+        },
+        {
+            id: 'operator_ion',
+            weapon: 'Operator',
+            name: 'Ion',
+            rarity: 'covert',
+            pattern: 'energy',
+            price: 10500,
+            description: 'Énergie électrique bleue pulsante.'
+        },
+        {
+            id: 'operator_glitchpop',
+            weapon: 'Operator',
+            name: 'Glitchpop',
+            rarity: 'covert',
+            pattern: 'cyberpunk',
+            price: 11200,
+            description: 'Glitch cyberpunk coloré et animé.'
         }
     ],
     knives: [
@@ -287,101 +638,239 @@ const WEAPON_SKINS = {
             pattern: 'energy',
             price: 52000,
             description: 'Lame tactique enveloppée d\'un flux énergétique lumineux.'
+        },
+        {
+            id: 'karambit_tiger_tooth',
+            weapon: 'Karambit',
+            name: 'Tiger Tooth',
+            rarity: 'knife',
+            pattern: 'tiger',
+            price: 48000,
+            description: 'Finition dorée avec rayures de tigre.'
+        },
+        {
+            id: 'karambit_doppler',
+            weapon: 'Karambit',
+            name: 'Doppler Phase 2',
+            rarity: 'knife',
+            pattern: 'doppler',
+            price: 55000,
+            description: 'Dégradé rose et bleu hypnotique.'
+        },
+        {
+            id: 'butterfly_fade',
+            weapon: 'Butterfly Knife',
+            name: 'Fade',
+            rarity: 'knife',
+            pattern: 'fade',
+            price: 52000,
+            description: 'Dégradé arc-en-ciel parfait.'
+        },
+        {
+            id: 'butterfly_slaughter',
+            weapon: 'Butterfly Knife',
+            name: 'Slaughter',
+            rarity: 'knife',
+            pattern: 'blood',
+            price: 46000,
+            description: 'Motifs sanglants abstraits.'
+        },
+        {
+            id: 'bayonet_autotronic',
+            weapon: 'Bayonet',
+            name: 'Autotronic',
+            rarity: 'knife',
+            pattern: 'tech',
+            price: 44000,
+            description: 'Design robotique futuriste.'
+        },
+        {
+            id: 'talon_marble_fade',
+            weapon: 'Talon Knife',
+            name: 'Marble Fade',
+            rarity: 'knife',
+            pattern: 'marble',
+            price: 60000,
+            description: 'Marbre coloré rouge bleu jaune.'
+        },
+        {
+            id: 'ursus_gamma_doppler',
+            weapon: 'Ursus Knife',
+            name: 'Gamma Doppler',
+            rarity: 'knife',
+            pattern: 'doppler',
+            price: 51000,
+            description: 'Dégradé vert émeraude radioactif.'
         }
     ]
 };
 
-// Définition des cases
+// Définition des cases (REFONTE COMPLÈTE avec meilleurs drops)
 const WEAPON_CASES = [
     {
         id: 'starter_case',
         name: 'Caisse Débutant',
         price: 100,
-        description: 'Parfaite pour commencer votre collection',
+        description: 'Parfaite pour commencer votre collection - Skins Common à Rare',
         contents: [
+            // Consumer (70%)
             'ak47_jungle_spray',
             'm4a4_tornado',
             'p250_sand_dune',
-            'usp_orion',
-            'glock_fade',
+            'awp_safari_mesh',
+            // Industrial (20%)
             'mp9_bulldozer',
-            'ak47_case_hardened'
-        ]
-    },
-    {
-        id: 'chroma_case',
-        name: 'Caisse Chroma',
-        price: 250,
-        description: 'Contient des skins colorés avec finitions vibrantes',
-        contents: [
             'ak47_case_hardened',
-            'm4a4_dragon_king',
-            'glock_fade',
+            // Mil-Spec (8%)
             'usp_orion',
-            'mp9_bulldozer',
-            'ssg08_blood_in_water',
-            'deagle_blaze',
-            'ak47_jungle_spray',
-            'm4a4_tornado',
-            'p250_sand_dune'
+            'awp_wildfire',
+            // Restricted (2%)
+            'glock_fade',
+            'deagle_blaze'
         ]
     },
     {
-        id: 'spectrum_case',
-        name: 'Caisse Spectrum',
-        price: 300,
-        description: 'Collection de skins avec un large spectre de couleurs',
+        id: 'neon_case',
+        name: 'Caisse Néon',
+        price: 200,
+        description: 'Collection futuriste avec éclairages néon - Rare à Epic',
         contents: [
+            // Industrial (40%)
+            'mp9_bulldozer',
+            'awp_safari_mesh',
+            // Mil-Spec (30%)
+            'ak47_case_hardened',
+            'spectre_protocol',
+            // Restricted (20%)
+            'ak47_neon_rider',
+            'spectre_neon_pulse',
+            'glock_gamma_doppler',
+            // Classified (8%)
+            'phantom_holocore',
+            'm4a4_desolate_space',
+            // Covert (2%)
+            'phantom_singularity',
+            'operator_ion'
+        ]
+    },
+    {
+        id: 'dragon_case',
+        name: 'Caisse Dragon',
+        price: 350,
+        description: 'Thème asiatique avec dragons et créatures - Epic à Legendary',
+        contents: [
+            // Mil-Spec (35%)
+            'usp_orion',
+            'awp_wildfire',
+            // Restricted (30%)
+            'glock_fade',
+            'deagle_blaze',
+            'usp_neo_noir',
+            // Classified (25%)
+            'm4a4_dragon_king',
+            'ssg08_blood_in_water',
+            'deagle_code_red',
+            // Covert (10%)
+            'ak47_aquamarine',
+            'deagle_kumicho_dragon',
+            'm4a4_neo_noir',
+            'awp_hyper_beast'
+        ]
+    },
+    {
+        id: 'asiimov_case',
+        name: 'Caisse Asiimov',
+        price: 400,
+        description: 'Collection Asiimov et designs technologiques - Legendary',
+        contents: [
+            // Restricted (40%)
+            'deagle_blaze',
+            'glock_fade',
+            'spectre_neon_pulse',
+            // Classified (35%)
             'ak47_redline',
+            'm4a4_desolate_space',
+            'p90_tigris',
+            'glock_water_elemental',
+            // Covert (25%)
             'm4a4_asiimov',
             'p90_asiimov',
             'awp_asiimov',
-            'awp_safari_mesh',
-            'karambit_fade'
+            'vandal_fulgurance',
+            'phantom_holocore'
         ]
     },
     {
-        id: 'phoenix_case',
-        name: 'Caisse Phoenix',
-        price: 400,
-        description: 'Skins légendaires du monde de Phoenix',
-        contents: [
-            'ak47_vulcan',
-            'm4a4_howl',
-            'awp_dragon_lore',
-            'butterfly_crimson_web'
-        ]
-    },
-    {
-        id: 'elite_case',
-        name: 'Caisse Élite',
+        id: 'beast_case',
+        name: 'Caisse Bête Sauvage',
         price: 500,
-        description: 'Les meilleurs skins pour les joueurs d\'élite',
+        description: 'Créatures mythiques et animaux féroces - Legendary à Mythic',
         contents: [
-            'ak47_vulcan',
-            'ak47_redline',
-            'm4a4_asiimov',
-            'm4a4_howl',
-            'awp_asiimov',
+            // Classified (40%)
+            'ssg08_blood_in_water',
+            'p90_tigris',
+            'p90_death_by_kitty',
+            'usp_kill_confirmed',
+            // Covert (50%)
+            'ak47_aquamarine',
+            'awp_hyper_beast',
+            'deagle_kumicho_dragon',
+            'm4a4_neo_noir',
             'awp_dragon_lore',
-            'deagle_blaze',
-            'karambit_fade',
-            'butterfly_crimson_web'
+            // Knife (10%)
+            'karambit_tiger_tooth',
+            'butterfly_slaughter'
         ]
     },
     {
-        id: 'premium_case',
-        name: 'Caisse Premium',
-        price: 750,
-        description: 'Contenu exclusif avec chances améliorées de skins rares',
+        id: 'valorant_case',
+        name: 'Caisse Valorant',
+        price: 600,
+        description: 'Skins exclusifs Valorant avec effets VFX - Mythic',
         contents: [
+            // Classified (35%)
+            'phantom_holocore',
+            'ak47_neon_rider',
+            'spectre_protocol',
+            // Covert (50%)
+            'phantom_oni',
+            'phantom_singularity',
+            'vandal_prime',
+            'vandal_reaver',
+            'spectre_elderflame',
+            'operator_ion',
+            'operator_glitchpop',
+            // Knife (15%)
+            'knife_flux',
+            'talon_marble_fade'
+        ]
+    },
+    {
+        id: 'ultimate_case',
+        name: 'Caisse Ultime',
+        price: 1000,
+        description: 'Les skins les plus rares et recherchés - Mythic & Knife garantis',
+        contents: [
+            // Covert (60%)
             'ak47_vulcan',
             'm4a4_howl',
             'awp_dragon_lore',
-            'butterfly_crimson_web',
+            'awp_medusa',
+            'phantom_oni',
+            'vandal_prime',
+            'operator_glitchpop',
+            'spectre_elderflame',
+            'm4a4_neo_noir',
+            'deagle_kumicho_dragon',
+            // Knife (40%)
             'karambit_fade',
-            'deagle_blaze',
-            'p90_asiimov'
+            'karambit_doppler',
+            'butterfly_fade',
+            'butterfly_crimson_web',
+            'talon_marble_fade',
+            'ursus_gamma_doppler',
+            'bayonet_autotronic',
+            'knife_flux'
         ]
     }
 ];
