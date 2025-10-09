@@ -156,7 +156,9 @@ const MINIMAP_SETTINGS = {
     bomb: '#ffd166'
 };
 
-const DEFAULT_ABILITY_ICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' ry='12' fill='%23242a3a'/%3E%3Ctext x='32' y='36' text-anchor='middle' dominant-baseline='middle' font-family='Arial' font-size='30' fill='%23ffffff'%3E%3F%3C/text%3E%3C/svg%3E";
+const HUD_DEFAULT_ABILITY_ICON = (typeof window !== 'undefined' && window.DEFAULT_ABILITY_ICON)
+    ? window.DEFAULT_ABILITY_ICON
+    : "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' ry='12' fill='%23242a3a'/%3E%3Ctext x='32' y='36' text-anchor='middle' dominant-baseline='middle' font-family='Arial' font-size='30' fill='%23ffffff'%3E%3F%3C/text%3E%3C/svg%3E";
 
 // ========================================
 // TYPES D'OBJETS DESTRUCTIBLES
@@ -2615,7 +2617,7 @@ function updateAbilitiesDisplay() {
 
     if (ability1Slot && agentData.abilities.ability1) {
         if (ability1Icon) {
-            ability1Icon.src = agentData.abilities.ability1.icon || DEFAULT_ABILITY_ICON;
+            ability1Icon.src = agentData.abilities.ability1.icon || HUD_DEFAULT_ABILITY_ICON;
             ability1Icon.alt = agentData.abilities.ability1.name || 'Capacité';
         }
 
@@ -2635,7 +2637,7 @@ function updateAbilitiesDisplay() {
         }
     } else {
         if (ability1Icon) {
-            ability1Icon.src = DEFAULT_ABILITY_ICON;
+            ability1Icon.src = HUD_DEFAULT_ABILITY_ICON;
             ability1Icon.alt = 'Capacité';
         }
     }
@@ -2648,7 +2650,7 @@ function updateAbilitiesDisplay() {
 
     if (ability2Slot && agentData.abilities.ability2) {
         if (ability2Icon) {
-            ability2Icon.src = agentData.abilities.ability2.icon || DEFAULT_ABILITY_ICON;
+            ability2Icon.src = agentData.abilities.ability2.icon || HUD_DEFAULT_ABILITY_ICON;
             ability2Icon.alt = agentData.abilities.ability2.name || 'Capacité';
         }
 
@@ -2668,7 +2670,7 @@ function updateAbilitiesDisplay() {
         }
     } else {
         if (ability2Icon) {
-            ability2Icon.src = DEFAULT_ABILITY_ICON;
+            ability2Icon.src = HUD_DEFAULT_ABILITY_ICON;
             ability2Icon.alt = 'Capacité';
         }
     }
@@ -2681,7 +2683,7 @@ function updateAbilitiesDisplay() {
 
     if (ultimateSlot && agentData.abilities.ultimate) {
         if (ultimateIcon) {
-            ultimateIcon.src = agentData.abilities.ultimate.icon || DEFAULT_ABILITY_ICON;
+            ultimateIcon.src = agentData.abilities.ultimate.icon || HUD_DEFAULT_ABILITY_ICON;
             ultimateIcon.alt = agentData.abilities.ultimate.name || 'Capacité';
         }
 
@@ -2695,7 +2697,7 @@ function updateAbilitiesDisplay() {
             ultimateSlot.classList.remove('ready');
         }
     } else if (ultimateIcon) {
-        ultimateIcon.src = DEFAULT_ABILITY_ICON;
+        ultimateIcon.src = HUD_DEFAULT_ABILITY_ICON;
         ultimateIcon.alt = 'Capacité';
     }
 }

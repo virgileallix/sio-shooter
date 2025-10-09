@@ -18,8 +18,8 @@ const AgentsRegistry = {
         role: 'Duelliste',
         description: 'Reyna se nourrit des éliminations pour régénérer sa santé et devenir invincible.',
         difficulty: 'Moyen',
-        icon: 'https://media.valorant-api.com/agents/a3bfb853-43b2-7238-a4f1-ad90e9e46bcc/displayicon.png',
-        portrait: 'https://media.valorant-api.com/agents/a3bfb853-43b2-7238-a4f1-ad90e9e46bcc/fullportrait.png',
+        icon: 'https://raw.githubusercontent.com/roboaleks/vast/main/agent_images/reyna_image.png',
+        portrait: 'https://raw.githubusercontent.com/roboaleks/vast/main/agent_images/reyna_image.png',
         abilities: {
             ability1: {
                 key: 'ability1',
@@ -109,8 +109,8 @@ const AgentsRegistry = {
         role: 'Duelliste',
         description: 'Agent agile capable de se déplacer rapidement et de planer dans les airs.',
         difficulty: 'Difficile',
-        icon: 'https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/displayicon.png',
-        portrait: 'https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/fullportrait.png',
+        icon: 'https://raw.githubusercontent.com/roboaleks/vast/main/agent_images/jett_image.png',
+        portrait: 'https://raw.githubusercontent.com/roboaleks/vast/main/agent_images/jett_image.png',
         abilities: {
             ability1: {
                 key: 'ability1',
@@ -156,8 +156,8 @@ const AgentsRegistry = {
         role: 'Sentinelle',
         description: 'Guérisseuse et protectrice, capable de créer des barrières et de ressusciter.',
         difficulty: 'Facile',
-        icon: 'https://media.valorant-api.com/agents/569fdd95-4d10-43ab-ca70-79becc718b46/displayicon.png',
-        portrait: 'https://media.valorant-api.com/agents/569fdd95-4d10-43ab-ca70-79becc718b46/fullportrait.png',
+        icon: 'https://raw.githubusercontent.com/roboaleks/vast/main/agent_images/sage_image.png',
+        portrait: 'https://raw.githubusercontent.com/roboaleks/vast/main/agent_images/sage_image.png',
         abilities: {
             ability1: {
                 key: 'ability1',
@@ -210,8 +210,8 @@ const AgentsRegistry = {
         role: 'Duelliste',
         description: 'Maître du feu capable de se soigner et de renaître de ses cendres.',
         difficulty: 'Facile',
-        icon: 'https://media.valorant-api.com/agents/eb93336a-449b-9c1b-0a54-a891f7921d69/displayicon.png',
-        portrait: 'https://media.valorant-api.com/agents/eb93336a-449b-9c1b-0a54-a891f7921d69/fullportrait.png',
+        icon: 'https://raw.githubusercontent.com/roboaleks/vast/main/agent_images/pheonix_image.png',
+        portrait: 'https://raw.githubusercontent.com/roboaleks/vast/main/agent_images/pheonix_image.png',
         abilities: {
             ability1: {
                 key: 'ability1',
@@ -257,8 +257,8 @@ const AgentsRegistry = {
         role: 'Contrôleur',
         description: 'Manipulateur des ombres, capable de se téléporter et d\'aveugler.',
         difficulty: 'Moyen',
-        icon: 'https://media.valorant-api.com/agents/8e253930-4c05-31dd-1b6c-968525494517/displayicon.png',
-        portrait: 'https://media.valorant-api.com/agents/8e253930-4c05-31dd-1b6c-968525494517/fullportrait.png',
+        icon: 'https://raw.githubusercontent.com/roboaleks/vast/main/agent_images/omen_image.png',
+        portrait: 'https://raw.githubusercontent.com/roboaleks/vast/main/agent_images/omen_image.png',
         abilities: {
             ability1: {
                 key: 'ability1',
@@ -304,8 +304,8 @@ const AgentsRegistry = {
         role: 'Contrôleur',
         description: 'Tacticien orbital capable de fournir un support de fumées et de frappes.',
         difficulty: 'Facile',
-        icon: 'https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/displayicon.png',
-        portrait: 'https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/fullportrait.png',
+        icon: 'https://raw.githubusercontent.com/roboaleks/vast/main/agent_images/brimstone_image.png',
+        portrait: 'https://raw.githubusercontent.com/roboaleks/vast/main/agent_images/brimstone_image.png',
         abilities: {
             ability1: {
                 key: 'ability1',
@@ -351,8 +351,8 @@ const AgentsRegistry = {
         role: 'Initiateur',
         description: 'Maître de la reconnaissance, capable de repérer les ennemis.',
         difficulty: 'Difficile',
-        icon: 'https://media.valorant-api.com/agents/320b2a48-4d9b-a075-30f1-1f93a9b638fa/displayicon.png',
-        portrait: 'https://media.valorant-api.com/agents/320b2a48-4d9b-a075-30f1-1f93a9b638fa/fullportrait.png',
+        icon: 'https://raw.githubusercontent.com/roboaleks/vast/main/agent_images/sova_image.png',
+        portrait: 'https://raw.githubusercontent.com/roboaleks/vast/main/agent_images/sova_image.png',
         abilities: {
             ability1: {
                 key: 'ability1',

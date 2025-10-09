@@ -394,7 +394,7 @@ const AGENTS = {
         role: 'Duelliste',
         price: 1500,
         description: 'Reyna se nourrit des éliminations pour régénérer sa santé et devenir invincible.',
-        icon: '👁️',
+        icon: 'https://raw.githubusercontent.com/roboaleks/vast/main/agent_images/reyna_image.png',
         rarity: 'covert',
         abilities: {
             ability1: {
@@ -426,7 +426,7 @@ const AGENTS = {
         role: 'Duelliste',
         price: 1500,
         description: 'Agent agile capable de se déplacer rapidement et de planer dans les airs.',
-        icon: '💨',
+        icon: 'https://raw.githubusercontent.com/roboaleks/vast/main/agent_images/jett_image.png',
         rarity: 'covert',
         abilities: {
             ability1: {
@@ -455,7 +455,7 @@ const AGENTS = {
         role: 'Sentinelle',
         price: 1200,
         description: 'Guérisseuse et protectrice, capable de créer des barrières et de ressusciter.',
-        icon: '❄️',
+        icon: 'https://raw.githubusercontent.com/roboaleks/vast/main/agent_images/sage_image.png',
         rarity: 'classified',
         abilities: {
             ability1: {
@@ -484,7 +484,7 @@ const AGENTS = {
         role: 'Duelliste',
         price: 1200,
         description: 'Maître du feu capable de se soigner et de renaître de ses cendres.',
-        icon: '🔥',
+        icon: 'https://raw.githubusercontent.com/roboaleks/vast/main/agent_images/pheonix_image.png',
         rarity: 'classified',
         abilities: {
             ability1: {
@@ -514,7 +514,7 @@ const AGENTS = {
         role: 'Contrôleur',
         price: 1200,
         description: 'Manipulateur des ombres, capable de se téléporter et d\'aveugler.',
-        icon: '👻',
+        icon: 'https://raw.githubusercontent.com/roboaleks/vast/main/agent_images/omen_image.png',
         rarity: 'classified',
         abilities: {
             ability1: {
@@ -543,7 +543,7 @@ const AGENTS = {
         role: 'Contrôleur',
         price: 1300,
         description: 'Experte en toxines, déploie des écrans de fumée empoisonnée.',
-        icon: '☠️',
+        icon: 'https://raw.githubusercontent.com/roboaleks/vast/main/agent_images/viper_image.png',
         rarity: 'classified',
         abilities: {
             ability1: {
@@ -573,7 +573,7 @@ const AGENTS = {
         role: 'Sentinelle',
         price: 1400,
         description: 'Espion marocain utilisant des gadgets pour surveiller et piéger.',
-        icon: '🎩',
+        icon: 'https://raw.githubusercontent.com/roboaleks/vast/main/agent_images/cypher_image.png',
         rarity: 'restricted',
         abilities: {
             ability1: {
@@ -603,7 +603,7 @@ const AGENTS = {
         role: 'Polyvalent',
         price: 0,
         description: 'Agent de base sans capacités spéciales',
-        icon: '🎯',
+        icon: STORE_DEFAULT_AGENT_ICON,
         rarity: 'consumer',
         abilities: {
             ability1: null,
