@@ -866,6 +866,16 @@ function resetGameState(isNewMatch = false) {
     player.isDefusing = false;
     player.actionType = null;
     player.actionProgress = 0;
+
+    // Réinitialiser le mode Impératrice de Reyna à chaque round
+    if (player.empressModeActive && player.weapon) {
+        // Trouver l'effet empress pour récupérer le fireRate original
+        const empressEffect = player.effects.find(e => e.type === 'empress');
+        if (empressEffect && empressEffect.originalFireRate) {
+            player.weapon.fireRate = empressEffect.originalFireRate;
+        }
+        player.empressModeActive = false;
+    }
     
     game.roundTime = game.defaultRoundTime;
     game.buyTime = game.defaultBuyTime;
@@ -1011,8 +1021,9 @@ function update(dt) {
     }
     updateOtherPlayers(dt);
     updateGameTimers(dt);
+    checkTeamElimination(); // Vérifier si une équipe est éliminée
     updateUI();
-    
+
     if (mouse.pressed && player.alive && !player.reloading && !player.isPlanting && !player.isDefusing) {
         shoot();
     }
@@ -1027,10 +1038,11 @@ function updatePlayer(dt) {
     let dirX = 0;
     let dirY = 0;
     
-    if (keys['w'] || keys['z']) dirY -= 1;
-    if (keys['s']) dirY += 1;
-    if (keys['a'] || keys['q']) dirX -= 1;
-    if (keys['d']) dirX += 1;
+    // Déplacement ZQSD + flèches directionnelles
+    if (keys['w'] || keys['z'] || keys['arrowup']) dirY -= 1;
+    if (keys['s'] || keys['arrowdown']) dirY += 1;
+    if (keys['a'] || keys['q'] || keys['arrowleft']) dirX -= 1;
+    if (keys['d'] || keys['arrowright']) dirX += 1;
     
     if (dirX !== 0 && dirY !== 0) {
         dirX *= Math.SQRT1_2;
@@ -1060,11 +1072,16 @@ function updatePlayer(dt) {
         player.y = Math.min(Math.max(player.y, 0), Math.max(0, maxY));
     }
     
+    // Recalculer la position de la souris dans le monde avec la caméra actuelle
+    // pour éviter le décalage causé par le lissage de la caméra
+    const currentMouseWorldX = mouse.x - gameCanvas.width / 2 + game.camera.x;
+    const currentMouseWorldY = mouse.y - gameCanvas.height / 2 + game.camera.y;
+
     // Angle vers la souris (centré sur le joueur)
     const playerCenterX = player.x + player.width / 2;
     const playerCenterY = player.y + player.height / 2;
-    const dx_mouse = mouse.worldX - playerCenterX;
-    const dy_mouse = mouse.worldY - playerCenterY;
+    const dx_mouse = currentMouseWorldX - playerCenterX;
+    const dy_mouse = currentMouseWorldY - playerCenterY;
     player.angle = Math.atan2(dy_mouse, dx_mouse);
 }
 
@@ -1341,9 +1358,26 @@ function updateFlashbangs(dt) {
 function updateOtherPlayers(dt) {
     for (const playerId in otherPlayers) {
         const other = otherPlayers[playerId];
+
         // Mise à jour basique
         if (other.health <= 0) {
             other.alive = false;
+        }
+
+        // Interpolation de position pour un mouvement fluide (réduction du lag visuel)
+        if (other.targetX !== undefined && other.targetY !== undefined) {
+            const lerpSpeed = 0.3; // Vitesse d'interpolation
+            other.x += (other.targetX - other.x) * lerpSpeed;
+            other.y += (other.targetY - other.y) * lerpSpeed;
+
+            // Interpolation de l'angle
+            if (other.targetAngle !== undefined) {
+                // Gérer la rotation la plus courte
+                let angleDiff = other.targetAngle - other.angle;
+                while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+                while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+                other.angle += angleDiff * lerpSpeed;
+            }
         }
     }
 
@@ -1354,6 +1388,9 @@ function updateOtherPlayers(dt) {
 // Variables pour la synchronisation
 let lastPositionUpdate = 0;
 const POSITION_UPDATE_INTERVAL = 50; // Envoyer la position toutes les 50ms
+
+// Variables pour optimiser l'envoi des données
+let lastPlayerData = {};
 
 function sendPlayerPosition() {
     if (!game.gameStarted || !player.alive) return;
@@ -1366,11 +1403,10 @@ function sendPlayerPosition() {
     lastPositionUpdate = now;
 
     try {
-        const gameRef = window.database.ref(`game_sessions/${window.matchmakingState.currentMatchId}/players/${window.currentUser.uid}`);
-        gameRef.set({
-            x: player.x,
-            y: player.y,
-            angle: player.angle,
+        const currentData = {
+            x: Math.round(player.x * 10) / 10, // Arrondir pour réduire les mises à jour
+            y: Math.round(player.y * 10) / 10,
+            angle: Math.round(player.angle * 100) / 100,
             health: player.health,
             armor: player.armor,
             alive: player.alive,
@@ -1380,8 +1416,26 @@ function sendPlayerPosition() {
             crouching: player.crouching,
             username: window.currentUser.displayName || window.currentUser.email?.split('@')[0] || 'Joueur',
             timestamp: firebase.database.ServerValue.TIMESTAMP
-        });
+        };
+
+        // N'envoyer que les données qui ont changé pour optimiser la bande passante
+        const updates = {};
+        let hasChanges = false;
+
+        for (const key in currentData) {
+            if (currentData[key] !== lastPlayerData[key]) {
+                updates[key] = currentData[key];
+                hasChanges = true;
+            }
+        }
+
+        if (hasChanges) {
+            const gameRef = window.database.ref(`game_sessions/${window.matchmakingState.currentMatchId}/players/${window.currentUser.uid}`);
+            gameRef.update(updates);
+            lastPlayerData = { ...currentData };
+        }
     } catch (error) {
+        // Ignorer les erreurs
     }
 }
 
@@ -1432,6 +1486,9 @@ function setupMultiplayerSync() {
         if (otherPlayers[playerId]) {
             delete otherPlayers[playerId];
         }
+
+        // Vérifier si toute une équipe s'est déconnectée
+        checkTeamDisconnection();
     });
 
 }
@@ -1458,9 +1515,12 @@ window.updateOtherPlayerPosition = function(playerId, playerData) {
         otherPlayers[playerId] = {
             x: playerData.x || 0,
             y: playerData.y || 0,
+            targetX: playerData.x || 0,
+            targetY: playerData.y || 0,
             width: 30,
             height: 30,
             angle: playerData.angle || 0,
+            targetAngle: playerData.angle || 0,
             health: playerData.health || 100,
             armor: playerData.armor || 0,
             alive: playerData.alive !== false,
@@ -1471,12 +1531,26 @@ window.updateOtherPlayerPosition = function(playerId, playerData) {
             username: playerData.username || 'Joueur'
         };
     } else {
-        // Mettre à jour les données existantes
-        otherPlayers[playerId].x = playerData.x || otherPlayers[playerId].x;
-        otherPlayers[playerId].y = playerData.y || otherPlayers[playerId].y;
-        otherPlayers[playerId].angle = playerData.angle || otherPlayers[playerId].angle;
-        otherPlayers[playerId].health = playerData.health !== undefined ? playerData.health : otherPlayers[playerId].health;
-        otherPlayers[playerId].armor = playerData.armor !== undefined ? playerData.armor : otherPlayers[playerId].armor;
+        // Utiliser l'interpolation pour les positions et angles
+        if (playerData.x !== undefined) {
+            otherPlayers[playerId].targetX = playerData.x;
+        }
+        if (playerData.y !== undefined) {
+            otherPlayers[playerId].targetY = playerData.y;
+        }
+        if (playerData.angle !== undefined) {
+            otherPlayers[playerId].targetAngle = playerData.angle;
+        }
+
+        // Ne mettre à jour la santé que si elle est définie (pour éviter la réinitialisation)
+        if (playerData.health !== undefined) {
+            otherPlayers[playerId].health = playerData.health;
+        }
+
+        if (playerData.armor !== undefined) {
+            otherPlayers[playerId].armor = playerData.armor;
+        }
+
         otherPlayers[playerId].alive = playerData.alive !== false;
         otherPlayers[playerId].team = playerData.team || otherPlayers[playerId].team;
         otherPlayers[playerId].weapon = playerData.weapon || otherPlayers[playerId].weapon;
@@ -2440,6 +2514,85 @@ function updateUI() {
     updateAmmoDisplay();
     updateMinimap();
     updateBombHint();
+    updateAbilitiesDisplay();
+}
+
+function updateAbilitiesDisplay() {
+    // Récupérer l'agent actuel du joueur
+    const currentAgentId = window.currentAgentId || 'reyna';
+    const agentData = window.AgentsRegistry?.[currentAgentId];
+
+    if (!agentData) return;
+
+    // Ability 1 (C)
+    const ability1 = player.abilities.ability1;
+    const ability1Slot = document.getElementById('ability-c');
+    const ability1Icon = ability1Slot?.querySelector('.ability-icon i');
+    const ability1Cooldown = document.getElementById('ability-c-cooldown');
+
+    if (ability1Slot && agentData.abilities.ability1) {
+        ability1Icon.className = `fas fa-${agentData.abilities.ability1.icon}`;
+
+        if (ability1.cooldown > 0) {
+            ability1Slot.classList.add('on-cooldown');
+            ability1Slot.classList.remove('ready');
+            if (ability1Cooldown) {
+                ability1Cooldown.textContent = Math.ceil(ability1.cooldown);
+                ability1Cooldown.style.display = 'block';
+            }
+        } else {
+            ability1Slot.classList.remove('on-cooldown');
+            ability1Slot.classList.add('ready');
+            if (ability1Cooldown) {
+                ability1Cooldown.style.display = 'none';
+            }
+        }
+    }
+
+    // Ability 2 (A)
+    const ability2 = player.abilities.ability2;
+    const ability2Slot = document.getElementById('ability-a');
+    const ability2Icon = ability2Slot?.querySelector('.ability-icon i');
+    const ability2Cooldown = document.getElementById('ability-a-cooldown');
+
+    if (ability2Slot && agentData.abilities.ability2) {
+        ability2Icon.className = `fas fa-${agentData.abilities.ability2.icon}`;
+
+        if (ability2.cooldown > 0) {
+            ability2Slot.classList.add('on-cooldown');
+            ability2Slot.classList.remove('ready');
+            if (ability2Cooldown) {
+                ability2Cooldown.textContent = Math.ceil(ability2.cooldown);
+                ability2Cooldown.style.display = 'block';
+            }
+        } else {
+            ability2Slot.classList.remove('on-cooldown');
+            ability2Slot.classList.add('ready');
+            if (ability2Cooldown) {
+                ability2Cooldown.style.display = 'none';
+            }
+        }
+    }
+
+    // Ultimate (X)
+    const ultimate = player.abilities.ultimate;
+    const ultimateSlot = document.getElementById('ability-x');
+    const ultimateIcon = ultimateSlot?.querySelector('.ability-icon i');
+    const ultimatePoints = document.getElementById('ability-x-points');
+
+    if (ultimateSlot && agentData.abilities.ultimate) {
+        ultimateIcon.className = `fas fa-${agentData.abilities.ultimate.icon}`;
+
+        if (ultimatePoints) {
+            ultimatePoints.textContent = `${ultimate.points}/${ultimate.maxPoints}`;
+        }
+
+        if (ultimate.ready || ultimate.points >= ultimate.maxPoints) {
+            ultimateSlot.classList.add('ready');
+        } else {
+            ultimateSlot.classList.remove('ready');
+        }
+    }
 }
 
 function updateBombHint() {
@@ -2738,6 +2891,62 @@ function handleRoundTransition(winner, reason) {
     return false;
 }
 
+function checkTeamElimination() {
+    // Ne vérifier que si le round est actif et en mode compétitif
+    if (game.phase !== 'active' || game.mode === 'deathmatch') return;
+
+    // Compter les joueurs vivants dans chaque équipe
+    let attackersAlive = player.team === 'attackers' && player.alive ? 1 : 0;
+    let defendersAlive = player.team === 'defenders' && player.alive ? 1 : 0;
+
+    for (const playerId in otherPlayers) {
+        const other = otherPlayers[playerId];
+        if (!other || !other.alive) continue;
+
+        if (other.team === 'attackers') {
+            attackersAlive++;
+        } else if (other.team === 'defenders') {
+            defendersAlive++;
+        }
+    }
+
+    // Terminer le round si une équipe est entièrement éliminée
+    if (attackersAlive === 0 && defendersAlive > 0) {
+        endRound('attackers_eliminated');
+    } else if (defendersAlive === 0 && attackersAlive > 0) {
+        endRound('defenders_eliminated');
+    }
+}
+
+function checkTeamDisconnection() {
+    // Ne vérifier que si le jeu est en cours
+    if (game.matchFinished || game.phase === 'match_over') return;
+
+    // Compter les joueurs connectés par équipe (vivants ou morts)
+    let attackersCount = player.team === 'attackers' ? 1 : 0;
+    let defendersCount = player.team === 'defenders' ? 1 : 0;
+
+    for (const playerId in otherPlayers) {
+        const other = otherPlayers[playerId];
+        if (!other) continue;
+
+        if (other.team === 'attackers') {
+            attackersCount++;
+        } else if (other.team === 'defenders') {
+            defendersCount++;
+        }
+    }
+
+    // Si toute une équipe s'est déconnectée, l'autre équipe gagne
+    if (attackersCount === 0 && defendersCount > 0) {
+        finishMatch('defenders', 'forfeit');
+        handleMatchEnd('defenders', 'forfeit');
+    } else if (defendersCount === 0 && attackersCount > 0) {
+        finishMatch('attackers', 'forfeit');
+        handleMatchEnd('attackers', 'forfeit');
+    }
+}
+
 function shouldSwapSides(roundsPlayed) {
     if (!isBombMode()) return false;
     if ((game.half || 1) > 1) return false;
@@ -2823,6 +3032,61 @@ function finishMatch(winner, reason = 'completed') {
             defendersScore: game.defendersScore
         });
     }
+
+    // Gérer la fin du match (MMR, suppression session)
+    handleMatchEnd(winner, reason);
+}
+
+function handleMatchEnd(winner, reason = 'completed') {
+    // Calculer et mettre à jour le MMR pour le mode de jeu actuel
+    if (game.mode && game.mode !== 'deathmatch' && window.currentUser) {
+        const isWinner = (player.team === winner);
+        const mmrChange = calculateMMRChange(isWinner, reason);
+
+        // Mettre à jour le MMR dans Firebase
+        const modeKey = game.mode === 'competitive' ? 'competitive' : game.mode;
+        const userRef = window.database?.ref(`users/${window.currentUser.uid}/mmr/${modeKey}`);
+
+        if (userRef) {
+            userRef.transaction((currentMMR) => {
+                const current = currentMMR || 1000; // MMR par défaut
+                return Math.max(0, current + mmrChange); // Ne pas descendre en dessous de 0
+            });
+        }
+
+        // Afficher le changement de MMR
+        if (window.NotificationSystem) {
+            const sign = mmrChange >= 0 ? '+' : '';
+            window.NotificationSystem.show(
+                'MMR mis à jour',
+                `${sign}${mmrChange} MMR`,
+                mmrChange >= 0 ? 'success' : 'error',
+                4000
+            );
+        }
+    }
+
+    // Supprimer la session de jeu après un délai
+    setTimeout(() => {
+        if (window.matchmakingState?.currentMatchId && window.database) {
+            const matchRef = window.database.ref(`game_sessions/${window.matchmakingState.currentMatchId}`);
+            matchRef.remove().catch(() => {
+                // Ignorer les erreurs de suppression
+            });
+        }
+    }, 10000); // Supprimer après 10 secondes
+}
+
+function calculateMMRChange(isWinner, reason) {
+    // Calcul du changement de MMR
+    let baseChange = isWinner ? 25 : -20;
+
+    // Modifier selon la raison
+    if (reason === 'forfeit') {
+        baseChange = isWinner ? 15 : -30; // Moins de points pour victoire par forfait, plus de perte si on quitte
+    }
+
+    return baseChange;
 }
 
 // ========================================
@@ -3433,7 +3697,13 @@ function completeBombPlant(site, position) {
 
     if (window.NotificationSystem) {
         const siteLabel = site?.name ? `site ${site.name}` : 'site';
-        window.NotificationSystem.show('Spike posée', `La spike est armée sur le ${siteLabel}`, 'round', 3500);
+
+        // Notification différente selon l'équipe
+        if (player.team === 'attackers') {
+            window.NotificationSystem.show('Spike posée', `La spike est armée sur le ${siteLabel}`, 'round', 3500);
+        } else {
+            window.NotificationSystem.show('⚠️ SPIKE PLANTÉE!', `Les attaquants ont planté la spike sur le ${siteLabel}! Désamorcez-la!`, 'warning', 5000);
+        }
     }
 }
 
@@ -3466,7 +3736,7 @@ function updateAttackDefenseMode(dt) {
 
     if (bomb.planting) {
         const site = getBombSiteAt(center.x, center.y);
-        if (!keys['f'] || !playerHasBomb() || !player.alive || !site) {
+        if (!keys['e'] || !playerHasBomb() || !player.alive || !site) {
             cancelBombInteraction('plant');
         } else {
             bomb.plantProgress += dt;
@@ -3479,7 +3749,7 @@ function updateAttackDefenseMode(dt) {
 
     if (bomb.defusing) {
         const distance = Math.hypot(center.x - bomb.x, center.y - bomb.y);
-        if (!keys['f'] || player.team !== 'defenders' || !player.alive || distance > BOMB_SETTINGS.pickupRadius) {
+        if (!keys['e'] || player.team !== 'defenders' || !player.alive || distance > BOMB_SETTINGS.pickupRadius) {
             cancelBombInteraction('defuse');
         } else {
             bomb.defuseProgress += dt;
@@ -3526,11 +3796,13 @@ function handleKeyDown(e) {
         toggleBuyMenu();
     }
 
-    // Abilities
-    if (key === 'q') useAbility('ability1');
-    if (key === 'e') useAbility('ability2');
+    // Abilities - changé de Q/E à C/A
+    if (key === 'c') useAbility('ability1');
+    if (key === 'a') useAbility('ability2');
     if (key === 'x') useAbility('ultimate');
-    if (key === 'f') {
+
+    // Planter/Désamorcer le spike - changé de F à E
+    if (key === 'e') {
         e.preventDefault();
         attemptBombInteraction();
     }
@@ -3544,12 +3816,13 @@ function handleKeyDown(e) {
 function handleKeyUp(e) {
     const key = e.key.toLowerCase();
     keys[key] = false;
-    
+
     if (key === 'shift') {
         player.sprinting = false;
     }
-    
-    if (key === 'f') {
+
+    // Changé de F à E pour planter/désamorcer
+    if (key === 'e') {
         e.preventDefault();
         cancelBombInteraction(player.actionType);
     }
@@ -3640,10 +3913,22 @@ function closeBuyMenu() {
 }
 
 function updateBuyMenuMoney() {
+    // Mettre à jour l'argent dans le menu d'achat
     const moneyDisplay = document.getElementById('buy-menu-money');
     if (moneyDisplay) {
-        moneyDisplay.textContent = player.money || 800;
+        moneyDisplay.textContent = Math.max(0, Math.floor(player.money || 0));
     }
+}
+
+function updateMoneyDisplay() {
+    // Mettre à jour l'argent dans l'HUD principal
+    const moneyValue = document.getElementById('player-money');
+    if (moneyValue) {
+        moneyValue.textContent = Math.max(0, Math.floor(player.money || 0));
+    }
+
+    // Mettre à jour aussi dans le menu d'achat s'il est ouvert
+    updateBuyMenuMoney();
 }
 
 function buyWeapon(weaponName, price) {
@@ -3663,7 +3948,7 @@ function buyWeapon(weaponName, price) {
 
     player.money -= price;
     equipWeapon(weaponName);
-    updateBuyMenuMoney();
+    updateMoneyDisplay(); // Mise à jour immédiate de l'affichage
     updateUI();
 
     if (window.NotificationSystem) {
@@ -3696,7 +3981,7 @@ function buyArmor(type, price) {
         player.maxArmor = 50;
     }
 
-    updateBuyMenuMoney();
+    updateMoneyDisplay(); // Mise à jour immédiate de l'affichage
     updateUI();
 
     if (window.NotificationSystem) {

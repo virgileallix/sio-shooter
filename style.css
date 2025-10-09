@@ -3696,3 +3696,144 @@ kbd {
 .buy-menu::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 212, 255, 0.7);
 }
+
+
+/* ========================================
+   ABILITIES HUD - AFFICHAGE DES CAPACITÉS
+   ======================================== */
+.abilities-hud {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-left: 30px;
+}
+
+.ability-slot {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.ability-slot.ready {
+    border-color: #00d4ff;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+    animation: pulse-ability 2s infinite;
+}
+
+.ability-slot.on-cooldown {
+    opacity: 0.5;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.ability-slot.ultimate {
+    width: 70px;
+    height: 70px;
+    border-color: #ffd700;
+}
+
+.ability-slot.ultimate.ready {
+    border-color: #ffd700;
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.7);
+    animation: pulse-ultimate 1.5s infinite;
+}
+
+.ability-icon {
+    font-size: 24px;
+    color: white;
+    margin-bottom: 4px;
+}
+
+.ability-slot.ultimate .ability-icon {
+    font-size: 30px;
+}
+
+.ability-key {
+    position: absolute;
+    bottom: 4px;
+    right: 6px;
+    font-size: 10px;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.6);
+    background: rgba(0, 0, 0, 0.5);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.ability-cooldown {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+}
+
+.ability-points {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    font-weight: bold;
+    color: #ffd700;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 2px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+}
+
+@keyframes pulse-ability {
+    0%, 100% {
+        box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(0, 212, 255, 0.8);
+    }
+}
+
+@keyframes pulse-ultimate {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(255, 215, 0, 0.9);
+        transform: scale(1.05);
+    }
+}
+
+/* Responsive pour petits écrans */
+@media (max-width: 768px) {
+    .abilities-hud {
+        gap: 8px;
+        margin-left: 15px;
+    }
+    
+    .ability-slot {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .ability-slot.ultimate {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .ability-icon {
+        font-size: 20px;
+    }
+    
+    .ability-slot.ultimate .ability-icon {
+        font-size: 26px;
+    }
+}

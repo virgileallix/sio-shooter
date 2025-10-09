@@ -1,144 +1,386 @@
 // ========================================
-// AGENTS.JS - SYSTÈME D'AGENTS ET CAPACITÉS
+// AGENTS.JS - SYSTÈME D'AGENTS VALORANT
 // ========================================
 
 const AgentsRegistry = {
-    vanguard: {
-        id: 'vanguard',
-        name: 'Vanguard',
-        codename: 'Initié',
-        role: 'Initiateur',
-        description: 'Déploie des rideaux de fumée et ouvre la voie à son équipe.',
-        difficulty: 'Facile',
-        portrait: 'https://images.unsplash.com/photo-1589621316388-ff1d6f1ee0f1?auto=format&fit=crop&w=300&q=80',
+    reyna: {
+        id: 'reyna',
+        name: 'Reyna',
+        codename: 'Impératrice',
+        role: 'Duelliste',
+        description: 'Reyna se nourrit des éliminations pour régénérer sa santé et devenir invincible.',
+        difficulty: 'Moyen',
+        icon: '👁️',
+        portrait: 'https://images.contentstack.io/v3/assets/bltb6530b271fddd0b1/blt6d840ff49f5c83d6/5eb7cdc6ee88132a6f6cfc25/V_AGENTS_587x900_Reyna.png',
         abilities: {
             ability1: {
                 key: 'ability1',
-                name: 'Rideau Spectral',
-                icon: 'cloud',
-                maxCooldown: 18,
-                description: 'Projette un large nuage de fumée qui bloque la vision ennemie.',
+                name: 'Dévorer',
+                icon: 'skull',
+                maxCooldown: 0,
+                description: 'Consomme une âme pour régénérer rapidement toute la santé en 2 secondes',
                 execute: (ctx) => {
-                    ctx.throwSmoke({ radius: 180, duration: 18, color: 'rgba(105, 195, 255, 0.75)' });
+                    // Heal progressif jusqu'à 100 HP en 2 secondes
+                    const healDuration = 2000; // 2 secondes
+                    const healInterval = 50; // Update toutes les 50ms
+                    const startHealth = ctx.player.health;
+                    const targetHealth = ctx.player.maxHealth || 100;
+                    const totalHeal = targetHealth - startHealth;
+                    const healPerTick = totalHeal / (healDuration / healInterval);
+
+                    if (window.NotificationSystem) {
+                        window.NotificationSystem.show('Dévorer', 'Régénération en cours...', 'success', 2000);
+                    }
+
+                    const healTimer = setInterval(() => {
+                        if (ctx.player && ctx.player.health < targetHealth) {
+                            ctx.player.health = Math.min(ctx.player.health + healPerTick, targetHealth);
+                        } else {
+                            clearInterval(healTimer);
+                        }
+                    }, healInterval);
+
+                    // Arrêter le heal après 2 secondes
+                    setTimeout(() => {
+                        clearInterval(healTimer);
+                        if (ctx.player) {
+                            ctx.player.health = targetHealth;
+                        }
+                    }, healDuration);
                 }
             },
             ability2: {
                 key: 'ability2',
-                name: 'Balise Photon',
-                icon: 'lightbulb',
-                maxCooldown: 24,
-                description: 'Déploie une balise qui révèle brièvement les ennemis proches.',
+                name: 'Rejeter',
+                icon: 'ghost',
+                maxCooldown: 0,
+                description: 'Devient invincible pendant 2 secondes',
                 execute: (ctx) => {
-                    ctx.deployRevealer({ radius: 220, duration: 7 });
+                    ctx.applyInvincibility({ duration: 2 });
                 }
             },
             ultimate: {
                 key: 'ultimate',
-                name: 'Vision Totale',
-                icon: 'eye',
-                maxPoints: 7,
-                description: 'Révèle tous les adversaires pendant quelques secondes.',
+                name: 'Impératrice',
+                icon: 'fire',
+                maxPoints: 6,
+                description: 'Augmente la cadence de tir pour tout le round',
                 execute: (ctx) => {
-                    ctx.revealEnemies({ duration: 6 });
+                    if (!ctx.player || !ctx.player.weapon) return;
+
+                    // Stocker le multiplicateur pour tout le round
+                    ctx.player.empressModeActive = true;
+                    const originalFireRate = ctx.player.weapon.fireRate;
+                    ctx.player.weapon.fireRate *= 0.5; // 50% plus rapide
+
+                    if (window.NotificationSystem) {
+                        window.NotificationSystem.show('Impératrice', 'Mode Impératrice activé pour tout le round!', 'ultimate', 3000);
+                    }
+
+                    // Créer un effet visuel permanent pendant le round
+                    if (ctx.player.effects) {
+                        ctx.player.effects.push({
+                            type: 'empress',
+                            permanent: true, // Dure tout le round
+                            originalFireRate: originalFireRate
+                        });
+                    }
                 }
             }
         },
         passive: {
-            name: 'Préparation',
-            description: 'Tempo de rechargement réduit de 10%.',
-            apply: (ctx) => ctx.applyModifier('reloadSpeed', 0.9)
+            name: 'Âme Vorce',
+            description: 'Les éliminations génèrent des âmes qui peuvent être consommées.',
+            apply: (ctx) => {}
         }
     },
-    tempest: {
-        id: 'tempest',
-        name: 'Tempest',
-        codename: 'Contrôleur',
-        role: 'Controleur',
-        description: 'Manipule le climat pour ralentir ou accélérer le rythme du combat.',
-        difficulty: 'Moyen',
-        portrait: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=300&q=80',
+    jett: {
+        id: 'jett',
+        name: 'Jett',
+        codename: 'Tempête',
+        role: 'Duelliste',
+        description: 'Agent agile capable de se déplacer rapidement et de planer dans les airs.',
+        difficulty: 'Difficile',
+        icon: '💨',
+        portrait: 'https://images.contentstack.io/v3/assets/bltb6530b271fddd0b1/blt1b1fdce6ad10a2d0/5eb7cdc16509f3370a5a93b6/V_AGENTS_587x900_Jett.png',
         abilities: {
             ability1: {
                 key: 'ability1',
-                name: 'Bourrasque',
-                icon: 'wind',
-                maxCooldown: 20,
-                description: 'Propulse le joueur vers l’avant avec un bonus de vitesse temporaire.',
+                name: 'Updraft',
+                icon: 'arrow-up',
+                maxCooldown: 35,
+                description: 'Propulse vers le haut',
                 execute: (ctx) => {
-                    ctx.applySpeedBoost({ speedMultiplier: 1.65, duration: 2.5 });
+                    ctx.applyDash({ direction: 'up', distance: 100, duration: 0.5 });
                 }
             },
             ability2: {
                 key: 'ability2',
-                name: 'Gel météorologique',
-                icon: 'snowflake',
-                maxCooldown: 26,
-                description: 'Crée un champ de ralentissement qui réduit la vitesse ennemie.',
+                name: 'Tailwind',
+                icon: 'wind',
+                maxCooldown: 30,
+                description: 'Dash rapide dans la direction du mouvement',
                 execute: (ctx) => {
-                    ctx.spawnSlowField({ radius: 210, duration: 8, slowMultiplier: 0.55 });
+                    ctx.applySpeedBoost({ speedMultiplier: 2.5, duration: 0.8 });
                 }
             },
             ultimate: {
                 key: 'ultimate',
-                name: 'Orage Ionique',
-                icon: 'bolt',
-                maxPoints: 6,
-                description: 'Les tirs infligent des dégâts amplifiés et percent les obstacles pendant quelques secondes.',
+                name: 'Lames Tourbillonnantes',
+                icon: 'bullseye',
+                maxPoints: 7,
+                description: 'Équipe des couteaux de lancer ultra-précis',
                 execute: (ctx) => {
-                    ctx.enableOvercharge({ damageMultiplier: 1.4, penetration: 2, duration: 8 });
+                    ctx.enableKnives({ damage: 50, count: 5, precision: 0, duration: 12 });
                 }
             }
         },
         passive: {
-            name: 'Dynamique',
-            description: 'La vitesse de déplacement de base est augmentée de 5%.',
+            name: 'Vol Plané',
+            description: 'Peut planer en l\'air en maintenant saut.',
             apply: (ctx) => ctx.applyModifier('baseSpeed', 1.05)
         }
     },
-    bastion: {
-        id: 'bastion',
-        name: 'Bastion',
-        codename: 'Gardien',
+    sage: {
+        id: 'sage',
+        name: 'Sage',
+        codename: 'Guérisseuse',
         role: 'Sentinelle',
-        description: 'Fortifie ses positions et protège ses alliés.',
+        description: 'Guérisseuse et protectrice, capable de créer des barrières et de ressusciter.',
         difficulty: 'Facile',
-        portrait: 'https://images.unsplash.com/photo-1516575150278-77136aed6920?auto=format&fit=crop&w=300&q=80',
+        icon: '❄️',
+        portrait: 'https://images.contentstack.io/v3/assets/bltb6530b271fddd0b1/blt7beef5b879e4985a/5eb7cdc1d7a595370a5a52ee/V_AGENTS_587x900_Sage.png',
         abilities: {
             ability1: {
                 key: 'ability1',
-                name: 'Mur cinétique',
-                icon: 'shield-alt',
-                maxCooldown: 22,
-                description: 'Déploie un mur temporaire qui bloque les tirs.',
+                name: 'Orbe de Soin',
+                icon: 'heart',
+                maxCooldown: 45,
+                description: 'Soigne soi-même de 60 HP',
                 execute: (ctx) => {
-                    ctx.deployBarrier({ width: 220, height: 40, duration: 9, health: 260 });
+                    const healAmount = 60;
+                    ctx.player.health = Math.min(ctx.player.health + healAmount, ctx.player.maxHealth);
+                    if (window.NotificationSystem) {
+                        window.NotificationSystem.show('Soin', `+${healAmount} HP`, 'success', 2000);
+                    }
                 }
             },
             ability2: {
                 key: 'ability2',
-                name: 'Renfort',
-                icon: 'plus-square',
-                maxCooldown: 28,
-                description: 'Octroie un bonus d’armure régénérant au fil du temps.',
+                name: 'Orbe de Ralentissement',
+                icon: 'snowflake',
+                maxCooldown: 30,
+                description: 'Crée une zone qui ralentit les ennemis',
                 execute: (ctx) => {
-                    ctx.applyArmorRegen({ totalArmor: 35, duration: 6 });
+                    ctx.spawnSlowField({ radius: 200, duration: 7, slowMultiplier: 0.4 });
                 }
             },
             ultimate: {
                 key: 'ultimate',
-                name: 'Forteresse',
-                icon: 'chess-rook',
+                name: 'Barrière',
+                icon: 'shield-alt',
                 maxPoints: 8,
-                description: 'Place une tourelle automatisée qui couvre une zone.',
+                description: 'Crée un mur indestructible pendant 30 secondes',
                 execute: (ctx) => {
-                    ctx.deploySentry({ duration: 15, damage: 18, fireRate: 0.4, range: 380 });
+                    ctx.deployBarrier({ width: 300, height: 60, duration: 30, health: 99999 });
                 }
             }
         },
         passive: {
-            name: 'Carapace',
-            description: 'Augmente la réserve d’armure maximum de 20.',
-            apply: (ctx) => ctx.applyModifier('maxArmor', player.maxArmor + 20)
+            name: 'Fortitude',
+            description: 'Augmente la santé maximale de 20 HP.',
+            apply: (ctx) => {
+                ctx.player.maxHealth = (ctx.player.maxHealth || 100) + 20;
+                ctx.player.health = ctx.player.maxHealth;
+            }
+        }
+    },
+    phoenix: {
+        id: 'phoenix',
+        name: 'Phoenix',
+        codename: 'Phénix',
+        role: 'Duelliste',
+        description: 'Maître du feu capable de se soigner et de renaître de ses cendres.',
+        difficulty: 'Facile',
+        icon: '🔥',
+        portrait: 'https://images.contentstack.io/v3/assets/bltb6530b271fddd0b1/bltb750e63f6e479e2b/5eb7cdc1d66ad0110129eb6e/V_AGENTS_587x900_Phoenix.png',
+        abilities: {
+            ability1: {
+                key: 'ability1',
+                name: 'Mains Brûlantes',
+                icon: 'fire',
+                maxCooldown: 25,
+                description: 'Lance une boule de feu qui inflige des dégâts et soigne Phoenix',
+                execute: (ctx) => {
+                    ctx.throwFireball({ damage: 40, healSelf: 15, radius: 80 });
+                }
+            },
+            ability2: {
+                key: 'ability2',
+                name: 'Mur de Feu',
+                icon: 'fire-alt',
+                maxCooldown: 30,
+                description: 'Crée un mur de feu qui bloque la vision et inflige des dégâts',
+                execute: (ctx) => {
+                    ctx.deployFireWall({ width: 250, height: 50, duration: 8, damagePerSecond: 15 });
+                }
+            },
+            ultimate: {
+                key: 'ultimate',
+                name: 'Renaissance',
+                icon: 'redo',
+                maxPoints: 6,
+                description: 'Place un marqueur. Si vous mourez, vous renaissez au marqueur avec toute votre santé',
+                execute: (ctx) => {
+                    ctx.placeRespawnMarker({ duration: 10 });
+                }
+            }
+        },
+        passive: {
+            name: 'Réchauffement',
+            description: 'Se soigne de 1 HP/seconde dans son propre feu.',
+            apply: (ctx) => {}
+        }
+    },
+    omen: {
+        id: 'omen',
+        name: 'Omen',
+        codename: 'Fantôme',
+        role: 'Contrôleur',
+        description: 'Manipulateur des ombres, capable de se téléporter et d\'aveugler.',
+        difficulty: 'Moyen',
+        icon: '👻',
+        portrait: 'https://images.contentstack.io/v3/assets/bltb6530b271fddd0b1/blt4932d92937e0bab5/5eb7cdc1bf68c65232c7dfdd/V_AGENTS_587x900_Omen.png',
+        abilities: {
+            ability1: {
+                key: 'ability1',
+                name: 'Linceul Ténébreux',
+                icon: 'eye-slash',
+                maxCooldown: 25,
+                description: 'Lance un projectile qui aveugle les ennemis touchés',
+                execute: (ctx) => {
+                    ctx.throwFlashbang({ radius: 150, duration: 3 });
+                }
+            },
+            ability2: {
+                key: 'ability2',
+                name: 'Foulée Ténébreuse',
+                icon: 'shoe-prints',
+                maxCooldown: 35,
+                description: 'Téléportation courte distance (15 mètres)',
+                execute: (ctx) => {
+                    ctx.teleportShort({ maxDistance: 250 });
+                }
+            },
+            ultimate: {
+                key: 'ultimate',
+                name: 'Depuis l\'Ombre',
+                icon: 'map-marker-alt',
+                maxPoints: 7,
+                description: 'Téléportation n\'importe où sur la map',
+                execute: (ctx) => {
+                    ctx.teleportAnywhere({ duration: 15 });
+                }
+            }
+        },
+        passive: {
+            name: 'Ombre',
+            description: 'Génère des fumées gratuites.',
+            apply: (ctx) => {}
+        }
+    },
+    brimstone: {
+        id: 'brimstone',
+        name: 'Brimstone',
+        codename: 'Commandant',
+        role: 'Contrôleur',
+        description: 'Tacticien orbital capable de fournir un support de fumées et de frappes.',
+        difficulty: 'Facile',
+        icon: '🎖️',
+        portrait: 'https://images.contentstack.io/v3/assets/bltb6530b271fddd0b1/blt8b019b24d3d93e95/5eb7cdc144bf8261a04d87f8/V_AGENTS_587x900_Brimstone.png',
+        abilities: {
+            ability1: {
+                key: 'ability1',
+                name: 'Fumée Incendiaire',
+                icon: 'fire-extinguisher',
+                maxCooldown: 20,
+                description: 'Lance un projectile de fumée',
+                execute: (ctx) => {
+                    ctx.throwSmoke({ radius: 180, duration: 15, color: 'rgba(80, 80, 80, 0.85)' });
+                }
+            },
+            ability2: {
+                key: 'ability2',
+                name: 'Beacon Stim',
+                icon: 'running',
+                maxCooldown: 30,
+                description: 'Déploie une balise qui augmente la vitesse de tir',
+                execute: (ctx) => {
+                    ctx.deployStimBeacon({ radius: 180, fireRateBonus: 0.15, duration: 10 });
+                }
+            },
+            ultimate: {
+                key: 'ultimate',
+                name: 'Frappe Orbitale',
+                icon: 'satellite',
+                maxPoints: 7,
+                description: 'Lance une frappe laser dévastatrice',
+                execute: (ctx) => {
+                    ctx.orbitalStrike({ radius: 250, damagePerSecond: 50, duration: 4 });
+                }
+            }
+        },
+        passive: {
+            name: 'Tactique Militaire',
+            description: 'Voit les fumées alliées en transparence.',
+            apply: (ctx) => {}
+        }
+    },
+    sova: {
+        id: 'sova',
+        name: 'Sova',
+        codename: 'Chasseur',
+        role: 'Initiateur',
+        description: 'Maître de la reconnaissance, capable de repérer les ennemis.',
+        difficulty: 'Difficile',
+        icon: '🏹',
+        portrait: 'https://images.contentstack.io/v3/assets/bltb6530b271fddd0b1/blt9230bbdf64dafb6e/5eb7cdc1b1f2e27c950418e2/V_AGENTS_587x900_Sova.png',
+        abilities: {
+            ability1: {
+                key: 'ability1',
+                name: 'Drone Hibou',
+                icon: 'binoculars',
+                maxCooldown: 40,
+                description: 'Révèle les ennemis dans une zone',
+                execute: (ctx) => {
+                    ctx.deployRevealer({ radius: 300, duration: 5 });
+                }
+            },
+            ability2: {
+                key: 'ability2',
+                name: 'Flèche de Choc',
+                icon: 'bolt',
+                maxCooldown: 20,
+                description: 'Tire une flèche explosive',
+                execute: (ctx) => {
+                    ctx.fireShockDart({ damage: 75, radius: 100 });
+                }
+            },
+            ultimate: {
+                key: 'ultimate',
+                name: 'Fureur du Chasseur',
+                icon: 'crosshairs',
+                maxPoints: 8,
+                description: 'Tire 3 traits d\'énergie à travers les murs',
+                execute: (ctx) => {
+                    ctx.enableHunterFury({ shots: 3, damage: 80, wallPenetration: true });
+                }
+            }
+        },
+        passive: {
+            name: 'Reconnaissance',
+            description: 'Voit les traces des ennemis plus longtemps.',
+            apply: (ctx) => {}
         }
     }
 };
@@ -146,12 +388,12 @@ const AgentsRegistry = {
 const AgentSystem = {
     state: {
         agents: AgentsRegistry,
-        selectedAgentId: 'vanguard',
+        selectedAgentId: 'reyna',
         modifiers: {}
     },
 
     init() {
-        this.state.selectedAgentId = this.getPersistedAgent() || 'vanguard';
+        this.state.selectedAgentId = this.getPersistedAgent() || 'reyna';
         this.applyAgentModifiers();
         this.renderAgentSelection();
         this.updateUISelection();
@@ -173,7 +415,7 @@ const AgentSystem = {
         this.updateUISelection();
         NotificationSystem?.show?.(
             'Agent sélectionné',
-            `${this.state.agents[agentId].name} est prêt à l’action.`,
+            `${this.state.agents[agentId].name} est prêt à l'action.`,
             'success',
             2500
         );
@@ -205,6 +447,9 @@ const AgentSystem = {
         if (window.gameState) {
             window.gameState.selectedAgent = agent.id;
         }
+
+        // Stocker l'ID de l'agent pour l'affichage des capacités
+        window.currentAgentId = agent.id;
     },
 
     renderAgentSelection() {
@@ -240,128 +485,125 @@ const AgentSystem = {
             container.appendChild(card);
         });
 
-        container.querySelectorAll('.agent-select-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const agentId = btn.dataset.agent;
-                this.selectAgent(agentId);
+        document.querySelectorAll('.agent-select-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.selectAgent(e.target.closest('.agent-select-btn').dataset.agent);
             });
         });
     },
 
-    updateUISelection() {
-        const activeId = this.state.selectedAgentId;
-        document.querySelectorAll('.agent-card').forEach(card => {
-            if (card.dataset.agentId === activeId) {
-                card.classList.add('selected');
-            } else {
-                card.classList.remove('selected');
-            }
-        });
-
-        const display = document.getElementById('selected-agent-display');
-        if (display) {
-            const agent = this.getSelectedAgent();
-            display.innerHTML = `
-                <div class="selected-agent-card">
-                    <div class="agent-portrait small" style="background-image:url('${agent.portrait}')"></div>
-                    <div>
-                        <strong>${agent.name}</strong>
-                        <p>${agent.role} • ${agent.description}</p>
-                    </div>
-                </div>
-            `;
-        }
-    },
-
     createAbilityFactory() {
-        const context = this.createContext();
         return (abilityDef) => ({
             key: abilityDef.key,
             name: abilityDef.name,
             icon: abilityDef.icon,
-            description: abilityDef.description,
             cooldown: 0,
-            maxCooldown: abilityDef.maxCooldown ?? 0,
-            ready: abilityDef.key === 'ultimate' ? false : true,
+            maxCooldown: abilityDef.maxCooldown || 0,
+            ready: true,
             points: 0,
-            maxPoints: abilityDef.maxPoints ?? 0,
-            execute: () => abilityDef.execute(context)
+            maxPoints: abilityDef.maxPoints || 0,
+            execute: () => {
+                const ctx = this.createContext();
+                abilityDef.execute(ctx);
+            }
         });
     },
 
     createContext() {
         return {
-            throwSmoke: (options) => window.throwSmokeGrenade?.(options),
-            deployRevealer: (options) => window.spawnRevealBeacon?.(options),
-            revealEnemies: (options) => window.activateRevealPulse?.(options),
-            applySpeedBoost: (options) => window.applySpeedBoost?.(options),
-            spawnSlowField: (options) => window.spawnSlowField?.(options),
-            enableOvercharge: (options) => window.enableOverchargeMode?.(options),
-            deployBarrier: (options) => window.deployTemporaryBarrier?.(options),
-            applyArmorRegen: (options) => window.applyArmorRegenEffect?.(options),
-            deploySentry: (options) => window.deploySentryTurret?.(options),
-            applyModifier: (modifier, value) => this.applyModifier(modifier, value)
+            player: window.player,
+            game: window.game,
+            applyModifier: (key, value) => {
+                if (window.player && key in window.player) {
+                    window.player[key] = value;
+                }
+            },
+            applySpeedBoost: (options) => {
+                if (!window.player || !window.player.effects) return;
+                window.player.effects.push({
+                    type: 'speedBoost',
+                    value: options.speedMultiplier,
+                    duration: options.duration
+                });
+            },
+            applyFireRateBoost: (options) => {
+                if (!window.player || !window.weapon) return;
+                const originalFireRate = window.player.weapon.fireRate;
+                window.player.weapon.fireRate *= options.fireRateMultiplier;
+                setTimeout(() => {
+                    if (window.player && window.player.weapon) {
+                        window.player.weapon.fireRate = originalFireRate;
+                    }
+                }, options.duration * 1000);
+            },
+            applyInvincibility: (options) => {
+                if (!window.player) return;
+                window.player.invincible = true;
+                if (window.NotificationSystem) {
+                    window.NotificationSystem.show('Rejeter', 'Invincible!', 'info', 2000);
+                }
+                setTimeout(() => {
+                    if (window.player) {
+                        window.player.invincible = false;
+                    }
+                }, options.duration * 1000);
+            },
+            throwSmoke: window.throwSmoke,
+            throwFlashbang: window.throwFlashbang,
+            deployRevealer: window.deployRevealer,
+            spawnSlowField: window.spawnSlowField,
+            deployBarrier: window.deployBarrier,
+            throwFireball: window.throwFireball || function() {},
+            deployFireWall: window.deployFireWall || function() {},
+            placeRespawnMarker: window.placeRespawnMarker || function() {},
+            teleportShort: window.teleportShort || function() {},
+            teleportAnywhere: window.teleportAnywhere || function() {},
+            deployStimBeacon: window.deployStimBeacon || function() {},
+            orbitalStrike: window.orbitalStrike || function() {},
+            fireShockDart: window.fireShockDart || function() {},
+            enableHunterFury: window.enableHunterFury || function() {},
+            enableKnives: window.enableKnives || function() {},
+            applyDash: window.applyDash || function() {}
         };
-    },
-
-    applyModifier(modifier, value) {
-        this.state.modifiers[modifier] = value;
-        if (!window.player) return;
-
-        switch (modifier) {
-            case 'reloadSpeed':
-                window.player.reloadMultiplier = value;
-                break;
-            case 'baseSpeed':
-                window.player.baseSpeedMultiplier = value;
-                break;
-            case 'maxArmor':
-                window.player.maxArmor = value;
-                break;
-        }
     },
 
     resetModifiers() {
         this.state.modifiers = {};
-        if (!window.player) return;
-        window.player.reloadMultiplier = 1;
-        window.player.baseSpeedMultiplier = 1;
-        window.player.maxArmor = window.player.baseMaxArmor || window.player.maxArmor;
     },
 
-    persistAgent(agentId) {
-        try {
-            if (window.currentUser && window.database) {
-                window.database.ref(`users/${window.currentUser.uid}/profile/selectedAgent`).set(agentId);
-            }
-        } catch (err) {
-            // Impossible de sauvegarder l'agent sur Firebase
+    updateUISelection() {
+        const agent = this.getSelectedAgent();
+        if (!agent) return;
+
+        const displayEl = document.getElementById('current-agent-display');
+        if (displayEl) {
+            displayEl.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 15px; justify-content: center;">
+                    <div style="font-size: 40px;">${agent.icon || '🎯'}</div>
+                    <div style="text-align: left;">
+                        <div style="font-size: 18px; font-weight: bold; color: #00d4ff;">${agent.name}</div>
+                        <div style="font-size: 14px; color: rgba(255,255,255,0.7);">${agent.role}</div>
+                    </div>
+                </div>
+            `;
         }
 
-        localStorage.setItem('sio_shooter_selected_agent', agentId);
+        document.querySelectorAll('.agent-card').forEach(card => {
+            card.classList.toggle('selected', card.dataset.agentId === agent.id);
+        });
     },
 
     getPersistedAgent() {
-        try {
-            if (window.currentUser && window.database) {
-                // On pourrait charger depuis Firebase, mais pour l’instant on utilise localStorage comme fallback rapide
-            }
-        } catch {
-            // ignore
-        }
-        return localStorage.getItem('sio_shooter_selected_agent');
+        return localStorage.getItem('selectedAgent');
+    },
+
+    persistAgent(agentId) {
+        localStorage.setItem('selectedAgent', agentId);
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        try {
-            AgentSystem.init();
-        } catch (error) {
-            // Erreur initialisation AgentSystem
-        }
-    }, 1200);
-});
-
-window.AgentSystem = AgentSystem;
-window.AgentsRegistry = AgentsRegistry;
+if (typeof window !== 'undefined') {
+    window.AgentSystem = AgentSystem;
+    window.AgentsRegistry = AgentsRegistry;
+}
