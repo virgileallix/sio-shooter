@@ -2320,11 +2320,32 @@ body {
 .pause-menu-content {
     width: 420px;
     max-width: 90vw;
+    max-height: 85vh;
+    overflow-y: auto;
     background: rgba(15, 20, 25, 0.97);
     border-radius: 18px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 25px 65px rgba(0, 0, 0, 0.55);
     padding: 28px;
+}
+
+/* Scrollbar pour le menu pause */
+.pause-menu-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.pause-menu-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.pause-menu-content::-webkit-scrollbar-thumb {
+    background: rgba(0, 212, 255, 0.5);
+    border-radius: 10px;
+}
+
+.pause-menu-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 212, 255, 0.7);
 }
 
 .pause-menu-content h2 {
@@ -3255,9 +3276,30 @@ kbd {
     padding: 40px;
     max-width: 600px;
     width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
     position: relative;
     border: 2px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+}
+
+/* Scrollbar pour le modal des caisses */
+.case-opening-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.case-opening-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.case-opening-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 70, 85, 0.5);
+    border-radius: 10px;
+}
+
+.case-opening-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 70, 85, 0.7);
 }
 
 .case-opening-header {

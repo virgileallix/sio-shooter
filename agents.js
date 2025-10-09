@@ -26,8 +26,21 @@ const AgentsRegistry = {
                 name: 'Dévorer',
                 icon: 'https://media.valorant-api.com/agents/a3bfb853-43b2-7238-a4f1-ad90e9e46bcc/abilities/ability1/displayicon.png',
                 maxCooldown: 0,
-                description: 'Consomme une âme pour régénérer rapidement toute la santé en 2 secondes',
+                requiresSoulOrb: true,
+                description: 'Consomme une âme pour régénérer rapidement toute la santé en 2 secondes (nécessite un kill)',
                 execute: (ctx) => {
+                    // Vérifier si le joueur a des orbes d'âmes
+                    if (!ctx.player.soulOrbs || ctx.player.soulOrbs <= 0) {
+                        if (window.NotificationSystem) {
+                            window.NotificationSystem.show('Dévorer', 'Nécessite une élimination pour obtenir une orbe d\'âme', 'warning', 2500);
+                        }
+                        return false;
+                    }
+
+                    // Consommer une orbe
+                    ctx.player.soulOrbs--;
+                    if (window.updateUI) window.updateUI();
+
                     // Heal progressif jusqu'à 100 HP en 2 secondes
                     const healDuration = 2000; // 2 secondes
                     const healInterval = 50; // Update toutes les 50ms
@@ -37,7 +50,7 @@ const AgentsRegistry = {
                     const healPerTick = totalHeal / (healDuration / healInterval);
 
                     if (window.NotificationSystem) {
-                        window.NotificationSystem.show('Dévorer', 'Régénération en cours...', 'success', 2000);
+                        window.NotificationSystem.show('Dévorer', `Régénération en cours... (${ctx.player.soulOrbs} orbes restantes)`, 'success', 2000);
                     }
 
                     const healTimer = setInterval(() => {
@@ -55,6 +68,8 @@ const AgentsRegistry = {
                             ctx.player.health = targetHealth;
                         }
                     }, healDuration);
+
+                    return true;
                 }
             },
             ability2: {
@@ -62,9 +77,27 @@ const AgentsRegistry = {
                 name: 'Rejeter',
                 icon: 'https://media.valorant-api.com/agents/a3bfb853-43b2-7238-a4f1-ad90e9e46bcc/abilities/ability2/displayicon.png',
                 maxCooldown: 0,
-                description: 'Devient invincible pendant 2 secondes',
+                requiresSoulOrb: true,
+                description: 'Consomme une âme pour devenir invincible pendant 2 secondes (nécessite un kill)',
                 execute: (ctx) => {
+                    // Vérifier si le joueur a des orbes d'âmes
+                    if (!ctx.player.soulOrbs || ctx.player.soulOrbs <= 0) {
+                        if (window.NotificationSystem) {
+                            window.NotificationSystem.show('Rejeter', 'Nécessite une élimination pour obtenir une orbe d\'âme', 'warning', 2500);
+                        }
+                        return false;
+                    }
+
+                    // Consommer une orbe
+                    ctx.player.soulOrbs--;
+                    if (window.updateUI) window.updateUI();
+
+                    if (window.NotificationSystem) {
+                        window.NotificationSystem.show('Rejeter', `Invincibilité activée! (${ctx.player.soulOrbs} orbes restantes)`, 'success', 2000);
+                    }
+
                     ctx.applyInvincibility({ duration: 2 });
+                    return true;
                 }
             },
             ultimate: {

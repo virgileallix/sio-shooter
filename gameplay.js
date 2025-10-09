@@ -305,6 +305,8 @@ window.player = {
     kills: 0,
     deaths: 0,
     assists: 0,
+    soulOrbs: 0,
+    maxSoulOrbs: 4,
     throwAnimation: {
         timer: 0,
         duration: 0,
@@ -795,6 +797,9 @@ function initializeGame() {
     game.gamePaused = false;
     game.gameStarted = false;
 
+    // CORRECTION : Initialiser le timestamp de démarrage du jeu
+    gameStartTimestamp = Date.now();
+
     // Assurer qu'on a une map valide
     if (!game.currentMap || !MAPS[game.currentMap]) {
         game.currentMap = 'haven';
@@ -947,7 +952,12 @@ function resetGameState(isNewMatch = false) {
         }
         player.empressModeActive = false;
     }
-    
+
+    // Réinitialiser les orbes d'âmes de Reyna à chaque round
+    if (player.agentId === 'reyna') {
+        player.soulOrbs = 0;
+    }
+
     game.roundTime = game.defaultRoundTime;
     game.buyTime = game.defaultBuyTime;
     game.phase = 'buy';
@@ -1983,6 +1993,22 @@ function hitPlayer(targetPlayer, damage, ownerId) {
             if (player.abilities.ultimate.points >= player.abilities.ultimate.maxPoints) {
                 player.abilities.ultimate.ready = true;
             }
+
+            // Ajouter une orbe d'âme pour Reyna
+            if (player.agentId === 'reyna') {
+                player.soulOrbs = Math.min(
+                    (player.soulOrbs || 0) + 1,
+                    player.maxSoulOrbs || 4
+                );
+                if (window.NotificationSystem) {
+                    window.NotificationSystem.show(
+                        'Orbe d\'âme',
+                        `+1 Orbe (${player.soulOrbs}/${player.maxSoulOrbs})`,
+                        'achievement',
+                        2000
+                    );
+                }
+            }
         }
     }
 }
@@ -2697,7 +2723,21 @@ function updateAbilitiesDisplay() {
             ability1Icon.alt = agentData.abilities.ability1.name || 'Capacité';
         }
 
-        if (ability1.cooldown > 0) {
+        // Pour Reyna, afficher le nombre d'orbes au lieu du cooldown
+        if (player.agentId === 'reyna' && agentData.abilities.ability1.requiresSoulOrb) {
+            const orbs = player.soulOrbs || 0;
+            if (ability1Cooldown) {
+                ability1Cooldown.textContent = orbs;
+                ability1Cooldown.style.display = 'block';
+            }
+            if (orbs > 0) {
+                ability1Slot.classList.remove('on-cooldown');
+                ability1Slot.classList.add('ready');
+            } else {
+                ability1Slot.classList.add('on-cooldown');
+                ability1Slot.classList.remove('ready');
+            }
+        } else if (ability1.cooldown > 0) {
             ability1Slot.classList.add('on-cooldown');
             ability1Slot.classList.remove('ready');
             if (ability1Cooldown) {
@@ -2730,7 +2770,21 @@ function updateAbilitiesDisplay() {
             ability2Icon.alt = agentData.abilities.ability2.name || 'Capacité';
         }
 
-        if (ability2.cooldown > 0) {
+        // Pour Reyna, afficher le nombre d'orbes au lieu du cooldown
+        if (player.agentId === 'reyna' && agentData.abilities.ability2.requiresSoulOrb) {
+            const orbs = player.soulOrbs || 0;
+            if (ability2Cooldown) {
+                ability2Cooldown.textContent = orbs;
+                ability2Cooldown.style.display = 'block';
+            }
+            if (orbs > 0) {
+                ability2Slot.classList.remove('on-cooldown');
+                ability2Slot.classList.add('ready');
+            } else {
+                ability2Slot.classList.add('on-cooldown');
+                ability2Slot.classList.remove('ready');
+            }
+        } else if (ability2.cooldown > 0) {
             ability2Slot.classList.add('on-cooldown');
             ability2Slot.classList.remove('ready');
             if (ability2Cooldown) {
@@ -3103,11 +3157,20 @@ function checkTeamElimination() {
     }
 }
 
+// CORRECTION : Variable pour suivre le temps de démarrage du jeu
+let gameStartTimestamp = 0;
+
 function checkTeamDisconnection() {
     // Ne vérifier que si le jeu est en cours
     if (game.matchFinished || game.phase === 'match_over') return;
     if (game.mode === 'training' || trainingState.active) return;
     if (!window.matchmakingState?.currentMatchId) return;
+
+    // CORRECTION : Attendre au moins 10 secondes après le démarrage du jeu
+    // pour laisser le temps aux autres joueurs de se connecter
+    if (Date.now() - gameStartTimestamp < 10000) {
+        return;
+    }
 
     // Compter les joueurs connectés par équipe (vivants ou morts)
     let attackersCount = player.team === 'attackers' ? 1 : 0;
@@ -4390,7 +4453,44 @@ function openBuyMenu() {
 
     buyMenuOverlay.classList.remove('hidden');
     updateBuyMenuMoney();
+    updateBuyMenuAbilities();
     game.gamePaused = true;
+}
+
+function updateBuyMenuAbilities() {
+    // Pour Reyna, griser les capacités qui nécessitent des orbes
+    if (player.agentId === 'reyna') {
+        const ability1Btn = document.getElementById('buy-ability1');
+        const ability2Btn = document.getElementById('buy-ability2');
+
+        if (ability1Btn) {
+            ability1Btn.style.opacity = '0.5';
+            ability1Btn.style.cursor = 'not-allowed';
+            ability1Btn.title = 'Nécessite des orbes d\'âme (obtenues par élimination)';
+        }
+
+        if (ability2Btn) {
+            ability2Btn.style.opacity = '0.5';
+            ability2Btn.style.cursor = 'not-allowed';
+            ability2Btn.title = 'Nécessite des orbes d\'âme (obtenues par élimination)';
+        }
+    } else {
+        // Pour les autres agents, rétablir l'apparence normale
+        const ability1Btn = document.getElementById('buy-ability1');
+        const ability2Btn = document.getElementById('buy-ability2');
+
+        if (ability1Btn) {
+            ability1Btn.style.opacity = '1';
+            ability1Btn.style.cursor = 'pointer';
+            ability1Btn.title = '';
+        }
+
+        if (ability2Btn) {
+            ability2Btn.style.opacity = '1';
+            ability2Btn.style.cursor = 'pointer';
+            ability2Btn.title = '';
+        }
+    }
 }
 
 function closeBuyMenu() {
@@ -4715,6 +4815,79 @@ function buyArmor(type, price) {
     }
 }
 
+function buyAbility(abilityKey, price) {
+    if (!player.alive) {
+        if (window.NotificationSystem) {
+            window.NotificationSystem.show('Erreur', 'Vous devez être vivant pour acheter', 'error', 2000);
+        }
+        return;
+    }
+
+    // Pour Reyna, les capacités ne peuvent pas être achetées (nécessitent des orbes)
+    if (player.agentId === 'reyna') {
+        const agentData = window.AgentsRegistry?.['reyna'];
+        const abilityData = agentData?.abilities?.[abilityKey];
+
+        if (abilityData?.requiresSoulOrb) {
+            if (window.NotificationSystem) {
+                window.NotificationSystem.show(
+                    'Capacité Reyna',
+                    'Les capacités de Reyna nécessitent des orbes d\'âme obtenues en éliminant des ennemis',
+                    'info',
+                    3000
+                );
+            }
+            return;
+        }
+    }
+
+    const ability = player.abilities?.[abilityKey];
+    if (!ability) {
+        if (window.NotificationSystem) {
+            window.NotificationSystem.show('Erreur', 'Capacité non disponible', 'error', 2000);
+        }
+        return;
+    }
+
+    // Vérifier si la capacité est déjà prête
+    if (ability.ready && ability.cooldown === 0) {
+        if (window.NotificationSystem) {
+            window.NotificationSystem.show('Info', 'Capacité déjà disponible', 'info', 2000);
+        }
+        return;
+    }
+
+    if (player.money < price) {
+        if (window.NotificationSystem) {
+            window.NotificationSystem.show('Fonds insuffisants', `Il vous faut ${price - player.money} crédits de plus`, 'error', 2000);
+        }
+        return;
+    }
+
+    player.money -= price;
+    updateMoneyDisplay();
+
+    // Activer la capacité
+    ability.ready = true;
+    ability.cooldown = 0;
+
+    const abilityNames = {
+        ability1: 'Capacité 1 (C)',
+        ability2: 'Capacité 2 (A)'
+    };
+
+    if (window.NotificationSystem) {
+        window.NotificationSystem.show(
+            'Achat réussi',
+            `${abilityNames[abilityKey] || 'Capacité'} achetée`,
+            'success',
+            2000
+        );
+    }
+
+    updateUI();
+}
+
 // ========================================
 // UTILITAIRES
 // ========================================
@@ -4805,6 +4978,7 @@ window.openBuyMenu = openBuyMenu;
 window.closeBuyMenu = closeBuyMenu;
 window.buyWeapon = buyWeapon;
 window.buyArmor = buyArmor;
+window.buyAbility = buyAbility;
 window.trainingState = trainingState;
 window.TrainingControls = {
     resume: () => togglePauseMenu(false),

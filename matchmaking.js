@@ -1149,12 +1149,23 @@ class MatchmakingSystem {
         window.matchmakingState.selectedMode = null;
         window.matchmakingState.selectedMap = null;
         window.matchmakingState.inQueue = false;
+
+        // CORRECTION : Réinitialiser aussi l'état du jeu
+        if (window.game) {
+            window.game.matchFinished = false;
+            window.game.gameStarted = false;
+        }
     }
 
     handlePostMatchCleanup() {
         this.cleanup();
         this.hideAllMatchmakingUI();
-        
+
+        // CORRECTION : Stopper le jeu proprement
+        if (window.stopGame && typeof window.stopGame === 'function') {
+            window.stopGame();
+        }
+
         if (window.showMainMenu) {
             window.showMainMenu();
         }
