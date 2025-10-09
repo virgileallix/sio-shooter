@@ -1533,6 +1533,14 @@ const StoreSystem = {
             Object.values(WEAPON_SKINS).flat().find(skin => skin.id === skinId)
         ).filter(Boolean);
 
+        console.log('Animation - Case skins found:', caseSkins.length);
+
+        if (caseSkins.length === 0) {
+            console.error('Aucun skin pour l\'animation');
+            this.closeCaseOpeningModal();
+            return;
+        }
+
         // Générer beaucoup d'items aléatoires + le skin gagnant loin dans la liste
         const items = [];
         const totalItems = 80; // Total d'items
@@ -1678,11 +1686,19 @@ const StoreSystem = {
 
     selectRandomSkinFromCase(weaponCase) {
         // Obtenir tous les skins de la case
-        const caseSkins = weaponCase.contents.map(skinId => 
+        const caseSkins = weaponCase.contents.map(skinId =>
             Object.values(WEAPON_SKINS).flat().find(skin => skin.id === skinId)
         ).filter(Boolean);
 
+        console.log('Case:', weaponCase.name, 'Contents:', weaponCase.contents.length, 'Found skins:', caseSkins.length);
+
         if (caseSkins.length === 0) {
+            console.error('Aucun skin trouvé pour la caisse:', weaponCase.name);
+            // Retourner le premier skin disponible comme fallback
+            const allSkins = Object.values(WEAPON_SKINS).flat();
+            if (allSkins.length > 0) {
+                return allSkins[0];
+            }
             return null;
         }
 
@@ -1695,9 +1711,16 @@ const StoreSystem = {
             }
         });
 
+        if (weightedSkins.length === 0) {
+            console.error('Aucun skin pondéré disponible');
+            return caseSkins[0];
+        }
+
         // Sélectionner un skin aléatoire
         const randomIndex = Math.floor(Math.random() * weightedSkins.length);
-        return weightedSkins[randomIndex];
+        const selected = weightedSkins[randomIndex];
+        console.log('Skin sélectionné:', selected.weapon, '|', selected.name, '(', selected.rarity, ')');
+        return selected;
     },
 
     closeCaseOpeningModal() {
