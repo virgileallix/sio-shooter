@@ -102,21 +102,6 @@ A competitive 2D tactical shooter inspired by Valorant and Counter-Strike, featu
 | Covert | ![#eb4b4b](https://via.placeholder.com/15/eb4b4b/000000?text=+) | 0.03% | Dragon Lore |
 | Knife | ![#ffd700](https://via.placeholder.com/15/ffd700/000000?text=+) | 0.01% | Karambit Fade |
 
-
-### Version 1.2 (Planned)
-- [ ] Additional maps (Haven, Bind, Split)
-- [ ] New weapon categories
-- [ ] Trading system
-- [ ] Mobile app version
-- [ ] Esports features
-
-### Version 2.0 (Future)
-- [ ] 3D graphics upgrade
-- [ ] Custom game modes
-- [ ] Map editor
-- [ ] Mod support
-- [ ] Professional tournament tools
-
 ## 🤝 Contributing
 
 We welcome contributions to SIO SHOOTER 2D! Here's how you can help:
