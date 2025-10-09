@@ -176,6 +176,18 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <div class="game-mode" onclick="selectGameMode('training')">
+                                <div class="mode-icon"><i class="fas fa-dumbbell"></i></div>
+                                <div class="mode-info">
+                                    <h3>Entraînement</h3>
+                                    <p>Solo avec bots personnalisables</p>
+                                    <div class="mode-details">
+                                        <span class="detail-badge">Solo</span>
+                                        <span class="detail-badge">Bots</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="map-selection">
@@ -868,6 +880,94 @@
                                 </div>
                                 <div class="players-list" id="defenders-list"></div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pause Menu -->
+                <div id="pause-menu" class="pause-menu hidden">
+                    <div class="pause-menu-content">
+                        <h2>Menu de pause</h2>
+
+                        <div class="pause-section">
+                            <button id="pause-resume" class="btn-primary full-width">
+                                <i class="fas fa-play"></i> Reprendre
+                            </button>
+                        </div>
+
+                        <div class="pause-section training-options hidden">
+                            <h3>Paramètres d'entraînement</h3>
+                            <label class="toggle-row">
+                                <input type="checkbox" id="training-bots-moving" checked>
+                                <span>Bots en mouvement</span>
+                            </label>
+                            <label class="toggle-row">
+                                <input type="checkbox" id="training-bots-respawn" checked>
+                                <span>Respawn automatique</span>
+                            </label>
+                            <label class="toggle-row">
+                                <span>Nombre de bots</span>
+                                <input type="number" id="training-bots-count" value="5" min="1" max="20">
+                            </label>
+
+                            <div class="training-stats">
+                                <div><span>Kills</span><strong id="training-stats-kills">0</strong></div>
+                                <div><span>Tirs</span><strong id="training-stats-shots">0</strong></div>
+                                <div><span>Précision</span><strong id="training-stats-accuracy">0%</strong></div>
+                            </div>
+
+                            <div class="pause-buttons">
+                                <button id="training-apply-settings" class="btn-primary">
+                                    <i class="fas fa-sync"></i> Appliquer
+                                </button>
+                                <button id="training-reset-bots" class="btn-secondary">
+                                    <i class="fas fa-redo"></i> Réinitialiser
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="pause-section">
+                            <h3>Touches</h3>
+                            <div class="binding-list">
+                                <div class="binding-row">
+                                    <span>Capacité 1</span>
+                                    <button class="binding-btn" data-action="ability1">C</button>
+                                </div>
+                                <div class="binding-row">
+                                    <span>Capacité 2</span>
+                                    <button class="binding-btn" data-action="ability2">A</button>
+                                </div>
+                                <div class="binding-row">
+                                    <span>Ultimate</span>
+                                    <button class="binding-btn" data-action="ultimate">X</button>
+                                </div>
+                                <div class="binding-row">
+                                    <span>Planter / Désamorcer</span>
+                                    <button class="binding-btn" data-action="plant">E</button>
+                                </div>
+                                <div class="binding-row">
+                                    <span>Ramasser</span>
+                                    <button class="binding-btn" data-action="pickup">F</button>
+                                </div>
+                                <div class="binding-row">
+                                    <span>Ouvrir boutique</span>
+                                    <button class="binding-btn" data-action="buyMenu">B</button>
+                                </div>
+                                <div class="binding-row">
+                                    <span>Sprinter</span>
+                                    <button class="binding-btn" data-action="sprint">Shift</button>
+                                </div>
+                                <div class="binding-row">
+                                    <span>Pause</span>
+                                    <button class="binding-btn" data-action="pause">Échap</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pause-section">
+                            <button class="btn-secondary full-width" onclick="leaveGame()">
+                                <i class="fas fa-door-open"></i> Quitter la partie
+                            </button>
                         </div>
                     </div>
                 </div>

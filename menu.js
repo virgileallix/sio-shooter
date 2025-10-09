@@ -400,26 +400,28 @@ function updateModeSpecificUI(mode) {
         
         const mapSelection = document.querySelector('.map-selection');
         const playSettings = document.querySelector('.play-settings');
-        
-        // Afficher/masquer les options selon le mode
-        if (mode === 'deathmatch') {
-            if (playSettings) {
-                playSettings.style.opacity = '0.7';
-            }
-            // En deathmatch, moins d'options de cartes
-            updateMapSelectionForMode(mode);
-        } else {
-            if (playSettings) {
-                playSettings.style.opacity = '1';
-            }
-            updateMapSelectionForMode(mode);
+        const regionSelect = document.getElementById('region-select');
+        const pingSelect = document.getElementById('ping-select');
+
+        const isTraining = mode === 'training';
+
+        if (playSettings) {
+            playSettings.classList.toggle('disabled', isTraining);
+            playSettings.style.opacity = mode === 'deathmatch' ? '0.7' : (isTraining ? '0.4' : '1');
         }
-        
+
+        if (regionSelect) regionSelect.disabled = isTraining;
+        if (pingSelect) pingSelect.disabled = isTraining;
+
+        updateMapSelectionForMode(mode);
+
         // Mettre à jour le texte du bouton avec animation
         const launchBtn = document.querySelector('.launch-game-btn');
         if (launchBtn) {
-            const newText = `<i class="fas fa-rocket"></i> RECHERCHER ${modeData.name.toUpperCase()}`;
-            
+            const newText = isTraining
+                ? '<i class="fas fa-dumbbell"></i> LANCER L\'ENTRAÎNEMENT'
+                : `<i class="fas fa-rocket"></i> RECHERCHER ${modeData.name.toUpperCase()}`;
+
             // Animation de changement de texte
             launchBtn.style.transform = 'scale(0.95)';
             setTimeout(() => {
@@ -445,7 +447,8 @@ function updateMapSelectionForMode(mode) {
         competitive: ['haven', 'ascent', 'bind'],
         attack_defense: ['haven', 'ascent', 'bind'],
         duel: ['haven', 'ascent', 'bind'],
-        unrated: ['haven', 'ascent', 'bind']
+        unrated: ['haven', 'ascent', 'bind'],
+        training: ['haven', 'ascent', 'bind']
     };
 
     const maps = availableMaps[mode] || ['dust2', 'haven'];
@@ -650,6 +653,11 @@ function updateAvailableMaps() {
 async function launchGame() {
     const launchBtn = document.querySelector('.launch-game-btn');
     
+    if (selectedGameMode === 'training') {
+        await launchTrainingMode(launchBtn);
+        return;
+    }
+    
     if (!currentUser) {
         showMessage('Vous devez être connecté pour jouer', 'error');
         return;
@@ -755,6 +763,40 @@ async function launchGame() {
                     launchBtn.innerHTML = '<i class="fas fa-rocket"></i> RECHERCHER UNE PARTIE';
                 }
             }, 3000);
+        }
+    }
+}
+
+async function launchTrainingMode(launchBtn) {
+    if (launchBtn) {
+        launchBtn.disabled = true;
+        launchBtn.classList.add('loading');
+        launchBtn.innerHTML = '<i class="fas fa-dumbbell"></i> PRÉPARATION...';
+    }
+
+    try {
+        const mapChoice = selectedMap && selectedMap !== 'auto' ? selectedMap : 'haven';
+
+        if (window.showGameScreen) {
+            window.showGameScreen();
+        }
+
+        setTimeout(() => {
+            if (typeof window.initializeTrainingSession === 'function') {
+                window.initializeTrainingSession({ map: mapChoice });
+            }
+        }, 150);
+
+        if (window.NotificationSystem) {
+            window.NotificationSystem.show('Entraînement', 'Session d\'entraînement en cours de chargement...', 'info', 2500);
+        }
+    } catch (error) {
+        showMessage(error?.message || 'Impossible de lancer l\'entraînement', 'error');
+    } finally {
+        if (launchBtn) {
+            launchBtn.disabled = false;
+            launchBtn.classList.remove('loading');
+            launchBtn.innerHTML = '<i class="fas fa-dumbbell"></i> LANCER L\'ENTRAÎNEMENT';
         }
     }
 }

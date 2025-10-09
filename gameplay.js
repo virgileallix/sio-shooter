@@ -395,6 +395,48 @@ let sentryTurrets = [];
 let armorRegenEffects = [];
 let droppedWeapons = []; // Armes tombées au sol
 
+const DEFAULT_TRAINING_SETTINGS = {
+    botCount: 5,
+    movingBots: true,
+    respawnBots: true,
+    respawnDelay: 1.5,
+    movementRadius: 280,
+    movementSpeed: 2.2
+};
+
+const trainingState = {
+    active: false,
+    bots: [],
+    settings: { ...DEFAULT_TRAINING_SETTINGS },
+    stats: { kills: 0, shots: 0, hits: 0 },
+    awaitingBinding: null
+};
+
+let trainingBotIdCounter = 0;
+let pendingKeyBinding = null;
+
+const DEFAULT_KEY_BINDINGS = {
+    pause: 'escape',
+    buyMenu: 'b',
+    reload: 'r',
+    sprint: 'shift',
+    plant: 'e',
+    pickup: 'f',
+    ability1: 'c',
+    ability2: 'a',
+    ultimate: 'x',
+    weaponPrimary: '1',
+    weaponSecondary: '2',
+    weaponMelee: '3'
+};
+
+const keyBindings = loadKeyBindings();
+
+const storedTrainingSettings = loadTrainingSettings();
+if (storedTrainingSettings) {
+    trainingState.settings = { ...DEFAULT_TRAINING_SETTINGS, ...storedTrainingSettings };
+}
+
 const DEFAULT_TACTICAL_DEVICE_STYLE = {
     size: 7,
     fill: '#7dd3fc',
@@ -765,7 +807,11 @@ function initializeGame() {
     initializeMinimap();
     equipWeapon('classic');
     resetGameState(true);
-    setupMultiplayerSync();
+    if (game.mode === 'training' || trainingState.active) {
+        setupTrainingBots(true);
+    } else {
+        setupMultiplayerSync();
+    }
     startGameLoop();
 
     game.gameStarted = true;
@@ -1094,6 +1140,7 @@ function update(dt) {
         updateAttackDefenseMode(dt);
     }
     updateOtherPlayers(dt);
+    updateTrainingBots(dt);
     updateGameTimers(dt);
     checkTeamElimination(); // Vérifier si une équipe est éliminée
     updateUI();
@@ -1352,6 +1399,21 @@ function updateBullets(dt) {
                 bullets.splice(i, 1);
                 break;
             }
+        }
+
+        if (trainingState.active && bullets[i]) {
+            let botHit = false;
+            for (const bot of trainingState.bots) {
+                if (!bot.alive) continue;
+                if (checkBulletPlayerCollision(bullet, bot)) {
+                    hitTrainingBot(bot, bullet.damage, bullet.owner);
+                    createBloodEffect(bullet.x, bullet.y);
+                    bullets.splice(i, 1);
+                    botHit = true;
+                    break;
+                }
+            }
+            if (botHit) continue;
         }
     }
 }
@@ -1635,6 +1697,16 @@ window.updateOtherPlayerPosition = function(playerId, playerData) {
 };
 
 function updateGameTimers(dt) {
+    if (trainingState.active || game.mode === 'training') {
+        game.phase = 'training';
+        game.buyTime = 0;
+        game.roundTime = 0;
+        if (game.revealPulseTimer && game.revealPulseTimer > 0) {
+            game.revealPulseTimer = Math.max(0, game.revealPulseTimer - dt);
+        }
+        return;
+    }
+
     // En deathmatch, pas de phase d'achat ni de timer de round
     if (game.mode === 'deathmatch') {
         game.phase = 'active';
@@ -1756,6 +1828,10 @@ function createBullet(angle) {
         distance: 0,
         penetrationCount: 0
     });
+
+    if (trainingState.active) {
+        trainingState.stats.shots += 1;
+    }
 }
 
 function checkBulletObjectCollision(bullet, obj) {
@@ -3001,6 +3077,8 @@ function handleRoundTransition(winner, reason) {
 function checkTeamElimination() {
     // Ne vérifier que si le round est actif et en mode compétitif
     if (game.phase !== 'active' || game.mode === 'deathmatch') return;
+    if (game.mode === 'training' || trainingState.active) return;
+    if (!window.matchmakingState?.currentMatchId && Object.keys(otherPlayers).length === 0) return;
 
     // Compter les joueurs vivants dans chaque équipe
     let attackersAlive = player.team === 'attackers' && player.alive ? 1 : 0;
@@ -3028,6 +3106,8 @@ function checkTeamElimination() {
 function checkTeamDisconnection() {
     // Ne vérifier que si le jeu est en cours
     if (game.matchFinished || game.phase === 'match_over') return;
+    if (game.mode === 'training' || trainingState.active) return;
+    if (!window.matchmakingState?.currentMatchId) return;
 
     // Compter les joueurs connectés par équipe (vivants ou morts)
     let attackersCount = player.team === 'attackers' ? 1 : 0;
@@ -3239,6 +3319,7 @@ function render() {
 
     // Autres joueurs
     drawOtherPlayers();
+    drawTrainingBots();
 
     // Joueur
     drawPlayer();
@@ -3451,6 +3532,208 @@ function drawOtherPlayers() {
         gameContext.strokeText(other.username || 'Joueur', other.x + 15, other.y - 15);
         gameContext.fillText(other.username || 'Joueur', other.x + 15, other.y - 15);
     }
+}
+
+function drawTrainingBots() {
+    if (!trainingState.active) return;
+    trainingState.bots.forEach(bot => {
+        if (!bot.alive) return;
+
+        gameContext.save();
+        gameContext.translate(bot.x + bot.width / 2, bot.y + bot.height / 2);
+        gameContext.rotate(bot.angle || 0);
+        gameContext.fillStyle = '#ffc857';
+        gameContext.fillRect(-bot.width / 2, -bot.height / 2, bot.width, bot.height);
+
+        // Indicateur de direction
+        gameContext.fillStyle = '#2b2d42';
+        gameContext.beginPath();
+        gameContext.moveTo(bot.width / 2 - 5, 0);
+        gameContext.lineTo(-bot.width / 2 + 5, -5);
+        gameContext.lineTo(-bot.width / 2 + 5, 5);
+        gameContext.closePath();
+        gameContext.fill();
+        gameContext.restore();
+
+        // Barre de vie
+        const lifePercent = Math.max(0, Math.min(1, bot.health / bot.maxHealth));
+        gameContext.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        gameContext.fillRect(bot.x, bot.y - 10, bot.width, 4);
+        gameContext.fillStyle = lifePercent > 0.5 ? '#00ff7f' : (lifePercent > 0.25 ? '#ffb347' : '#ff4d4d');
+        gameContext.fillRect(bot.x, bot.y - 10, bot.width * lifePercent, 4);
+
+        // Nom
+        if (bot.label) {
+            gameContext.fillStyle = '#ffffff';
+            gameContext.strokeStyle = '#000000';
+            gameContext.lineWidth = 3;
+            gameContext.font = 'bold 12px Arial';
+            gameContext.textAlign = 'center';
+            gameContext.strokeText(bot.label, bot.x + bot.width / 2, bot.y - 16);
+            gameContext.fillText(bot.label, bot.x + bot.width / 2, bot.y - 16);
+        }
+    });
+}
+
+function setupTrainingBots(resetStats = false) {
+    if (!trainingState.active) return;
+    const stored = loadTrainingSettings();
+    if (stored) {
+        trainingState.settings = { ...DEFAULT_TRAINING_SETTINGS, ...stored };
+    }
+    if (resetStats) {
+        trainingState.stats = { kills: 0, shots: 0, hits: 0 };
+    }
+    trainingState.bots = [];
+    trainingBotIdCounter = 0;
+    const count = Math.max(1, Math.min(20, Math.floor(trainingState.settings.botCount || DEFAULT_TRAINING_SETTINGS.botCount)));
+    for (let i = 0; i < count; i++) {
+        trainingState.bots.push(spawnTrainingBot());
+    }
+    refreshPauseMenuUI();
+}
+
+function spawnTrainingBot(existingBot = null) {
+    const map = MAPS[game.currentMap] || MAPS['haven'];
+    const spawn = getRandomTrainingSpawn(map);
+    const bot = existingBot || {};
+    bot.id = existingBot?.id || `bot_${++trainingBotIdCounter}`;
+    bot.width = 30;
+    bot.height = 30;
+    bot.maxHealth = 100;
+    bot.health = bot.maxHealth;
+    bot.alive = true;
+    bot.x = spawn.x - bot.width / 2;
+    bot.y = spawn.y - bot.height / 2;
+    bot.spawnOrigin = { x: spawn.x, y: spawn.y };
+    bot.targetX = null;
+    bot.targetY = null;
+    bot.moveCooldown = 0;
+    bot.respawnTimer = 0;
+    bot.angle = 0;
+    bot.label = existingBot?.label || `BOT ${trainingBotIdCounter}`;
+    chooseTrainingBotTarget(bot, true);
+    return bot;
+}
+
+function getRandomTrainingSpawn(map) {
+    const points = [];
+    if (map?.spawnPoints) {
+        if (map.spawnPoints.attackers) points.push(...map.spawnPoints.attackers);
+        if (map.spawnPoints.defenders) points.push(...map.spawnPoints.defenders);
+    }
+    if (!points.length) {
+        return {
+            x: (map?.width || 2000) / 2,
+            y: (map?.height || 2000) / 2
+        };
+    }
+    const point = points[Math.floor(Math.random() * points.length)];
+    const jitter = () => (Math.random() - 0.5) * 120;
+    return {
+        x: point.x + jitter(),
+        y: point.y + jitter()
+    };
+}
+
+function chooseTrainingBotTarget(bot, force = false) {
+    if (!trainingState.settings.movingBots) {
+        bot.targetX = bot.spawnOrigin.x;
+        bot.targetY = bot.spawnOrigin.y;
+        return;
+    }
+    if (!force && bot.moveCooldown > 0) return;
+    const map = MAPS[game.currentMap] || MAPS['haven'];
+    const angle = Math.random() * Math.PI * 2;
+    const radius = trainingState.settings.movementRadius;
+    const targetX = bot.spawnOrigin.x + Math.cos(angle) * radius;
+    const targetY = bot.spawnOrigin.y + Math.sin(angle) * radius;
+    bot.targetX = Math.max(bot.width / 2, Math.min(targetX, (map?.width || 0) - bot.width / 2));
+    bot.targetY = Math.max(bot.height / 2, Math.min(targetY, (map?.height || 0) - bot.height / 2));
+    bot.moveCooldown = 1 + Math.random() * 1.5;
+}
+
+function updateTrainingBots(dt) {
+    if (!trainingState.active) return;
+    const map = MAPS[game.currentMap] || MAPS['haven'];
+    trainingState.bots.forEach(bot => {
+        if (bot.alive) {
+            bot.moveCooldown = Math.max(0, bot.moveCooldown - dt);
+            const playerCenterX = player.x + player.width / 2;
+            const playerCenterY = player.y + player.height / 2;
+            const botCenterX = bot.x + bot.width / 2;
+            const botCenterY = bot.y + bot.height / 2;
+            bot.angle = Math.atan2(playerCenterY - botCenterY, playerCenterX - botCenterX);
+
+            if (trainingState.settings.movingBots) {
+                const speed = trainingState.settings.movementSpeed * 60 * dt;
+                if (!bot.targetX || !bot.targetY || Math.hypot(bot.targetX - botCenterX, bot.targetY - botCenterY) < 10) {
+                    chooseTrainingBotTarget(bot, true);
+                }
+                const dirX = bot.targetX - botCenterX;
+                const dirY = bot.targetY - botCenterY;
+                const distance = Math.hypot(dirX, dirY);
+                if (distance > 1) {
+                    const normX = dirX / distance;
+                    const normY = dirY / distance;
+                    bot.x += normX * speed;
+                    bot.y += normY * speed;
+                    clampBotPosition(bot, map);
+                }
+            } else {
+                bot.targetX = bot.spawnOrigin.x;
+                bot.targetY = bot.spawnOrigin.y;
+                bot.x += (bot.targetX - botCenterX) * 0.02;
+                bot.y += (bot.targetY - botCenterY) * 0.02;
+                clampBotPosition(bot, map);
+            }
+        } else if (trainingState.settings.respawnBots) {
+            bot.respawnTimer -= dt;
+            if (bot.respawnTimer <= 0) {
+                spawnTrainingBot(bot);
+            }
+        }
+    });
+}
+
+function clampBotPosition(bot, map) {
+    const maxX = (map?.width || 0) - bot.width;
+    const maxY = (map?.height || 0) - bot.height;
+    bot.x = Math.max(0, Math.min(bot.x, maxX));
+    bot.y = Math.max(0, Math.min(bot.y, maxY));
+}
+
+function hitTrainingBot(bot, damage, ownerId) {
+    if (!bot.alive) return;
+    const appliedDamage = damage;
+    bot.health -= appliedDamage;
+    trainingState.stats.hits += 1;
+    showDamageNumber(bot.x + bot.width / 2, bot.y, Math.floor(appliedDamage), true);
+
+    if (bot.health <= 0) {
+        bot.alive = false;
+        bot.health = 0;
+        trainingState.stats.kills += 1;
+        bot.respawnTimer = trainingState.settings.respawnBots ? trainingState.settings.respawnDelay : 0;
+        particles.push({
+            x: bot.x + bot.width / 2,
+            y: bot.y + bot.height / 2,
+            vx: 0,
+            vy: 0,
+            life: 0.3,
+            maxLife: 0.3,
+            color: '#ff4d4d',
+            size: 16
+        });
+        if (!trainingState.settings.respawnBots) {
+            bot.label = 'HS';
+        }
+        refreshPauseMenuUI();
+    }
+}
+
+function resetTrainingBots() {
+    setupTrainingBots(true);
 }
 
 function drawDroppedWeapons() {
@@ -3885,7 +4168,7 @@ function updateAttackDefenseMode(dt) {
 
     if (bomb.planting) {
         const site = getBombSiteAt(center.x, center.y);
-        if (!keys['e'] || !playerHasBomb() || !player.alive || !site) {
+        if (!isActionKeyPressed('plant') || !playerHasBomb() || !player.alive || !site) {
             cancelBombInteraction('plant');
         } else {
             bomb.plantProgress += dt;
@@ -3898,7 +4181,7 @@ function updateAttackDefenseMode(dt) {
 
     if (bomb.defusing) {
         const distance = Math.hypot(center.x - bomb.x, center.y - bomb.y);
-        if (!keys['e'] || player.team !== 'defenders' || !player.alive || distance > BOMB_SETTINGS.pickupRadius) {
+        if (!isActionKeyPressed('plant') || player.team !== 'defenders' || !player.alive || distance > BOMB_SETTINGS.pickupRadius) {
             cancelBombInteraction('defuse');
         } else {
             bomb.defuseProgress += dt;
@@ -3924,62 +4207,104 @@ function updateAttackDefenseMode(dt) {
 // ========================================
 
 function handleKeyDown(e) {
-    const key = e.key.toLowerCase();
+    const key = e.key.length === 1 ? e.key.toLowerCase() : e.key.toLowerCase();
+
+    if (pendingKeyBinding) {
+        e.preventDefault();
+        assignKeyBinding(pendingKeyBinding, key);
+        return;
+    }
+
     keys[key] = true;
 
-    if (key === 'r' && !player.reloading) {
-        reload();
+    const action = getActionFromKey(key);
+
+    const activeElement = document.activeElement;
+    if (activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeElement.tagName) && activeElement !== document.body && action !== 'pause') {
+        return;
     }
 
-    if (key === 'shift') {
-        player.sprinting = true;
+    if (game.gamePaused && action && action !== 'pause' && action !== 'buyMenu') {
+        return;
     }
 
-    if (key === 'escape') {
-        game.gamePaused = !game.gamePaused;
+    if (game.gamePaused && action && action !== 'pause' && action !== 'buyMenu') {
+        if (action === 'sprint') {
+            player.sprinting = false;
+        }
+        return;
     }
 
-    // Boutique - touche B
-    if (key === 'b') {
-        e.preventDefault();
-        toggleBuyMenu();
+    switch (action) {
+        case 'reload':
+            if (!player.reloading) {
+                reload();
+            }
+            break;
+        case 'sprint':
+            player.sprinting = true;
+            break;
+        case 'pause':
+            e.preventDefault();
+            togglePauseMenu();
+            keys[key] = false;
+            break;
+        case 'buyMenu':
+            e.preventDefault();
+            toggleBuyMenu();
+            break;
+        case 'ability1':
+            useAbility('ability1');
+            break;
+        case 'ability2':
+            useAbility('ability2');
+            break;
+        case 'ultimate':
+            useAbility('ultimate');
+            break;
+        case 'plant':
+            e.preventDefault();
+            attemptBombInteraction();
+            break;
+        case 'pickup':
+            e.preventDefault();
+            pickupNearbyWeapon();
+            break;
+        case 'weaponPrimary':
+            equipWeapon('phantom');
+            break;
+        case 'weaponSecondary':
+            equipWeapon('sheriff');
+            break;
+        case 'weaponMelee':
+            equipWeapon('operator');
+            break;
+        default:
+            break;
     }
-
-    // Abilities - changé de Q/E à C/A
-    if (key === 'c') useAbility('ability1');
-    if (key === 'a') useAbility('ability2');
-    if (key === 'x') useAbility('ultimate');
-
-    // Planter/Désamorcer le spike - E
-    if (key === 'e') {
-        e.preventDefault();
-        attemptBombInteraction();
-    }
-
-    // Ramasser arme au sol - F
-    if (key === 'f') {
-        e.preventDefault();
-        pickupNearbyWeapon();
-    }
-
-    // Changement d'arme
-    if (key === '1') equipWeapon('phantom');
-    if (key === '2') equipWeapon('sheriff');
-    if (key === '3') equipWeapon('operator');
 }
 
 function handleKeyUp(e) {
-    const key = e.key.toLowerCase();
+    const key = e.key.length === 1 ? e.key.toLowerCase() : e.key.toLowerCase();
     keys[key] = false;
 
-    if (key === 'shift') {
-        player.sprinting = false;
+    const action = getActionFromKey(key);
+
+    const activeElement = document.activeElement;
+    if (activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeElement.tagName) && activeElement !== document.body && action !== 'pause') {
+        return;
     }
 
-    // Changé de F à E pour planter/désamorcer
-    if (key === 'e') {
-        e.preventDefault();
-        cancelBombInteraction(player.actionType);
+    switch (action) {
+        case 'sprint':
+            player.sprinting = false;
+            break;
+        case 'plant':
+            e.preventDefault();
+            cancelBombInteraction(player.actionType);
+            break;
+        default:
+            break;
     }
 }
 
@@ -4021,6 +4346,15 @@ function handleMouseWheel(e) {
 function toggleBuyMenu() {
     const buyMenuOverlay = document.getElementById('buy-menu-overlay');
     if (!buyMenuOverlay) return;
+
+    if (game.mode === 'training') {
+        if (buyMenuOverlay.classList.contains('hidden')) {
+            openBuyMenu();
+        } else {
+            closeBuyMenu();
+        }
+        return;
+    }
 
     // Vérifier si on est en phase d'achat ou en deathmatch
     if (game.mode === 'deathmatch') {
@@ -4084,6 +4418,243 @@ function updateMoneyDisplay() {
 
     // Mettre à jour aussi dans le menu d'achat s'il est ouvert
     updateBuyMenuMoney();
+}
+
+function togglePauseMenu(forceState = null) {
+    const pauseMenu = document.getElementById('pause-menu');
+    if (!pauseMenu) {
+        game.gamePaused = forceState ?? !game.gamePaused;
+        return;
+    }
+
+    const shouldOpen = forceState !== null ? forceState : pauseMenu.classList.contains('hidden');
+
+    if (shouldOpen) {
+        game.gamePaused = true;
+        pauseMenu.classList.remove('hidden');
+        const buyMenu = document.getElementById('buy-menu-overlay');
+        if (buyMenu && !buyMenu.classList.contains('hidden')) {
+            buyMenu.classList.add('hidden');
+        }
+        if (!pauseMenu.dataset.initialized) {
+            setupPauseMenuControls();
+            pauseMenu.dataset.initialized = '1';
+        }
+        refreshPauseMenuUI();
+    } else {
+        pauseMenu.classList.add('hidden');
+        game.gamePaused = false;
+        pendingKeyBinding = null;
+        trainingState.awaitingBinding = null;
+        pauseMenu.querySelectorAll('.binding-btn.waiting').forEach(btn => btn.classList.remove('waiting'));
+    }
+}
+
+function refreshPauseMenuUI() {
+    const pauseMenu = document.getElementById('pause-menu');
+    if (!pauseMenu) return;
+
+    const trainingSection = pauseMenu.querySelector('.training-options');
+    if (trainingSection) {
+        if (trainingState.active) {
+            trainingSection.classList.remove('hidden');
+            const movingCheckbox = pauseMenu.querySelector('#training-bots-moving');
+            const respawnCheckbox = pauseMenu.querySelector('#training-bots-respawn');
+            const countInput = pauseMenu.querySelector('#training-bots-count');
+            if (movingCheckbox) movingCheckbox.checked = !!trainingState.settings.movingBots;
+            if (respawnCheckbox) respawnCheckbox.checked = !!trainingState.settings.respawnBots;
+            if (countInput) countInput.value = trainingState.settings.botCount;
+
+            const statsKills = pauseMenu.querySelector('#training-stats-kills');
+            const statsShots = pauseMenu.querySelector('#training-stats-shots');
+            const statsAccuracy = pauseMenu.querySelector('#training-stats-accuracy');
+            if (statsKills) statsKills.textContent = trainingState.stats.kills;
+            if (statsShots) statsShots.textContent = trainingState.stats.shots;
+            if (statsAccuracy) {
+                const accuracy = trainingState.stats.shots > 0
+                    ? Math.round((trainingState.stats.hits / trainingState.stats.shots) * 100)
+                    : 0;
+                statsAccuracy.textContent = `${accuracy}%`;
+            }
+        } else {
+            trainingSection.classList.add('hidden');
+        }
+    }
+
+    updateBindingButtons();
+}
+
+function getActionFromKey(key) {
+    for (const action in keyBindings) {
+        if (keyBindings[action] === key) {
+            return action;
+        }
+    }
+    return null;
+}
+
+function isActionKeyPressed(action) {
+    const key = keyBindings[action];
+    if (!key) return false;
+    return !!keys[key];
+}
+
+function loadKeyBindings() {
+    try {
+        const stored = localStorage.getItem('sio_shooter_keybindings');
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            return { ...DEFAULT_KEY_BINDINGS, ...parsed };
+        }
+    } catch (error) {
+    }
+    return { ...DEFAULT_KEY_BINDINGS };
+}
+
+function saveKeyBindings() {
+    try {
+        localStorage.setItem('sio_shooter_keybindings', JSON.stringify(keyBindings));
+    } catch (error) {
+    }
+}
+
+function assignKeyBinding(action, key) {
+    if (!action || !key) return;
+    const normalizedKey = key.toLowerCase();
+    if (Object.values(keyBindings).includes(normalizedKey)) {
+        for (const existingAction in keyBindings) {
+            if (keyBindings[existingAction] === normalizedKey) {
+                keyBindings[existingAction] = null;
+            }
+        }
+    }
+
+    keyBindings[action] = normalizedKey;
+    saveKeyBindings();
+    pendingKeyBinding = null;
+    trainingState.awaitingBinding = null;
+    updateBindingButtons();
+
+    if (window.NotificationSystem) {
+        window.NotificationSystem.show(
+            'Raccourci mis à jour',
+            `${formatActionLabel(action)} ➜ ${formatKeyName(normalizedKey)}`,
+            'success',
+            2000
+        );
+    }
+}
+
+function updateBindingButtons() {
+    const buttons = document.querySelectorAll('.binding-btn');
+    buttons.forEach(btn => {
+        const action = btn.dataset.action;
+        if (!action) return;
+        const binding = keyBindings[action];
+        btn.textContent = formatKeyName(binding || '—');
+        btn.classList.toggle('waiting', trainingState.awaitingBinding === action);
+    });
+}
+
+function formatKeyName(key) {
+    if (!key) return '—';
+    if (key === ' ') return 'ESPACE';
+    if (key === 'escape') return 'ECHAP';
+    if (key === 'shift') return 'SHIFT';
+    if (key === 'control') return 'CTRL';
+    if (key === 'alt') return 'ALT';
+    if (key.startsWith('arrow')) return key.replace('arrow', 'Flèche ').toUpperCase();
+    return key.length === 1 ? key.toUpperCase() : key.toUpperCase();
+}
+
+function formatActionLabel(action) {
+    const labels = {
+        pause: 'Pause',
+        buyMenu: 'Ouvrir boutique',
+        reload: 'Recharger',
+        sprint: 'Sprinter',
+        plant: 'Planter / Désamorcer',
+        pickup: 'Ramasser',
+        ability1: 'Capacité 1',
+        ability2: 'Capacité 2',
+        ultimate: 'Ultimate',
+        weaponPrimary: 'Arme principale',
+        weaponSecondary: 'Arme secondaire',
+        weaponMelee: 'Arme spéciale'
+    };
+    return labels[action] || action;
+}
+
+function loadTrainingSettings() {
+    try {
+        const stored = localStorage.getItem('sio_training_settings');
+        return stored ? JSON.parse(stored) : null;
+    } catch (error) {
+        return null;
+    }
+}
+
+function saveTrainingSettings() {
+    try {
+        localStorage.setItem('sio_training_settings', JSON.stringify(trainingState.settings));
+    } catch (error) {
+    }
+}
+
+function setupPauseMenuControls() {
+    const pauseMenu = document.getElementById('pause-menu');
+    if (!pauseMenu) return;
+
+    const applyBtn = pauseMenu.querySelector('#training-apply-settings');
+    if (applyBtn) {
+        applyBtn.addEventListener('click', () => applyTrainingSettingsFromMenu(pauseMenu));
+    }
+
+    const resetBtn = pauseMenu.querySelector('#training-reset-bots');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => resetTrainingBotsFromMenu());
+    }
+
+    pauseMenu.querySelectorAll('.binding-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const action = btn.dataset.action;
+            if (!action) return;
+            trainingState.awaitingBinding = action;
+            pendingKeyBinding = action;
+            updateBindingButtons();
+        });
+    });
+
+    const resumeBtn = pauseMenu.querySelector('#pause-resume');
+    if (resumeBtn) {
+        resumeBtn.addEventListener('click', () => togglePauseMenu(false));
+    }
+}
+
+function applyTrainingSettingsFromMenu(container = document.getElementById('pause-menu')) {
+    if (!container) return;
+    const movingCheckbox = container.querySelector('#training-bots-moving');
+    const respawnCheckbox = container.querySelector('#training-bots-respawn');
+    const countInput = container.querySelector('#training-bots-count');
+
+    trainingState.settings.movingBots = movingCheckbox ? movingCheckbox.checked : true;
+    trainingState.settings.respawnBots = respawnCheckbox ? respawnCheckbox.checked : true;
+    const count = countInput ? parseInt(countInput.value, 10) : DEFAULT_TRAINING_SETTINGS.botCount;
+    trainingState.settings.botCount = Math.max(1, Math.min(20, isNaN(count) ? DEFAULT_TRAINING_SETTINGS.botCount : count));
+    saveTrainingSettings();
+    setupTrainingBots(true);
+
+    if (window.NotificationSystem) {
+        window.NotificationSystem.show('Paramètres appliqués', 'Les bots ont été mis à jour.', 'success', 2000);
+    }
+}
+
+function resetTrainingBotsFromMenu() {
+    resetTrainingBots();
+    if (window.NotificationSystem) {
+        window.NotificationSystem.show('Réinitialisation', 'Les bots ont été repositionnés.', 'info', 2000);
+    }
+    refreshPauseMenuUI();
 }
 
 function buyWeapon(weaponName, price) {
@@ -4155,6 +4726,17 @@ function stopGame() {
 
     closeBuyMenu();
 
+    const pauseMenu = document.getElementById('pause-menu');
+    if (pauseMenu) {
+        pauseMenu.classList.add('hidden');
+    }
+
+    trainingState.active = false;
+    trainingState.bots = [];
+    trainingState.awaitingBinding = null;
+    pendingKeyBinding = null;
+    trainingState.stats = { kills: 0, shots: 0, hits: 0 };
+
     // Nettoyer la position du joueur dans Firebase
     if (window.matchmakingState?.currentMatchId && window.database && window.currentUser) {
         try {
@@ -4223,4 +4805,49 @@ window.openBuyMenu = openBuyMenu;
 window.closeBuyMenu = closeBuyMenu;
 window.buyWeapon = buyWeapon;
 window.buyArmor = buyArmor;
+window.trainingState = trainingState;
+window.TrainingControls = {
+    resume: () => togglePauseMenu(false),
+    applySettings: () => applyTrainingSettingsFromMenu(),
+    resetBots: () => resetTrainingBotsFromMenu(),
+    beginRebind: (action) => {
+        if (!action) return;
+        trainingState.awaitingBinding = action;
+        pendingKeyBinding = action;
+        updateBindingButtons();
+    }
+};
+window.togglePauseMenu = togglePauseMenu;
+
+window.initializeTrainingSession = function initializeTrainingSession(options = {}) {
+    const map = options.map || window.selectedMap || game.currentMap || 'haven';
+
+    window.matchmakingState.currentMatchId = null;
+    window.matchmakingState.inQueue = false;
+
+    game.mode = 'training';
+    game.phase = 'training';
+    game.currentMap = map;
+    game.matchFinished = false;
+    player.team = 'attackers';
+
+    stopGame();
+
+    trainingState.active = true;
+    trainingState.settings = { ...DEFAULT_TRAINING_SETTINGS, ...trainingState.settings, ...(options.settings || {}) };
+    trainingState.stats = { kills: 0, shots: 0, hits: 0 };
+    saveTrainingSettings();
+
+    if (window.showGameScreen) {
+        window.showGameScreen();
+    }
+
+    setTimeout(() => {
+        initializeGame();
+    }, 50);
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    updateBindingButtons();
+});
 

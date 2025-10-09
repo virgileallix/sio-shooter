@@ -62,6 +62,21 @@ window.gameModes = {
         roundDuration: 600,
         buyPhaseDuration: 0
     },
+    training: {
+        name: 'Entraînement',
+        description: 'Session solo contre des bots configurables',
+        maxPlayers: 1,
+        minPlayers: 1,
+        maxRounds: 0,
+        winCondition: 0,
+        economy: false,
+        ranked: false,
+        teamSize: 1,
+        hasBomb: false,
+        roundDuration: 0,
+        buyPhaseDuration: 0,
+        training: true
+    },
     unrated: {
         name: 'Non classé',
         description: '5v5 - Mode casual - Plant de spike',
@@ -991,7 +1006,7 @@ class MatchmakingSystem {
 
         window.matchmakingState.listeners.playerPositions = {
             ref: positionsRef,
-            eventType: 'multiple',
+            eventType: ['child_added', 'child_changed'],
             handler: positionHandler
         };
     }
@@ -1177,8 +1192,26 @@ class MatchmakingSystem {
         }
         
         Object.values(window.matchmakingState.listeners).forEach(listener => {
-            if (listener && listener.ref && listener.handler) {
-                listener.ref.off(listener.eventType, listener.handler);
+            if (!listener || !listener.ref || !listener.handler) return;
+
+            const eventTypes = Array.isArray(listener.eventType)
+                ? listener.eventType
+                : [listener.eventType || undefined];
+
+            eventTypes.forEach(type => {
+                if (type) {
+                    listener.ref.off(type, listener.handler);
+                } else {
+                    listener.ref.off(undefined, listener.handler);
+                }
+            });
+
+            if (listener.additionalHandlers && Array.isArray(listener.additionalHandlers)) {
+                listener.additionalHandlers.forEach(entry => {
+                    if (entry && entry.ref && entry.handler) {
+                        entry.ref.off(entry.eventType || undefined, entry.handler);
+                    }
+                });
             }
         });
         
