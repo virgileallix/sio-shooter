@@ -1457,6 +1457,11 @@ async function loadLeaderboard(type) {
 function getLeaderboardValue(stats, type) {
     switch (type) {
         case 'competitive':
+            // Pour le compétitif, utiliser le MMR
+            return stats.mmr?.competitive || 0;
+        case 'duel':
+            // Pour le duel, utiliser le MMR duel
+            return stats.mmr?.duel || 0;
         case 'kills':
             return stats.kills || 0;
         case 'wins':
@@ -1475,6 +1480,9 @@ function getLeaderboardValue(stats, type) {
 // Formater la valeur pour l'affichage du classement
 function formatLeaderboardValue(value, type) {
     switch (type) {
+        case 'competitive':
+        case 'duel':
+            return `${Math.round(value)} MMR`;
         case 'kd':
             return value.toFixed(2);
         case 'level':

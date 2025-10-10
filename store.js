@@ -1601,12 +1601,17 @@ const StoreSystem = {
             clearInterval(this.currentOpeningAnimation);
         }
 
-        // Pré-sélectionner le skin gagnant
+        // Pré-sélectionner le skin gagnant AVANT l'animation
         const wonSkin = this.selectRandomSkinFromCase(weaponCase);
         if (!wonSkin) {
+            console.error('Aucun skin sélectionné pour cette case');
             this.closeCaseOpeningModal();
             return;
         }
+
+        // Log pour débugger
+        console.log(`🎁 Case ouverte: ${weaponCase.name}`);
+        console.log(`✨ Skin gagné: ${wonSkin.weapon} | ${wonSkin.name} (${RARITIES[wonSkin.rarity].name})`);
 
         // Jouer le son de démarrage
         this.playSound('spin');
@@ -1634,7 +1639,7 @@ const StoreSystem = {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            transition: transform 6s cubic-bezier(0.17, 0.67, 0.35, 0.96);
+            transition: transform 8s cubic-bezier(0.1, 0.7, 0.3, 0.98);
         `;
 
         // Créer les items de la roulette
@@ -1652,8 +1657,8 @@ const StoreSystem = {
 
         // Générer beaucoup d'items aléatoires + le skin gagnant loin dans la liste
         const items = [];
-        const totalItems = 80; // Total d'items
-        const winningPosition = 65; // Position du skin gagnant (proche de la fin)
+        const totalItems = 100; // Total d'items (augmenté pour une animation plus longue)
+        const winningPosition = 85; // Position du skin gagnant (proche de la fin)
 
         for (let i = 0; i < totalItems; i++) {
             if (i === winningPosition) {
@@ -1716,26 +1721,81 @@ const StoreSystem = {
         `;
         rouletteContainer.appendChild(indicator);
 
+        // Ajouter une barre de progression
+        const progressBar = document.createElement('div');
+        progressBar.style.cssText = `
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            margin-top: 20px;
+            border-radius: 2px;
+            overflow: hidden;
+        `;
+        const progressFill = document.createElement('div');
+        progressFill.style.cssText = `
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #00d4ff, #0084ff);
+            transition: width 8s linear;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        `;
+        progressBar.appendChild(progressFill);
+        container.appendChild(progressBar);
+
+        // Ajouter un texte d'animation
+        const animationText = document.createElement('div');
+        animationText.style.cssText = `
+            text-align: center;
+            margin-top: 15px;
+            font-size: 18px;
+            color: #00d4ff;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        `;
+        animationText.textContent = 'Ouverture en cours...';
+        container.appendChild(animationText);
+
+        // Démarrer la barre de progression
+        setTimeout(() => {
+            progressFill.style.width = '100%';
+        }, 100);
+
         // Démarrer l'animation
         setTimeout(() => {
-            // Calculer la position finale (item 65 = skin gagnant)
+            // Calculer la position finale (item à la position winningPosition = skin gagnant)
             const itemWidth = 165; // 150px + 15px gap
-            // Centrer l'item 65 : on décale de 65 items, puis on compense pour centrer
+            // Centrer l'item gagnant : on décale de winningPosition items, puis on compense pour centrer
             // containerWidth / 2 pour avoir le centre, moins itemWidth / 2 pour centrer l'item
             const containerWidth = rouletteContainer.offsetWidth;
             const targetPosition = -(winningPosition * itemWidth) + (containerWidth / 2) - (itemWidth / 2);
 
             roulette.style.transform = `translateX(${targetPosition}px)`;
 
-            // Jouer un son à la fin
-            setTimeout(() => {
-                this.playSound('reveal');
-            }, 5800);
+            // Jouer des sons pendant l'animation
+            const soundInterval = setInterval(() => {
+                this.playSound('spin');
+            }, 300);
 
-            // Révéler après l'animation
+            // Mettre à jour le texte pendant l'animation
+            setTimeout(() => {
+                if (animationText) animationText.textContent = 'Ralentissement...';
+            }, 5000);
+
+            // Arrêter les sons et jouer le son de révélation à la fin
+            setTimeout(() => {
+                clearInterval(soundInterval);
+                this.playSound('reveal');
+                if (animationText) {
+                    animationText.textContent = '✨ Révélation! ✨';
+                    animationText.style.fontSize = '24px';
+                    animationText.style.color = RARITIES[wonSkin.rarity].color;
+                }
+            }, 7500);
+
+            // Révéler après l'animation (durée augmentée à 8 secondes + 0.5s de délai)
             setTimeout(() => {
                 this.revealSkinCSGO(wonSkin);
-            }, 6500);
+            }, 8500);
         }, 100);
 
         this.currentRevealedSkin = wonSkin;
@@ -1783,24 +1843,78 @@ const StoreSystem = {
             skinRarity.textContent = RARITIES[wonSkin.rarity].name;
             skinRarity.style.color = RARITIES[wonSkin.rarity].color;
 
-            // Appliquer le gradient de rareté
+            // Appliquer le gradient de rareté avec animation améliorée
             const skinCard = skinReveal.querySelector('.skin-card');
             if (skinCard) {
                 skinCard.style.background = RARITIES[wonSkin.rarity].gradient;
-                skinCard.style.animation = 'revealPulse 1s ease-out';
+                skinCard.style.border = `3px solid ${RARITIES[wonSkin.rarity].color}`;
+                skinCard.style.boxShadow = `0 0 30px ${RARITIES[wonSkin.rarity].color}`;
+                skinCard.style.animation = 'revealPulse 1.5s ease-out';
+                skinCard.style.transform = 'scale(0.8)';
+
+                // Animation d'apparition progressive
+                setTimeout(() => {
+                    skinCard.style.transform = 'scale(1)';
+                    skinCard.style.transition = 'transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+                }, 50);
             }
 
             skinReveal.classList.remove('hidden');
-            if (openingActions) openingActions.classList.remove('hidden');
+
+            // Afficher les actions avec un petit délai
+            setTimeout(() => {
+                if (openingActions) openingActions.classList.remove('hidden');
+            }, 500);
+
+            // Créer des particules de célébration
+            this.createCelebrationParticles(skinCard, RARITIES[wonSkin.rarity].color);
 
             if (window.NotificationSystem) {
                 window.NotificationSystem.show(
                     'Nouveau skin!',
                     `${wonSkin.weapon} | ${wonSkin.name}`,
-                    'achievement'
+                    'achievement',
+                    5000
                 );
             }
         }, 500);
+    },
+
+    createCelebrationParticles(container, color) {
+        if (!container) return;
+
+        const particlesCount = 30;
+        for (let i = 0; i < particlesCount; i++) {
+            const particle = document.createElement('div');
+            particle.style.cssText = `
+                position: absolute;
+                width: ${Math.random() * 8 + 4}px;
+                height: ${Math.random() * 8 + 4}px;
+                background: ${color};
+                border-radius: 50%;
+                pointer-events: none;
+                top: 50%;
+                left: 50%;
+                opacity: 1;
+                box-shadow: 0 0 10px ${color};
+            `;
+
+            container.appendChild(particle);
+
+            // Animation aléatoire pour chaque particule
+            const angle = (Math.PI * 2 * i) / particlesCount;
+            const velocity = Math.random() * 100 + 100;
+            const tx = Math.cos(angle) * velocity;
+            const ty = Math.sin(angle) * velocity;
+
+            particle.animate([
+                { transform: 'translate(0, 0)', opacity: 1 },
+                { transform: `translate(${tx}px, ${ty}px)`, opacity: 0 }
+            ], {
+                duration: 1000 + Math.random() * 500,
+                easing: 'ease-out'
+            }).onfinish = () => particle.remove();
+        }
     },
 
     selectRandomSkinFromCase(weaponCase) {
@@ -2363,10 +2477,26 @@ const StoreSystem = {
         }
 
         if (totalValueElement) {
-            const totalValue = playerInventory.skins.reduce((sum, skinData) => {
+            // Calculer la valeur des skins
+            const skinsValue = playerInventory.skins.reduce((sum, skinData) => {
                 const skin = Object.values(WEAPON_SKINS).flat().find(s => s.id === skinData.id);
                 return sum + (skin ? skin.price : 0);
             }, 0);
+
+            // Calculer la valeur des agents possédés
+            const agentsValue = playerInventory.agents.reduce((sum, agentId) => {
+                const agent = AGENTS[agentId];
+                return sum + (agent ? agent.price : 0);
+            }, 0);
+
+            // Calculer la valeur des cases
+            const casesValue = playerInventory.cases.reduce((sum, caseData) => {
+                const caseItem = CASES.find(c => c.id === caseData.id);
+                return sum + (caseItem ? caseItem.price : 0);
+            }, 0);
+
+            // Afficher la valeur totale
+            const totalValue = skinsValue + agentsValue + casesValue;
             totalValueElement.textContent = totalValue;
         }
     },
