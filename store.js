@@ -2495,9 +2495,9 @@ const StoreSystem = {
                 return sum + (caseItem ? caseItem.price : 0);
             }, 0);
 
-            // Afficher la valeur totale
+            // Afficher la valeur totale avec formatage
             const totalValue = skinsValue + agentsValue + casesValue;
-            totalValueElement.textContent = totalValue;
+            totalValueElement.textContent = totalValue.toLocaleString('fr-FR');
         }
     },
 
@@ -2710,6 +2710,15 @@ const StoreSystem = {
         this.savePlayerData();
         this.loadAgents();
         this.loadInventoryAgents();
+
+        // Synchroniser avec AgentSystem (agents.js)
+        if (window.AgentSystem && typeof window.AgentSystem.selectAgent === 'function') {
+            // Mettre à jour directement sans déclencher une double notification
+            window.AgentSystem.state.selectedAgentId = agentId;
+            window.AgentSystem.persistAgent(agentId);
+            window.AgentSystem.applyAgentModifiers(true);
+            window.AgentSystem.updateUISelection();
+        }
 
         // Mettre à jour l'affichage dans le menu play
         if (typeof updateCurrentAgentDisplay === 'function') {

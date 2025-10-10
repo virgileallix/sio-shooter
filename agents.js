@@ -434,7 +434,18 @@ const AgentSystem = {
     },
 
     init() {
-        this.state.selectedAgentId = this.getPersistedAgent() || 'reyna';
+        // Charger l'agent depuis playerInventory (store.js) en priorité
+        const inventoryAgent = window.playerInventory?.equippedAgent;
+        const persistedAgent = this.getPersistedAgent();
+
+        // Priorité: inventoryAgent > persistedAgent > 'reyna'
+        this.state.selectedAgentId = inventoryAgent || persistedAgent || 'reyna';
+
+        // Synchroniser avec le localStorage
+        if (inventoryAgent && inventoryAgent !== persistedAgent) {
+            this.persistAgent(inventoryAgent);
+        }
+
         this.applyAgentModifiers();
         this.renderAgentSelection();
         this.updateUISelection();
@@ -452,6 +463,16 @@ const AgentSystem = {
         if (!this.state.agents[agentId]) return;
         this.state.selectedAgentId = agentId;
         this.persistAgent(agentId);
+
+        // Synchroniser avec playerInventory (store.js)
+        if (window.playerInventory) {
+            window.playerInventory.equippedAgent = agentId;
+            // Sauvegarder dans Firebase si le système de store est disponible
+            if (window.StoreSystem && typeof window.StoreSystem.savePlayerData === 'function') {
+                window.StoreSystem.savePlayerData();
+            }
+        }
+
         this.applyAgentModifiers(true);
         this.updateUISelection();
         NotificationSystem?.show?.(

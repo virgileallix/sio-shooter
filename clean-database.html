@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nettoyage Base de Données - SIO Shooter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 48px;
+            background: linear-gradient(45deg, #ff4655, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .warning {
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid #ef4444;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .warning h2 {
+            color: #ef4444;
+            margin-bottom: 10px;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .section h2 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-warning {
+            background: linear-gradient(45deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .log {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .log-entry.success {
+            color: #10b981;
+        }
+
+        .log-entry.error {
+            color: #ef4444;
+        }
+
+        .log-entry.info {
+            color: #00d4ff;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+
+        .status.connected {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .status.disconnected {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .checkbox-group {
+            margin: 15px 0;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗑️ Nettoyage Base de Données</h1>
+
+        <div class="warning">
+            <h2>⚠️ ATTENTION</h2>
+            <p>Ce script permet de nettoyer la base de données Firebase. Les actions effectuées sont <strong>IRRÉVERSIBLES</strong>.</p>
+            <p>Assurez-vous de bien comprendre ce que vous faites avant de cliquer sur un bouton.</p>
+        </div>
+
+        <div class="section">
+            <h2>📊 Statut de connexion</h2>
+            <p>Firebase: <span class="status disconnected" id="firebase-status">Déconnecté</span></p>
+            <p>Utilisateur: <span id="user-status">Non connecté</span></p>
+        </div>
+
+        <div class="section">
+            <h2>🧹 Nettoyage des données obsolètes</h2>
+            <p>Sélectionnez les éléments à nettoyer :</p>
+
+            <div class="checkbox-group">
+                <label>
+                    <input type="checkbox" id="clean-old-matches" checked>
+                    Supprimer les matchs terminés (ended)
+                </label>
+                <label>
+                    <input type="checkbox" id="clean-empty-matches">
+                    Supprimer les matchs vides (0 joueurs)
+                </label>
+                <label>
+                    <input type="checkbox" id="clean-queue">
+                    Nettoyer la file d'attente (queue)
+                </label>
+                <label>
+                    <input type="checkbox" id="clean-old-sessions">
+                    Supprimer les anciennes sessions de jeu
+                </label>
+            </div>
+
+            <button class="btn btn-warning" onclick="cleanDatabase()" id="clean-btn">
+                🧹 Nettoyer la base de données
+            </button>
+        </div>
+
+        <div class="section">
+            <h2>🔄 Migrations et corrections</h2>
+            <button class="btn btn-success" onclick="fixUserMMR()">
+                🔧 Corriger les MMR manquants
+            </button>
+            <button class="btn btn-success" onclick="fixUserStats()">
+                📈 Corriger les statistiques manquantes
+            </button>
+            <button class="btn btn-success" onclick="migrateInventory()">
+                📦 Migrer les inventaires
+            </button>
+        </div>
+
+        <div class="section">
+            <h2>⚠️ Actions dangereuses</h2>
+            <button class="btn btn-danger" onclick="resetAllMMR()">
+                🔄 Réinitialiser tous les MMR
+            </button>
+            <button class="btn btn-danger" onclick="deleteAllMatches()">
+                🗑️ Supprimer TOUS les matchs
+            </button>
+        </div>
+
+        <div class="section">
+            <h2>📜 Logs</h2>
+            <div class="log" id="log-container">
+                <div class="log-entry info">En attente de connexion...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBH-l97Z-c8g3_TEfnSNC9c-_MsLSwc-Dw",
+            authDomain: "sio-shooter.firebaseapp.com",
+            databaseURL: "https://sio-shooter-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "sio-shooter",
+            storageBucket: "sio-shooter.firebasestorage.app",
+            messagingSenderId: "633381062901",
+            appId: "1:633381062901:web:0d1d950fd62c8fd949e091"
+        };
+
+        // Initialiser Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const auth = firebase.auth();
+
+        let currentUser = null;
+
+        // Fonction de log
+        function addLog(message, type = 'info') {
+            const logContainer = document.getElementById('log-container');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // Écouter l'état de connexion Firebase
+        database.ref('.info/connected').on('value', (snapshot) => {
+            const statusEl = document.getElementById('firebase-status');
+            if (snapshot.val() === true) {
+                statusEl.textContent = 'Connecté';
+                statusEl.className = 'status connected';
+                addLog('Connexion à Firebase établie', 'success');
+            } else {
+                statusEl.textContent = 'Déconnecté';
+                statusEl.className = 'status disconnected';
+                addLog('Connexion à Firebase perdue', 'error');
+            }
+        });
+
+        // Écouter l'authentification
+        auth.onAuthStateChanged((user) => {
+            const userStatusEl = document.getElementById('user-status');
+            if (user) {
+                currentUser = user;
+                userStatusEl.textContent = user.email || user.uid;
+                addLog(`Connecté en tant que ${user.email || user.uid}`, 'success');
+            } else {
+                currentUser = null;
+                userStatusEl.textContent = 'Non connecté';
+                addLog('Utilisateur non connecté - Tentative de connexion automatique...', 'info');
+
+                // Connexion automatique avec le compte stocké
+                const email = localStorage.getItem('lastEmail');
+                const password = localStorage.getItem('lastPassword');
+                if (email && password) {
+                    auth.signInWithEmailAndPassword(email, password)
+                        .then(() => addLog('Connexion automatique réussie', 'success'))
+                        .catch((error) => addLog(`Erreur de connexion: ${error.message}`, 'error'));
+                }
+            }
+        });
+
+        // Fonction de nettoyage de la base de données
+        async function cleanDatabase() {
+            if (!currentUser) {
+                addLog('Vous devez être connecté pour effectuer cette action', 'error');
+                return;
+            }
+
+            const cleanMatches = document.getElementById('clean-old-matches').checked;
+            const cleanEmpty = document.getElementById('clean-empty-matches').checked;
+            const cleanQueue = document.getElementById('clean-queue').checked;
+            const cleanSessions = document.getElementById('clean-old-sessions').checked;
+
+            addLog('Début du nettoyage...', 'info');
+            let totalDeleted = 0;
+
+            try {
+                // Nettoyer les matchs terminés
+                if (cleanMatches) {
+                    addLog('Recherche des matchs terminés...', 'info');
+                    const matchesRef = database.ref('active_matches');
+                    const snapshot = await matchesRef.once('value');
+                    const matches = snapshot.val() || {};
+
+                    for (const [matchId, matchData] of Object.entries(matches)) {
+                        if (matchData.status === 'ended') {
+                            await matchesRef.child(matchId).remove();
+                            addLog(`Match ${matchId} supprimé (ended)`, 'success');
+                            totalDeleted++;
+                        }
+                    }
+                }
+
+                // Nettoyer les matchs vides
+                if (cleanEmpty) {
+                    addLog('Recherche des matchs vides...', 'info');
+                    const matchesRef = database.ref('active_matches');
+                    const snapshot = await matchesRef.once('value');
+                    const matches = snapshot.val() || {};
+
+                    for (const [matchId, matchData] of Object.entries(matches)) {
+                        const playerCount = Object.keys(matchData.players || {}).length;
+                        if (playerCount === 0) {
+                            await matchesRef.child(matchId).remove();
+                            addLog(`Match ${matchId} supprimé (vide)`, 'success');
+                            totalDeleted++;
+                        }
+                    }
+                }
+
+                // Nettoyer la file d'attente
+                if (cleanQueue) {
+                    addLog('Nettoyage de la file d\'attente...', 'info');
+                    const queueRef = database.ref('matchmaking_queue');
+                    await queueRef.remove();
+                    addLog('File d\'attente vidée', 'success');
+                    totalDeleted++;
+                }
+
+                // Nettoyer les sessions de jeu
+                if (cleanSessions) {
+                    addLog('Nettoyage des sessions de jeu...', 'info');
+                    const sessionsRef = database.ref('game_sessions');
+                    const snapshot = await sessionsRef.once('value');
+                    const sessions = snapshot.val() || {};
+
+                    const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
+                    for (const [sessionId, sessionData] of Object.entries(sessions)) {
+                        if (sessionData.createdAt < oneDayAgo) {
+                            await sessionsRef.child(sessionId).remove();
+                            addLog(`Session ${sessionId} supprimée (ancienne)`, 'success');
+                            totalDeleted++;
+                        }
+                    }
+                }
+
+                addLog(`✅ Nettoyage terminé ! ${totalDeleted} éléments supprimés`, 'success');
+            } catch (error) {
+                addLog(`❌ Erreur: ${error.message}`, 'error');
+            }
+        }
+
+        // Corriger les MMR manquants
+        async function fixUserMMR() {
+            if (!currentUser) {
+                addLog('Vous devez être connecté pour effectuer cette action', 'error');
+                return;
+            }
+
+            addLog('Correction des MMR manquants...', 'info');
+
+            try {
+                const usersRef = database.ref('users');
+                const snapshot = await usersRef.once('value');
+                const users = snapshot.val() || {};
+
+                let fixed = 0;
+                for (const [userId, userData] of Object.entries(users)) {
+                    if (!userData.mmr) {
+                        await usersRef.child(userId).update({
+                            mmr: {
+                                competitive: 1000,
+                                duel: 1000,
+                                unrated: 1000
+                            }
+                        });
+                        addLog(`MMR ajouté pour l'utilisateur ${userData.username || userId}`, 'success');
+                        fixed++;
+                    }
+                }
+
+                addLog(`✅ ${fixed} utilisateurs corrigés`, 'success');
+            } catch (error) {
+                addLog(`❌ Erreur: ${error.message}`, 'error');
+            }
+        }
+
+        // Corriger les statistiques manquantes
+        async function fixUserStats() {
+            if (!currentUser) {
+                addLog('Vous devez être connecté pour effectuer cette action', 'error');
+                return;
+            }
+
+            addLog('Correction des statistiques manquantes...', 'info');
+
+            try {
+                const usersRef = database.ref('users');
+                const snapshot = await usersRef.once('value');
+                const users = snapshot.val() || {};
+
+                let fixed = 0;
+                for (const [userId, userData] of Object.entries(users)) {
+                    const updates = {};
+
+                    if (typeof userData.kills !== 'number') updates.kills = 0;
+                    if (typeof userData.deaths !== 'number') updates.deaths = 0;
+                    if (typeof userData.wins !== 'number') updates.wins = 0;
+                    if (typeof userData.losses !== 'number') updates.losses = 0;
+                    if (typeof userData.level !== 'number') updates.level = 1;
+
+                    if (Object.keys(updates).length > 0) {
+                        await usersRef.child(userId).update(updates);
+                        addLog(`Stats ajoutées pour ${userData.username || userId}`, 'success');
+                        fixed++;
+                    }
+                }
+
+                addLog(`✅ ${fixed} utilisateurs corrigés`, 'success');
+            } catch (error) {
+                addLog(`❌ Erreur: ${error.message}`, 'error');
+            }
+        }
+
+        // Migrer les inventaires
+        async function migrateInventory() {
+            if (!currentUser) {
+                addLog('Vous devez être connecté pour effectuer cette action', 'error');
+                return;
+            }
+
+            addLog('Migration des inventaires...', 'info');
+
+            try {
+                const usersRef = database.ref('users');
+                const snapshot = await usersRef.once('value');
+                const users = snapshot.val() || {};
+
+                let migrated = 0;
+                for (const [userId, userData] of Object.entries(users)) {
+                    if (!userData.inventory) {
+                        await usersRef.child(userId).update({
+                            inventory: {
+                                skins: [],
+                                cases: [],
+                                agents: ['default'],
+                                equippedAgent: 'default',
+                                equippedSkins: {},
+                                currency: {
+                                    coins: 1000,
+                                    vp: 0
+                                }
+                            }
+                        });
+                        addLog(`Inventaire créé pour ${userData.username || userId}`, 'success');
+                        migrated++;
+                    }
+                }
+
+                addLog(`✅ ${migrated} inventaires migrés`, 'success');
+            } catch (error) {
+                addLog(`❌ Erreur: ${error.message}`, 'error');
+            }
+        }
+
+        // Réinitialiser tous les MMR
+        async function resetAllMMR() {
+            if (!confirm('⚠️ ATTENTION: Cela va réinitialiser les MMR de TOUS les utilisateurs. Êtes-vous sûr ?')) {
+                return;
+            }
+
+            if (!currentUser) {
+                addLog('Vous devez être connecté pour effectuer cette action', 'error');
+                return;
+            }
+
+            addLog('Réinitialisation des MMR...', 'info');
+
+            try {
+                const usersRef = database.ref('users');
+                const snapshot = await usersRef.once('value');
+                const users = snapshot.val() || {};
+
+                for (const userId of Object.keys(users)) {
+                    await usersRef.child(userId).update({
+                        mmr: {
+                            competitive: 1000,
+                            duel: 1000,
+                            unrated: 1000
+                        }
+                    });
+                }
+
+                addLog(`✅ MMR réinitialisés pour ${Object.keys(users).length} utilisateurs`, 'success');
+            } catch (error) {
+                addLog(`❌ Erreur: ${error.message}`, 'error');
+            }
+        }
+
+        // Supprimer tous les matchs
+        async function deleteAllMatches() {
+            if (!confirm('⚠️ DANGER: Cela va supprimer TOUS les matchs actifs. Êtes-vous VRAIMENT sûr ?')) {
+                return;
+            }
+
+            if (!currentUser) {
+                addLog('Vous devez être connecté pour effectuer cette action', 'error');
+                return;
+            }
+
+            addLog('Suppression de tous les matchs...', 'info');
+
+            try {
+                await database.ref('active_matches').remove();
+                await database.ref('game_sessions').remove();
+                await database.ref('matchmaking_queue').remove();
+
+                addLog('✅ Tous les matchs ont été supprimés', 'success');
+            } catch (error) {
+                addLog(`❌ Erreur: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

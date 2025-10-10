@@ -1391,17 +1391,17 @@ async function loadLeaderboard(type) {
         // Filtrer et trier selon le type de classement
         const sortedUsers = Object.entries(users)
             .filter(([id, data]) => {
-                // Exclure les utilisateurs sans statistiques ou avec confidentialité privée
+                // Exclure les utilisateurs avec confidentialité privée
                 const privacy = data.privacy || {};
-                return (privacy.publicStats !== false) && data.stats;
+                return (privacy.publicStats !== false);
             })
             .map(([id, data]) => ({
                 id,
-                name: data.displayName || 'Joueur',
+                name: data.displayName || data.username || 'Joueur',
                 avatar: data.avatar || 'user',
                 rank: data.rank || 'Fer I',
                 level: data.level || 1,
-                value: getLeaderboardValue(data.stats || {}, type),
+                value: getLeaderboardValue(data, type),
                 status: data.status || 'offline'
             }))
             .sort((a, b) => b.value - a.value)
@@ -1454,24 +1454,25 @@ async function loadLeaderboard(type) {
 }
 
 // Obtenir la valeur pour le classement selon le type
-function getLeaderboardValue(stats, type) {
+function getLeaderboardValue(userData, type) {
+    // userData contient toutes les données de l'utilisateur (pas juste stats)
     switch (type) {
         case 'competitive':
             // Pour le compétitif, utiliser le MMR
-            return stats.mmr?.competitive || 0;
+            return userData.mmr?.competitive || 0;
         case 'duel':
             // Pour le duel, utiliser le MMR duel
-            return stats.mmr?.duel || 0;
+            return userData.mmr?.duel || 0;
         case 'kills':
-            return stats.kills || 0;
+            return userData.kills || 0;
         case 'wins':
-            return stats.wins || 0;
+            return userData.wins || 0;
         case 'kd':
-            const kills = stats.kills || 0;
-            const deaths = stats.deaths || 0;
+            const kills = userData.kills || 0;
+            const deaths = userData.deaths || 0;
             return deaths > 0 ? kills / deaths : kills;
         case 'level':
-            return stats.level || 1;
+            return userData.level || 1;
         default:
             return 0;
     }
