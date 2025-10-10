@@ -394,7 +394,8 @@ const WEAPON_SKINS = {
             rarity: 'restricted',
             pattern: 'doppler',
             price: 1400,
-            description: 'Dégradé gamma vert et bleu.'
+            description: 'Dégradé gamma vert et bleu.',
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_glock_am_gamma_doppler_phase3_light_large.png'
         },
         {
             id: 'usp_kill_confirmed',
@@ -403,7 +404,8 @@ const WEAPON_SKINS = {
             rarity: 'classified',
             pattern: 'skull',
             price: 2100,
-            description: 'Crânes et marques de mort.'
+            description: 'Crânes et marques de mort.',
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_usp_silencer_cu_usp_kill_confirmed_light_large.png'
         },
         {
             id: 'usp_neo_noir',
@@ -412,7 +414,8 @@ const WEAPON_SKINS = {
             rarity: 'restricted',
             pattern: 'noir',
             price: 950,
-            description: 'Style comic book noir et blanc.'
+            description: 'Style comic book noir et blanc.',
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_usp_silencer_cu_usp_neo_noir_light_large.png'
         },
         {
             id: 'sheriff_ion',
@@ -477,7 +480,8 @@ const WEAPON_SKINS = {
             rarity: 'covert',
             pattern: 'asiimov',
             price: 7500,
-            description: 'Version P90 du célèbre Asiimov.'
+            description: 'Version P90 du célèbre Asiimov.',
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_p90_cu_p90_asiimov_light_large.png'
         },
         {
             id: 'mp9_bulldozer',
@@ -486,7 +490,8 @@ const WEAPON_SKINS = {
             rarity: 'milspec',
             pattern: 'industrial',
             price: 400,
-            description: 'Style construction jaune et noir.'
+            description: 'Style construction jaune et noir.',
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_mp9_cu_mp9_bulldozer_light_large.png'
         },
         {
             id: 'spectre_neon_pulse',
@@ -495,7 +500,8 @@ const WEAPON_SKINS = {
             rarity: 'restricted',
             pattern: 'neon',
             price: 3200,
-            description: 'Circuit lumineux pulsé aux teintes néon électriques.'
+            description: 'Circuit lumineux pulsé aux teintes néon électriques.',
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_mp7_cu_mp7_neon_ply_light_large.png'
         },
         {
             id: 'p90_death_by_kitty',
@@ -504,7 +510,8 @@ const WEAPON_SKINS = {
             rarity: 'classified',
             pattern: 'kawaii',
             price: 4200,
-            description: 'Chats kawaï mignons et roses.'
+            description: 'Chats kawaï mignons et roses.',
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_p90_cu_p90_deatbyktty_light_large.png'
         },
         {
             id: 'p90_tigris',
@@ -513,7 +520,8 @@ const WEAPON_SKINS = {
             rarity: 'classified',
             pattern: 'tiger',
             price: 3900,
-            description: 'Motif de tigre blanc et orange.'
+            description: 'Motif de tigre blanc et orange.',
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_p90_cu_p90_trigris_light_large.png'
         },
         {
             id: 'spectre_elderflame',
@@ -1620,8 +1628,8 @@ const StoreSystem = {
             `;
 
             const skinImageHTML = skin.image
-                ? `<img src="${skin.image}" alt="${skin.weapon}" style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 10px;" onerror="this.outerHTML='<div style=\\"font-size: 48px; margin-bottom: 10px;\\">${this.getWeaponIcon(skin.weapon)}</div>'">`
-                : `<div style="font-size: 48px; margin-bottom: 10px;">${this.getWeaponIcon(skin.weapon)}</div>`;
+                ? `<img src="${skin.image}" alt="${skin.weapon}" style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 10px;">`
+                : `<div style="font-size: 12px; margin-bottom: 10px; color: rgba(255,255,255,0.5);">${skin.weapon}</div>`;
 
             card.innerHTML = `
                 ${skinImageHTML}
@@ -1707,8 +1715,8 @@ const StoreSystem = {
         // Afficher le résultat avec une animation
         setTimeout(() => {
             const wonSkinImageHTML = wonSkin.image
-                ? `<img src="${wonSkin.image}" alt="${wonSkin.weapon} | ${wonSkin.name}" style="max-width: 300px; max-height: 200px; object-fit: contain;" onerror="this.outerHTML='<div style=\\"font-size: 120px;\\">${this.getWeaponIcon(wonSkin.weapon)}</div>'">`
-                : `<div style="font-size: 120px;">${this.getWeaponIcon(wonSkin.weapon)}</div>`;
+                ? `<img src="${wonSkin.image}" alt="${wonSkin.weapon} | ${wonSkin.name}" style="max-width: 300px; max-height: 200px; object-fit: contain;">`
+                : `<div style="font-size: 24px; color: rgba(255,255,255,0.5);">${wonSkin.weapon}</div>`;
             skinImage.innerHTML = wonSkinImageHTML;
             skinName.textContent = wonSkin.name;
             skinWeapon.textContent = wonSkin.weapon;
@@ -1820,8 +1828,8 @@ const StoreSystem = {
         caseContents.forEach(skin => {
             const rarity = RARITIES[skin.rarity];
             const skinImageHTML = skin.image
-                ? `<img src="${skin.image}" alt="${skin.weapon}" style="width: 50px; height: 50px; object-fit: contain;" onerror="this.outerHTML='<div style=\\"font-size: 24px;\\">${this.getWeaponIcon(skin.weapon)}</div>'">`
-                : `<div style="font-size: 24px;">${this.getWeaponIcon(skin.weapon)}</div>`;
+                ? `<img src="${skin.image}" alt="${skin.weapon}" style="width: 50px; height: 50px; object-fit: contain;">`
+                : `<div style="font-size: 12px; color: rgba(255,255,255,0.5);">${skin.weapon}</div>`;
 
             previewHTML += `
                 <div style="display: flex; align-items: center; gap: 15px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 4px solid ${rarity.color};">
@@ -1925,10 +1933,10 @@ const StoreSystem = {
             }
         }
 
-        // Utiliser l'image du skin si disponible, sinon utiliser l'emoji
+        // Utiliser l'image du skin si disponible
         const skinImageHTML = skin.image
-            ? `<img src="${skin.image}" alt="${skin.weapon} | ${skin.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.parentElement.innerHTML='${this.getWeaponIcon(skin.weapon)}'">`
-            : `<div class="weapon-icon">${this.getWeaponIcon(skin.weapon)}</div>`;
+            ? `<img src="${skin.image}" alt="${skin.weapon} | ${skin.name}" style="width: 100%; height: 100%; object-fit: contain;">`
+            : `<div class="weapon-icon" style="font-size: 14px; color: rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center;">${skin.weapon}</div>`;
 
         skinCard.innerHTML = `
             <div class="skin-image">
@@ -2061,27 +2069,11 @@ const StoreSystem = {
     },
 
     getWeaponIcon(weaponName) {
-        const icons = {
-            'AK-47': '🔫',
-            'M4A4': '🔫',
-            'M4A1-S': '🔫',
-            'Phantom': '🔫',
-            'Vandal': '🔫',
-            'Glock-18': '🔫',
-            'USP-S': '🔫',
-            'Desert Eagle': '🔫',
-            'P250': '🔫',
-            'Spectre': '🔫',
-            'P90': '🔫',
-            'MP9': '🔫',
-            'AWP': '🎯',
-            'Scout SSG 08': '🎯',
-            'Operator': '🎯',
-            'Karambit': '🔪',
-            'Butterfly Knife': '🔪',
-            'Couteau Tactique': '🔪'
-        };
-        return icons[weaponName] || '🔫';
+        // Retourner une icône SVG au lieu d'emoji
+        return `<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="48" height="48" rx="8" fill="rgba(255,255,255,0.1)"/>
+            <text x="24" y="32" font-family="Arial" font-size="24" fill="white" text-anchor="middle">?</text>
+        </svg>`;
     },
 
     // ========================================
