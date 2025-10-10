@@ -4445,11 +4445,27 @@ function handleKeyDown(e) {
         return;
     }
 
-    if (game.gamePaused && action && action !== 'pause' && action !== 'buyMenu') {
+    // Gérer la touche pause en priorité (Échap) - peut TOUJOURS être utilisée
+    if (action === 'pause') {
+        e.preventDefault();
+        togglePauseMenu();
+        keys[key] = false;
         return;
     }
 
-    if (game.gamePaused && action && action !== 'pause' && action !== 'buyMenu') {
+    // Gérer le menu d'achat (B) - peut fermer le menu pause
+    if (action === 'buyMenu') {
+        e.preventDefault();
+        // Si le menu pause est ouvert, le fermer d'abord
+        if (game.gamePaused) {
+            togglePauseMenu(false);
+        }
+        toggleBuyMenu();
+        return;
+    }
+
+    // Bloquer les autres actions si le jeu est en pause
+    if (game.gamePaused) {
         if (action === 'sprint') {
             player.sprinting = false;
         }
@@ -4464,15 +4480,6 @@ function handleKeyDown(e) {
             break;
         case 'sprint':
             player.sprinting = true;
-            break;
-        case 'pause':
-            e.preventDefault();
-            togglePauseMenu();
-            keys[key] = false;
-            break;
-        case 'buyMenu':
-            e.preventDefault();
-            toggleBuyMenu();
             break;
         case 'ability1':
             useAbility('ability1');

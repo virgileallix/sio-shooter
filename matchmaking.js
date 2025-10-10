@@ -351,25 +351,35 @@ class MatchmakingSystem {
             updates['averageMMR'] = newAverageMMR;
             updates['lastActivity'] = firebase.database.ServerValue.TIMESTAMP;
             
-            // Si le match a assez de joueurs pour démarrer, marquer tous comme prêts et démarrer
+            // Si le match a assez de joueurs pour démarrer, marquer tous comme prêts et démarrer AUTOMATIQUEMENT
             const minPlayers = this.gameModes[match.mode].minPlayers || 2;
+            const maxPlayers = this.gameModes[match.mode].maxPlayers || 10;
+
             if (newPlayerCount >= minPlayers) {
-                // Marquer automatiquement tous les joueurs comme prêts
+                // Marquer AUTOMATIQUEMENT tous les joueurs comme prêts (y compris les anciens)
                 updates[`players/${currentUser.uid}/ready`] = true;
 
-                // Vérifier si tous les joueurs sont maintenant prêts
-                let allPlayersReady = true;
+                // Marquer aussi tous les autres joueurs comme prêts automatiquement
                 for (const playerId in currentMatch.players) {
-                    if (playerId !== currentUser.uid && !currentMatch.players[playerId].ready) {
-                        allPlayersReady = false;
-                        break;
-                    }
+                    updates[`players/${playerId}/ready`] = true;
                 }
 
-                // Si tous les joueurs sont prêts ou si le match est plein, démarrer immédiatement
-                if (allPlayersReady || newPlayerCount >= this.gameModes[match.mode].maxPlayers) {
-                    updates['status'] = 'in_progress';
-                    updates['gameStartTime'] = firebase.database.ServerValue.TIMESTAMP;
+                // Si on a assez de joueurs (minPlayers atteint) OU le match est plein, démarrer IMMÉDIATEMENT
+                if (newPlayerCount >= minPlayers) {
+                    updates['status'] = 'starting';
+                    updates['startingTime'] = firebase.database.ServerValue.TIMESTAMP;
+
+                    // Démarrer le jeu après 3 secondes
+                    setTimeout(async () => {
+                        try {
+                            await matchRef.update({
+                                'status': 'in_progress',
+                                'gameStartTime': firebase.database.ServerValue.TIMESTAMP
+                            });
+                        } catch (error) {
+                            console.error('Erreur lors du démarrage du match:', error);
+                        }
+                    }, 3000);
                 }
             }
             

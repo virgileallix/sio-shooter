@@ -2491,7 +2491,7 @@ const StoreSystem = {
 
             // Calculer la valeur des cases
             const casesValue = playerInventory.cases.reduce((sum, caseData) => {
-                const caseItem = CASES.find(c => c.id === caseData.id);
+                const caseItem = WEAPON_CASES.find(c => c.id === caseData.id);
                 return sum + (caseItem ? caseItem.price : 0);
             }, 0);
 
