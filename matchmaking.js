@@ -351,10 +351,26 @@ class MatchmakingSystem {
             updates['averageMMR'] = newAverageMMR;
             updates['lastActivity'] = firebase.database.ServerValue.TIMESTAMP;
             
-            // Si le match est plein, le démarrer
-            if (newPlayerCount >= this.gameModes[match.mode].maxPlayers) {
-                updates['status'] = 'starting';
-                updates['startTime'] = firebase.database.ServerValue.TIMESTAMP;
+            // Si le match a assez de joueurs pour démarrer, marquer tous comme prêts et démarrer
+            const minPlayers = this.gameModes[match.mode].minPlayers || 2;
+            if (newPlayerCount >= minPlayers) {
+                // Marquer automatiquement tous les joueurs comme prêts
+                updates[`players/${currentUser.uid}/ready`] = true;
+
+                // Vérifier si tous les joueurs sont maintenant prêts
+                let allPlayersReady = true;
+                for (const playerId in currentMatch.players) {
+                    if (playerId !== currentUser.uid && !currentMatch.players[playerId].ready) {
+                        allPlayersReady = false;
+                        break;
+                    }
+                }
+
+                // Si tous les joueurs sont prêts ou si le match est plein, démarrer immédiatement
+                if (allPlayersReady || newPlayerCount >= this.gameModes[match.mode].maxPlayers) {
+                    updates['status'] = 'in_progress';
+                    updates['gameStartTime'] = firebase.database.ServerValue.TIMESTAMP;
+                }
             }
             
             await matchRef.update(updates);
@@ -398,7 +414,7 @@ class MatchmakingSystem {
                         mmr: this.calculateMMR(playerData),
                         avatar: playerData.avatar || 'user',
                         team: mode === 'deathmatch' ? null : 'attackers',
-                        ready: false,
+                        ready: true, // Marquer automatiquement comme prêt
                         connected: true,
                         joinedAt: firebase.database.ServerValue.TIMESTAMP
                     }

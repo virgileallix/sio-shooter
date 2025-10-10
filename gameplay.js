@@ -132,6 +132,26 @@ const WEAPONS = {
         maxRecoil: 0.6,
         penetration: 2,
         bulletSize: 4
+    },
+    knife: {
+        name: 'Knife',
+        type: 'melee',
+        damage: 50,
+        fireRate: 500,
+        ammo: Infinity,
+        maxAmmo: Infinity,
+        totalAmmo: Infinity,
+        reloadTime: 0,
+        bulletSpeed: 0,
+        spread: 0,
+        cameraRecoil: 0,
+        recoilStep: 0,
+        recoilRecovery: 0,
+        maxRecoil: 0,
+        penetration: 0,
+        bulletSize: 0,
+        range: 80, // Portée du couteau
+        backstabDamage: 100 // Dégâts dans le dos
     }
 };
 
@@ -810,7 +830,9 @@ function initializeGame() {
     loadObjectSprites();
     initializeMap();
     initializeMinimap();
+    // Équiper le pistolet par défaut et ajouter le couteau à l'inventaire
     equipWeapon('classic');
+    player.inventory = ['classic', 'knife'];
     resetGameState(true);
     if (game.mode === 'training' || trainingState.active) {
         setupTrainingBots(true);
@@ -1024,7 +1046,58 @@ function equipWeapon(weaponName) {
             totalAmmo: WEAPONS[weaponName].totalAmmo
         };
         player.recoilKick = 0;
+
+        // Charger le skin équipé pour cette arme (si disponible)
+        loadEquippedSkinForWeapon(weaponName);
+
         refreshWeaponUI();
+    }
+}
+
+async function loadEquippedSkinForWeapon(weaponName) {
+    if (!currentUser || !window.playerInventory) return;
+
+    try {
+        // Déterminer la catégorie de l'arme
+        const weaponCategory = getWeaponCategoryFromName(weaponName);
+        if (!weaponCategory) return;
+
+        // Récupérer le skin équipé
+        const equippedSkinId = window.playerInventory.equippedSkins?.[weaponCategory]?.[WEAPONS[weaponName].name];
+
+        if (equippedSkinId && window.WEAPON_SKINS) {
+            // Trouver le skin dans la base de données
+            const allSkins = Object.values(window.WEAPON_SKINS).flat();
+            const equippedSkin = allSkins.find(s => s.id === equippedSkinId);
+
+            if (equippedSkin && player.weapon) {
+                player.weapon.skinName = equippedSkin.name;
+                player.weapon.skinImage = equippedSkin.image;
+                player.weapon.skinRarity = equippedSkin.rarity;
+            }
+        }
+    } catch (error) {
+        console.error('Erreur lors du chargement du skin:', error);
+    }
+}
+
+function getWeaponCategoryFromName(weaponName) {
+    const weapon = WEAPONS[weaponName];
+    if (!weapon) return null;
+
+    switch (weapon.type) {
+        case 'rifle':
+            return 'rifles';
+        case 'pistol':
+            return 'pistols';
+        case 'smg':
+            return 'smgs';
+        case 'sniper':
+            return 'snipers';
+        case 'melee':
+            return 'knives';
+        default:
+            return null;
     }
 }
 
@@ -1789,20 +1862,26 @@ function shoot() {
     if (window.SpectatorSystem?.isEnabled?.()) return;
     if (!player.weapon || player.reloading) return;
     if (player.isPlanting || player.isDefusing) return;
-    
+
     const now = Date.now();
     if (now - player.lastShot < player.weapon.fireRate) return;
-    
+
+    // Si c'est une arme de mêlée (couteau), utiliser la logique spéciale
+    if (player.weapon.type === 'melee') {
+        meleeAttack();
+        return;
+    }
+
     if (player.weapon.ammo <= 0) {
         if (player.weapon.totalAmmo > 0) {
             reload();
         }
         return;
     }
-    
+
     player.lastShot = now;
     player.weapon.ammo--;
-    
+
     // Recul progressif
     const recoilStep = player.weapon.recoilStep || 0;
     const maxRecoil = player.weapon.maxRecoil || 0.8;
@@ -1812,12 +1891,67 @@ function shoot() {
     const movementSpread = player.weapon.spread * (player.sprinting ? 2 : 1);
     const spread = movementSpread * (1 + (player.recoilKick || 0));
     const angle = player.angle + (Math.random() - 0.5) * spread;
-    
+
     createBullet(angle);
     createMuzzleFlash();
     addCameraShake(player.weapon.cameraRecoil || 0.45);
-    
+
     updateAmmoDisplay();
+}
+
+function meleeAttack() {
+    const now = Date.now();
+    player.lastShot = now;
+
+    const range = player.weapon.range || 80;
+    const damage = player.weapon.damage || 50;
+    const backstabDamage = player.weapon.backstabDamage || 100;
+
+    const playerCenterX = player.x + player.width / 2;
+    const playerCenterY = player.y + player.height / 2;
+
+    // Vérifier les ennemis à portée
+    for (const enemyId in otherPlayers) {
+        const enemy = otherPlayers[enemyId];
+        if (!enemy || !enemy.alive || enemy.team === player.team) continue;
+
+        const enemyCenterX = enemy.x + (enemy.width || 30) / 2;
+        const enemyCenterY = enemy.y + (enemy.height || 30) / 2;
+
+        const dx = enemyCenterX - playerCenterX;
+        const dy = enemyCenterY - playerCenterY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance <= range) {
+            // Vérifier si c'est un backstab (dans le dos)
+            const angleToEnemy = Math.atan2(dy, dx);
+            const angleDiff = Math.abs(angleToEnemy - enemy.angle);
+            const isBackstab = angleDiff < Math.PI / 3; // 60 degrés
+
+            const finalDamage = isBackstab ? backstabDamage : damage;
+
+            // Infliger les dégâts via le système multijoueur
+            if (window.matchmakingState?.currentMatchId && database && database.ref) {
+                const gameRef = database.ref(`game_sessions/${window.matchmakingState.currentMatchId}`);
+                gameRef.child('events').push({
+                    type: 'damage',
+                    attacker: currentUser.uid,
+                    victim: enemyId,
+                    damage: finalDamage,
+                    weapon: 'knife',
+                    headshot: isBackstab,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+            }
+
+            // Effet visuel
+            createImpactEffect(enemyCenterX, enemyCenterY, '#ff4655');
+            showDamageNumber(enemyCenterX, enemyCenterY, Math.floor(finalDamage));
+            addCameraShake(0.3);
+
+            break; // Un seul ennemi à la fois
+        }
+    }
 }
 
 function createBullet(angle) {
@@ -2904,7 +3038,20 @@ function updateAmmoDisplay() {
 function refreshWeaponUI() {
     const weaponNameElement = document.getElementById('current-weapon');
     if (weaponNameElement && player.weapon) {
-        weaponNameElement.textContent = player.weapon.name;
+        // Afficher le nom du skin si équipé, sinon le nom de l'arme
+        if (player.weapon.skinName) {
+            weaponNameElement.textContent = `${player.weapon.name} | ${player.weapon.skinName}`;
+            // Ajouter une couleur selon la rareté
+            if (player.weapon.skinRarity && window.RARITIES) {
+                const rarityColor = window.RARITIES[player.weapon.skinRarity]?.color;
+                if (rarityColor) {
+                    weaponNameElement.style.color = rarityColor;
+                }
+            }
+        } else {
+            weaponNameElement.textContent = player.weapon.name;
+            weaponNameElement.style.color = '#ffffff';
+        }
     }
     updateAmmoDisplay();
 }
@@ -3133,6 +3280,12 @@ function checkTeamElimination() {
     if (game.phase !== 'active' || game.mode === 'deathmatch') return;
     if (game.mode === 'training' || trainingState.active) return;
     if (!window.matchmakingState?.currentMatchId && Object.keys(otherPlayers).length === 0) return;
+
+    // CORRECTION : Attendre au moins 10 secondes après le démarrage du jeu
+    // pour laisser le temps aux autres joueurs de se connecter
+    if (Date.now() - gameStartTimestamp < 10000) {
+        return;
+    }
 
     // Compter les joueurs vivants dans chaque équipe
     let attackersAlive = player.team === 'attackers' && player.alive ? 1 : 0;
@@ -4340,7 +4493,7 @@ function handleKeyDown(e) {
             equipWeapon('sheriff');
             break;
         case 'weaponMelee':
-            equipWeapon('operator');
+            equipWeapon('knife');
             break;
         default:
             break;
