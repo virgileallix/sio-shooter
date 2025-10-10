@@ -63,7 +63,7 @@ const WEAPON_SKINS = {
             pattern: 'geometric',
             price: 2500,
             description: 'Lignes rouges élégantes sur fond noir.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_cobra_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_cobra_light_png.png'
         },
         {
             id: 'ak47_vulcan',
@@ -73,7 +73,7 @@ const WEAPON_SKINS = {
             pattern: 'tech',
             price: 8000,
             description: 'Design futuriste high-tech.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_winter_sport_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_winter_sport_light_png.png'
         },
         {
             id: 'ak47_case_hardened',
@@ -83,7 +83,7 @@ const WEAPON_SKINS = {
             pattern: 'metal',
             price: 800,
             description: 'Finition métallique bleue unique.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_aq_ak47_case_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_aq_ak47_case_light_png.png'
         },
         {
             id: 'ak47_jungle_spray',
@@ -93,7 +93,7 @@ const WEAPON_SKINS = {
             pattern: 'spray',
             price: 25,
             description: 'Camouflage jungle classique.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_sp_spray_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_sp_spray_light_png.png'
         },
         {
             id: 'm4a4_asiimov',
@@ -103,7 +103,7 @@ const WEAPON_SKINS = {
             pattern: 'asiimov',
             price: 9000,
             description: 'Design blanc et orange iconique.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_asimov_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_asimov_light_png.png'
         },
         {
             id: 'm4a4_dragon_king',
@@ -113,7 +113,7 @@ const WEAPON_SKINS = {
             pattern: 'dragon',
             price: 3000,
             description: 'Dragon gravé avec détails dorés.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_dragon_king_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_dragon_king_light_png.png'
         },
         {
             id: 'm4a4_howl',
@@ -123,7 +123,7 @@ const WEAPON_SKINS = {
             pattern: 'creature',
             price: 15000,
             description: 'Loup hurlant rare et recherché.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_howling_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_howling_light_png.png'
         },
         {
             id: 'm4a4_tornado',
@@ -133,7 +133,7 @@ const WEAPON_SKINS = {
             pattern: 'spray',
             price: 150,
             description: 'Motif tourbillon gris.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_sp_tornado_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_sp_tornado_light_png.png'
         },
         {
             id: 'phantom_holocore',
@@ -143,7 +143,7 @@ const WEAPON_SKINS = {
             pattern: 'tech',
             price: 4500,
             description: 'Finition holographique alimentée par un noyau lumineux.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_gs_m4a1_celestial_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_gs_m4a1_celestial_light_png.png'
         },
         {
             id: 'vandal_fulgurance',
@@ -153,7 +153,7 @@ const WEAPON_SKINS = {
             pattern: 'energy',
             price: 5200,
             description: 'Vandal auréolé d\'énergie éclatante et de lignes futuristes.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_fire_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_fire_light_png.png'
         },
         {
             id: 'ak47_neon_rider',
@@ -163,7 +163,7 @@ const WEAPON_SKINS = {
             pattern: 'neon',
             price: 3800,
             description: 'Design cyberpunk avec néons colorés.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_neon_rider_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_neon_rider_light_png.png'
         },
         {
             id: 'ak47_aquamarine',
@@ -173,7 +173,7 @@ const WEAPON_SKINS = {
             pattern: 'aqua',
             price: 6500,
             description: 'Motif marin avec vagues et pieuvre.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_aq_oiled_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_aq_oiled_light_png.png'
         },
         {
             id: 'm4a4_neo_noir',
@@ -183,7 +183,7 @@ const WEAPON_SKINS = {
             pattern: 'noir',
             price: 7200,
             description: 'Style noir et blanc avec éclaboussures rouges.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_neo_noir_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_neo_noir_light_png.png'
         },
         {
             id: 'm4a4_desolate_space',
@@ -193,7 +193,7 @@ const WEAPON_SKINS = {
             pattern: 'space',
             price: 3400,
             description: 'Thème spatial avec galaxies et étoiles.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_space_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_space_light_png.png'
         },
         {
             id: 'phantom_oni',
@@ -203,7 +203,7 @@ const WEAPON_SKINS = {
             pattern: 'demon',
             price: 8900,
             description: 'Masque de démon japonais avec effets VFX.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_demon_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_demon_light_png.png'
         },
         {
             id: 'phantom_singularity',
@@ -213,7 +213,7 @@ const WEAPON_SKINS = {
             pattern: 'quantum',
             price: 7600,
             description: 'Trou noir et distorsion spatiale.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_hyper_beast_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_hyper_beast_light_png.png'
         },
         {
             id: 'vandal_prime',
@@ -223,7 +223,7 @@ const WEAPON_SKINS = {
             pattern: 'luxury',
             price: 8400,
             description: 'Design premium or et blanc avec VFX.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_gold_arabesque_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_gold_arabesque_light_png.png'
         },
         {
             id: 'vandal_reaver',
@@ -233,7 +233,7 @@ const WEAPON_SKINS = {
             pattern: 'death',
             price: 7800,
             description: 'Style gothique sombre avec âmes.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_nightwish_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_nightwish_light_png.png'
         },
         {
             id: 'vandal_gaia',
@@ -243,7 +243,7 @@ const WEAPON_SKINS = {
             pattern: 'nature',
             price: 8100,
             description: 'Thème nature avec plantes et terre.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_planet_green_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_planet_green_light_png.png'
         },
         {
             id: 'phantom_champion',
@@ -253,7 +253,7 @@ const WEAPON_SKINS = {
             pattern: 'gold',
             price: 15000,
             description: 'Édition limitée Champions dorée.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_champion_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_champion_light_png.png'
         },
         {
             id: 'phantom_ruination',
@@ -263,7 +263,7 @@ const WEAPON_SKINS = {
             pattern: 'dark',
             price: 7200,
             description: 'Corruption sombre et verte.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_decimator_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_decimator_light_png.png'
         },
         {
             id: 'vandal_chronovoid',
@@ -273,7 +273,7 @@ const WEAPON_SKINS = {
             pattern: 'time',
             price: 8600,
             description: 'Distorsion temporelle violette.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_uncharted_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_uncharted_light_png.png'
         },
         {
             id: 'vandal_araxys',
@@ -283,7 +283,7 @@ const WEAPON_SKINS = {
             pattern: 'alien',
             price: 9100,
             description: 'Technologie alien biomécanique.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_xray_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_xray_light_png.png'
         },
         {
             id: 'phantom_protocol',
@@ -293,7 +293,7 @@ const WEAPON_SKINS = {
             pattern: 'tech',
             price: 8400,
             description: 'Hologrammes et technologie avancée.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_flashback_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_flashback_light_png.png'
         },
         {
             id: 'vandal_neptune',
@@ -303,7 +303,7 @@ const WEAPON_SKINS = {
             pattern: 'ocean',
             price: 4200,
             description: 'Thème océan profond bleu.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_neon_revolution_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ak47_cu_ak47_neon_revolution_light_png.png'
         },
         {
             id: 'phantom_spectrum',
@@ -313,7 +313,7 @@ const WEAPON_SKINS = {
             pattern: 'rainbow',
             price: 9800,
             description: 'Arc-en-ciel chromatique avec audio.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_printstream_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_printstream_light_png.png'
         }
     ],
     pistols: [
@@ -325,7 +325,7 @@ const WEAPON_SKINS = {
             pattern: 'flame',
             price: 1200,
             description: 'Flammes orange vif.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_deagle_aa_flames_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_deagle_aa_flames_light_png.png'
         },
         {
             id: 'glock_fade',
@@ -335,7 +335,7 @@ const WEAPON_SKINS = {
             pattern: 'fade',
             price: 1100,
             description: 'Dégradé arc-en-ciel vibrant.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_glock_aa_fade_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_glock_aa_fade_light_png.png'
         },
         {
             id: 'usp_orion',
@@ -345,7 +345,7 @@ const WEAPON_SKINS = {
             pattern: 'geometric',
             price: 600,
             description: 'Motif géométrique bleu et blanc.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_usp_silencer_cu_usp_spitfire_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_usp_silencer_cu_usp_spitfire_light_png.png'
         },
         {
             id: 'p250_sand_dune',
@@ -355,7 +355,7 @@ const WEAPON_SKINS = {
             pattern: 'solid',
             price: 10,
             description: 'Finition sable basique.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_p250_so_sand_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_p250_so_sand_light_png.png'
         },
         {
             id: 'deagle_kumicho_dragon',
@@ -365,7 +365,7 @@ const WEAPON_SKINS = {
             pattern: 'dragon',
             price: 9800,
             description: 'Dragon japonais doré gravé.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_deagle_cu_deagle_mecha_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_deagle_cu_deagle_mecha_light_png.png'
         },
         {
             id: 'deagle_code_red',
@@ -375,7 +375,7 @@ const WEAPON_SKINS = {
             pattern: 'digital',
             price: 2200,
             description: 'Camouflage digital rouge et noir.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_deagle_cu_deagle_aureus_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_deagle_cu_deagle_aureus_light_png.png'
         },
         {
             id: 'glock_water_elemental',
@@ -385,7 +385,7 @@ const WEAPON_SKINS = {
             pattern: 'water',
             price: 1800,
             description: 'Créature aquatique mystique.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_glock_cu_glock_water_elemental_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_glock_cu_glock_water_elemental_light_png.png'
         },
         {
             id: 'glock_gamma_doppler',
@@ -395,7 +395,7 @@ const WEAPON_SKINS = {
             pattern: 'doppler',
             price: 1400,
             description: 'Dégradé gamma vert et bleu.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_glock_am_gamma_doppler_phase3_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_glock_am_gamma_doppler_phase3_light_png.png'
         },
         {
             id: 'usp_kill_confirmed',
@@ -405,7 +405,7 @@ const WEAPON_SKINS = {
             pattern: 'skull',
             price: 2100,
             description: 'Crânes et marques de mort.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_usp_silencer_cu_usp_kill_confirmed_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_usp_silencer_cu_usp_kill_confirmed_light_png.png'
         },
         {
             id: 'usp_neo_noir',
@@ -415,7 +415,7 @@ const WEAPON_SKINS = {
             pattern: 'noir',
             price: 950,
             description: 'Style comic book noir et blanc.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_usp_silencer_cu_usp_neo_noir_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_usp_silencer_cu_usp_neo_noir_light_png.png'
         },
         {
             id: 'sheriff_ion',
@@ -424,7 +424,8 @@ const WEAPON_SKINS = {
             rarity: 'covert',
             pattern: 'energy',
             price: 5200,
-            description: 'Énergie bleue électrique pulsante.'
+            description: 'Énergie bleue électrique pulsante.',
+            image: 'https://media.valorant-api.com/weaponskinlevels/2b555f97-46bb-5949-3531-979f5bc817f0/displayicon.png'
         },
         {
             id: 'sheriff_reaver',
@@ -433,7 +434,8 @@ const WEAPON_SKINS = {
             rarity: 'covert',
             pattern: 'death',
             price: 4800,
-            description: 'Âmes et énergie violette.'
+            description: 'Âmes et énergie violette.',
+            image: 'https://media.valorant-api.com/weaponskinlevels/4e4ebb8d-41d0-c326-595a-1f9b257e91fa/displayicon.png'
         },
         {
             id: 'classic_recon',
@@ -442,7 +444,8 @@ const WEAPON_SKINS = {
             rarity: 'restricted',
             pattern: 'military',
             price: 800,
-            description: 'Camouflage militaire tactique.'
+            description: 'Camouflage militaire tactique.',
+            image: 'https://media.valorant-api.com/weaponskinlevels/e02ee7ad-4298-28f6-c79c-d1bb60d0ab55/displayicon.png'
         },
         {
             id: 'sheriff_sentinels',
@@ -451,7 +454,8 @@ const WEAPON_SKINS = {
             rarity: 'covert',
             pattern: 'light',
             price: 5600,
-            description: 'Or et lumière divine.'
+            description: 'Or et lumière divine.',
+            image: 'https://media.valorant-api.com/weaponskinlevels/746a022b-48a9-c51b-f379-11a3e1e2bc8e/displayicon.png'
         },
         {
             id: 'ghost_sovereign',
@@ -460,7 +464,8 @@ const WEAPON_SKINS = {
             rarity: 'covert',
             pattern: 'royal',
             price: 4200,
-            description: 'Or royal avec ornements.'
+            description: 'Or royal avec ornements.',
+            image: 'https://media.valorant-api.com/weaponskinlevels/ed8a1109-4e48-f077-636b-e98dd332bfcc/displayicon.png'
         },
         {
             id: 'sheriff_magepunk',
@@ -469,7 +474,8 @@ const WEAPON_SKINS = {
             rarity: 'classified',
             pattern: 'steampunk',
             price: 3400,
-            description: 'Steampunk magique orange.'
+            description: 'Steampunk magique orange.',
+            image: 'https://media.valorant-api.com/weaponskinlevels/59733cf9-490b-e25b-2c6f-eca947628079/displayicon.png'
         }
     ],
     smgs: [
@@ -481,7 +487,7 @@ const WEAPON_SKINS = {
             pattern: 'asiimov',
             price: 7500,
             description: 'Version P90 du célèbre Asiimov.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_p90_cu_p90_asiimov_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_p90_cu_p90_asiimov_light_png.png'
         },
         {
             id: 'mp9_bulldozer',
@@ -491,7 +497,7 @@ const WEAPON_SKINS = {
             pattern: 'industrial',
             price: 400,
             description: 'Style construction jaune et noir.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_mp9_cu_mp9_bulldozer_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_mp9_cu_mp9_bulldozer_light_png.png'
         },
         {
             id: 'spectre_neon_pulse',
@@ -501,7 +507,7 @@ const WEAPON_SKINS = {
             pattern: 'neon',
             price: 3200,
             description: 'Circuit lumineux pulsé aux teintes néon électriques.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_mp7_cu_mp7_neon_ply_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_mp7_cu_mp7_neon_ply_light_png.png'
         },
         {
             id: 'p90_death_by_kitty',
@@ -511,7 +517,7 @@ const WEAPON_SKINS = {
             pattern: 'kawaii',
             price: 4200,
             description: 'Chats kawaï mignons et roses.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_p90_cu_p90_deatbyktty_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_p90_cu_p90_deatbyktty_light_png.png'
         },
         {
             id: 'p90_tigris',
@@ -521,7 +527,7 @@ const WEAPON_SKINS = {
             pattern: 'tiger',
             price: 3900,
             description: 'Motif de tigre blanc et orange.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_p90_cu_p90_trigris_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_p90_cu_p90_trigris_light_png.png'
         },
         {
             id: 'spectre_elderflame',
@@ -530,7 +536,8 @@ const WEAPON_SKINS = {
             rarity: 'covert',
             pattern: 'dragon_fire',
             price: 9200,
-            description: 'Dragon de feu ancestral animé.'
+            description: 'Dragon de feu ancestral animé.',
+            image: 'https://media.valorant-api.com/weaponskinlevels/b3d3ff38-4202-20d8-2f41-c783477e5636/displayicon.png'
         },
         {
             id: 'spectre_protocol',
@@ -539,7 +546,8 @@ const WEAPON_SKINS = {
             rarity: 'restricted',
             pattern: 'tech',
             price: 2800,
-            description: 'Technologie holographique futuriste.'
+            description: 'Technologie holographique futuriste.',
+            image: 'https://media.valorant-api.com/weaponskinlevels/5eb7515f-40a1-2f15-de03-c9a024664737/displayicon.png'
         },
         {
             id: 'spectre_reaver',
@@ -548,7 +556,8 @@ const WEAPON_SKINS = {
             rarity: 'covert',
             pattern: 'death',
             price: 6200,
-            description: 'Corruption violette et âmes.'
+            description: 'Corruption violette et âmes.',
+            image: 'https://media.valorant-api.com/weaponskinlevels/0a0237d3-4d57-0ed2-ab65-c898a7bc755b/displayicon.png'
         },
         {
             id: 'stinger_sovereign',
@@ -557,7 +566,8 @@ const WEAPON_SKINS = {
             rarity: 'classified',
             pattern: 'royal',
             price: 3100,
-            description: 'Design royal doré élégant.'
+            description: 'Design royal doré élégant.',
+            image: 'https://media.valorant-api.com/weaponskinlevels/9bc535dd-4d91-3421-2cd0-7a8fdad3478b/displayicon.png'
         }
     ],
     snipers: [
@@ -569,7 +579,7 @@ const WEAPON_SKINS = {
             pattern: 'dragon',
             price: 20000,
             description: 'Le skin le plus rare et recherché.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_awp_cu_awp_dragon_lore_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_awp_cu_awp_dragon_lore_light_png.png'
         },
         {
             id: 'awp_asiimov',
@@ -579,7 +589,7 @@ const WEAPON_SKINS = {
             pattern: 'asiimov',
             price: 12000,
             description: 'Design Asiimov emblématique.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_awp_cu_awp_asimov_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_awp_cu_awp_asimov_light_png.png'
         },
         {
             id: 'ssg08_blood_in_water',
@@ -589,7 +599,7 @@ const WEAPON_SKINS = {
             pattern: 'animal',
             price: 2800,
             description: 'Requin sanglant stylisé.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ssg08_aa_ssg08_blood_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_ssg08_aa_ssg08_blood_light_png.png'
         },
         {
             id: 'awp_safari_mesh',
@@ -599,7 +609,7 @@ const WEAPON_SKINS = {
             pattern: 'camo',
             price: 80,
             description: 'Camouflage maillé simple.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_awp_sp_mesh_tan_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_awp_sp_mesh_tan_light_png.png'
         },
         {
             id: 'operator_nexus_mythique',
@@ -608,7 +618,8 @@ const WEAPON_SKINS = {
             rarity: 'covert',
             pattern: 'mythic',
             price: 12500,
-            description: 'Operator mythique aux reflets nexus et gravures arcaniques.'
+            description: 'Operator mythique aux reflets nexus et gravures arcaniques.',
+            image: 'https://media.valorant-api.com/weaponskinlevels/1954ba1b-4e97-dcf4-890f-308b967d83b2/displayicon.png'
         },
         {
             id: 'awp_hyper_beast',
@@ -617,7 +628,8 @@ const WEAPON_SKINS = {
             rarity: 'covert',
             pattern: 'beast',
             price: 11000,
-            description: 'Créature féroce multicolore.'
+            description: 'Créature féroce multicolore.',
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_awp_cu_awp_hyper_beast_light_png.png'
         },
         {
             id: 'awp_wildfire',
@@ -626,7 +638,8 @@ const WEAPON_SKINS = {
             rarity: 'restricted',
             pattern: 'fire',
             price: 1600,
-            description: 'Flammes sauvages orange et jaune.'
+            description: 'Flammes sauvages orange et jaune.',
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_awp_cu_awp_wildfire_light_png.png'
         },
         {
             id: 'awp_medusa',
@@ -635,7 +648,8 @@ const WEAPON_SKINS = {
             rarity: 'covert',
             pattern: 'mythic',
             price: 25000,
-            description: 'Méduse mythologique extrêmement rare.'
+            description: 'Méduse mythologique extrêmement rare.',
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_awp_cu_medusa_awp_light_png.png'
         },
         {
             id: 'operator_ion',
@@ -644,7 +658,8 @@ const WEAPON_SKINS = {
             rarity: 'covert',
             pattern: 'energy',
             price: 10500,
-            description: 'Énergie électrique bleue pulsante.'
+            description: 'Énergie électrique bleue pulsante.',
+            image: 'https://media.valorant-api.com/weaponskinlevels/24c73c29-443c-2440-d6db-838086f2451a/displayicon.png'
         },
         {
             id: 'operator_glitchpop',
@@ -653,7 +668,8 @@ const WEAPON_SKINS = {
             rarity: 'covert',
             pattern: 'cyberpunk',
             price: 11200,
-            description: 'Glitch cyberpunk coloré et animé.'
+            description: 'Glitch cyberpunk coloré et animé.',
+            image: 'https://media.valorant-api.com/weaponskinlevels/d92a6ee6-4073-8b7f-e944-f1a55606a28a/displayicon.png'
         }
     ],
     knives: [
@@ -665,7 +681,7 @@ const WEAPON_SKINS = {
             pattern: 'fade',
             price: 50000,
             description: 'Karambit avec un dégradé parfait.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_knife_karambit_aa_fade_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_knife_karambit_aa_fade_light_png.png'
         },
         {
             id: 'butterfly_crimson_web',
@@ -675,7 +691,7 @@ const WEAPON_SKINS = {
             pattern: 'spider_web',
             price: 45000,
             description: 'Toile d\'araignée rouge sur manche noir.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_knife_butterfly_hy_webs_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_knife_butterfly_hy_webs_light_png.png'
         },
         {
             id: 'knife_flux',
@@ -685,7 +701,7 @@ const WEAPON_SKINS = {
             pattern: 'energy',
             price: 52000,
             description: 'Lame tactique enveloppée d\'un flux énergétique lumineux.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_knife_cu_knife_acid_etched_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_knife_cu_knife_acid_etched_light_png.png'
         },
         {
             id: 'karambit_tiger_tooth',
@@ -695,7 +711,7 @@ const WEAPON_SKINS = {
             pattern: 'tiger',
             price: 48000,
             description: 'Finition dorée avec rayures de tigre.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_knife_karambit_an_tiger_orange_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_knife_karambit_an_tiger_orange_light_png.png'
         },
         {
             id: 'karambit_doppler',
@@ -705,7 +721,7 @@ const WEAPON_SKINS = {
             pattern: 'doppler',
             price: 55000,
             description: 'Dégradé rose et bleu hypnotique.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_knife_karambit_am_doppler_phase2_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_knife_karambit_am_doppler_phase2_light_png.png'
         },
         {
             id: 'butterfly_fade',
@@ -715,7 +731,7 @@ const WEAPON_SKINS = {
             pattern: 'fade',
             price: 52000,
             description: 'Dégradé arc-en-ciel parfait.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_knife_butterfly_aa_fade_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_knife_butterfly_aa_fade_light_png.png'
         },
         {
             id: 'butterfly_slaughter',
@@ -725,7 +741,7 @@ const WEAPON_SKINS = {
             pattern: 'blood',
             price: 46000,
             description: 'Motifs sanglants abstraits.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_knife_butterfly_am_murder_light_large.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_knife_butterfly_am_murder_light_png.png'
         },
         {
             id: 'bayonet_autotronic',
@@ -734,7 +750,8 @@ const WEAPON_SKINS = {
             rarity: 'knife',
             pattern: 'tech',
             price: 44000,
-            description: 'Design robotique futuriste.'
+            description: 'Design robotique futuriste.',
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_bayonet_gs_bayonet_autotronic_light_png.png'
         },
         {
             id: 'talon_marble_fade',
@@ -743,7 +760,8 @@ const WEAPON_SKINS = {
             rarity: 'knife',
             pattern: 'marble',
             price: 60000,
-            description: 'Marbre coloré rouge bleu jaune.'
+            description: 'Marbre coloré rouge bleu jaune.',
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_knife_push_am_marble_fade_light_png.png'
         },
         {
             id: 'ursus_gamma_doppler',
@@ -752,7 +770,8 @@ const WEAPON_SKINS = {
             rarity: 'knife',
             pattern: 'doppler',
             price: 51000,
-            description: 'Dégradé vert émeraude radioactif.'
+            description: 'Dégradé vert émeraude radioactif.',
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_knife_ursus_am_gamma_doppler_phase2_light_png.png'
         }
     ]
 };
@@ -765,21 +784,27 @@ const WEAPON_CASES = [
         price: 100,
         description: 'Parfaite pour commencer votre collection - Skins Common à Rare',
         contents: [
-            // Consumer (70%)
+            // Consumer (~78%)
             'ak47_jungle_spray',
             'm4a4_tornado',
             'p250_sand_dune',
             'awp_safari_mesh',
-            // Industrial (20%)
+            // Industrial (~18%)
             'mp9_bulldozer',
             'ak47_case_hardened',
-            // Mil-Spec (8%)
+            // Mil-Spec (~3.5%)
             'usp_orion',
             'awp_wildfire',
-            // Restricted (2%)
+            // Restricted (~0.5%)
             'glock_fade',
             'deagle_blaze'
-        ]
+        ],
+        dropRates: {
+            consumer: 0.78,
+            industrial: 0.18,
+            milspec: 0.035,
+            restricted: 0.005
+        }
     },
     {
         id: 'neon_case',
@@ -787,23 +812,30 @@ const WEAPON_CASES = [
         price: 200,
         description: 'Collection futuriste avec éclairages néon - Rare à Epic',
         contents: [
-            // Industrial (40%)
+            // Industrial (~48%)
             'mp9_bulldozer',
             'awp_safari_mesh',
-            // Mil-Spec (30%)
+            // Mil-Spec (~28%)
             'ak47_case_hardened',
             'spectre_protocol',
-            // Restricted (20%)
+            // Restricted (~18%)
             'ak47_neon_rider',
             'spectre_neon_pulse',
             'glock_gamma_doppler',
-            // Classified (8%)
+            // Classified (~5%)
             'phantom_holocore',
             'm4a4_desolate_space',
-            // Covert (2%)
+            // Covert (~1%)
             'phantom_singularity',
             'operator_ion'
-        ]
+        ],
+        dropRates: {
+            industrial: 0.48,
+            milspec: 0.28,
+            restricted: 0.18,
+            classified: 0.05,
+            covert: 0.01
+        }
     },
     {
         id: 'dragon_case',
@@ -811,23 +843,29 @@ const WEAPON_CASES = [
         price: 350,
         description: 'Thème asiatique avec dragons et créatures - Epic à Legendary',
         contents: [
-            // Mil-Spec (35%)
+            // Mil-Spec (~40%)
             'usp_orion',
             'awp_wildfire',
-            // Restricted (30%)
+            // Restricted (~32%)
             'glock_fade',
             'deagle_blaze',
             'usp_neo_noir',
-            // Classified (25%)
+            // Classified (~20%)
             'm4a4_dragon_king',
             'ssg08_blood_in_water',
             'deagle_code_red',
-            // Covert (10%)
+            // Covert (~8%)
             'ak47_aquamarine',
             'deagle_kumicho_dragon',
             'm4a4_neo_noir',
             'awp_hyper_beast'
-        ]
+        ],
+        dropRates: {
+            milspec: 0.4,
+            restricted: 0.32,
+            classified: 0.2,
+            covert: 0.08
+        }
     },
     {
         id: 'asiimov_case',
@@ -835,22 +873,27 @@ const WEAPON_CASES = [
         price: 400,
         description: 'Collection Asiimov et designs technologiques - Legendary',
         contents: [
-            // Restricted (40%)
+            // Restricted (~48%)
             'deagle_blaze',
             'glock_fade',
             'spectre_neon_pulse',
-            // Classified (35%)
+            // Classified (~35%)
             'ak47_redline',
             'm4a4_desolate_space',
             'p90_tigris',
             'glock_water_elemental',
-            // Covert (25%)
+            // Covert (~17%)
             'm4a4_asiimov',
             'p90_asiimov',
             'awp_asiimov',
             'vandal_fulgurance',
             'phantom_holocore'
-        ]
+        ],
+        dropRates: {
+            restricted: 0.48,
+            classified: 0.35,
+            covert: 0.17
+        }
     },
     {
         id: 'beast_case',
@@ -858,21 +901,26 @@ const WEAPON_CASES = [
         price: 500,
         description: 'Créatures mythiques et animaux féroces - Legendary à Mythic',
         contents: [
-            // Classified (40%)
+            // Classified (~56%)
             'ssg08_blood_in_water',
             'p90_tigris',
             'p90_death_by_kitty',
             'usp_kill_confirmed',
-            // Covert (50%)
+            // Covert (~40%)
             'ak47_aquamarine',
             'awp_hyper_beast',
             'deagle_kumicho_dragon',
             'm4a4_neo_noir',
             'awp_dragon_lore',
-            // Knife (10%)
+            // Knife (~4%)
             'karambit_tiger_tooth',
             'butterfly_slaughter'
-        ]
+        ],
+        dropRates: {
+            classified: 0.56,
+            covert: 0.4,
+            knife: 0.04
+        }
     },
     {
         id: 'valorant_case',
@@ -880,11 +928,11 @@ const WEAPON_CASES = [
         price: 600,
         description: 'Skins exclusifs Valorant avec effets VFX - Mythic',
         contents: [
-            // Classified (35%)
+            // Classified (~47%)
             'phantom_holocore',
             'ak47_neon_rider',
             'spectre_protocol',
-            // Covert (50%)
+            // Covert (~50%)
             'phantom_oni',
             'phantom_singularity',
             'vandal_prime',
@@ -892,18 +940,23 @@ const WEAPON_CASES = [
             'spectre_elderflame',
             'operator_ion',
             'operator_glitchpop',
-            // Knife (15%)
+            // Knife (~3%)
             'knife_flux',
             'talon_marble_fade'
-        ]
+        ],
+        dropRates: {
+            classified: 0.47,
+            covert: 0.5,
+            knife: 0.03
+        }
     },
     {
         id: 'ultimate_case',
         name: 'Caisse Ultime',
         price: 1000,
-        description: 'Les skins les plus rares et recherchés - Mythic & Knife garantis',
+        description: 'Les skins les plus rares et recherchés - Mythic garantis, couteau très difficile',
         contents: [
-            // Covert (60%)
+            // Covert (~92%)
             'ak47_vulcan',
             'm4a4_howl',
             'awp_dragon_lore',
@@ -914,7 +967,7 @@ const WEAPON_CASES = [
             'spectre_elderflame',
             'm4a4_neo_noir',
             'deagle_kumicho_dragon',
-            // Knife (40%)
+            // Knife (~8%)
             'karambit_fade',
             'karambit_doppler',
             'butterfly_fade',
@@ -923,7 +976,11 @@ const WEAPON_CASES = [
             'ursus_gamma_doppler',
             'bayonet_autotronic',
             'knife_flux'
-        ]
+        ],
+        dropRates: {
+            covert: 0.92,
+            knife: 0.08
+        }
     }
 ];
 
@@ -1761,25 +1818,46 @@ const StoreSystem = {
             return null;
         }
 
-        // Créer un tableau pondéré basé sur les probabilités de rareté
-        const weightedSkins = [];
-        caseSkins.forEach(skin => {
-            const weight = Math.floor(RARITIES[skin.rarity].probability * 10000);
-            for (let i = 0; i < weight; i++) {
-                weightedSkins.push(skin);
-            }
-        });
+        // Créer un tableau pondéré basé sur les probabilités de rareté / configuration de caisse
+        const rarityCounts = caseSkins.reduce((acc, skin) => {
+            acc[skin.rarity] = (acc[skin.rarity] || 0) + 1;
+            return acc;
+        }, {});
+
+        const weightedSkins = caseSkins
+            .map(skin => {
+                const caseRate = weaponCase.dropRates && weaponCase.dropRates[skin.rarity];
+                const baseProbability = RARITIES[skin.rarity]?.probability ?? 0;
+                const totalRate = caseRate ?? baseProbability;
+                const rarityCount = totalRate > 0 ? (caseRate ? rarityCounts[skin.rarity] : rarityCounts[skin.rarity] || 1) : 1;
+                const weight = rarityCount > 0 ? totalRate / rarityCount : totalRate;
+                return { skin, weight };
+            })
+            .filter(entry => entry.weight > 0);
 
         if (weightedSkins.length === 0) {
             console.error('Aucun skin pondéré disponible');
             return caseSkins[0];
         }
 
-        // Sélectionner un skin aléatoire
-        const randomIndex = Math.floor(Math.random() * weightedSkins.length);
-        const selected = weightedSkins[randomIndex];
-        console.log('Skin sélectionné:', selected.weapon, '|', selected.name, '(', selected.rarity, ')');
-        return selected;
+        const totalWeight = weightedSkins.reduce((sum, entry) => sum + entry.weight, 0);
+        if (totalWeight <= 0) {
+            console.error('Poids total nul pour la caisse:', weaponCase.id);
+            return weightedSkins[0].skin;
+        }
+
+        let roll = Math.random() * totalWeight;
+        for (const entry of weightedSkins) {
+            roll -= entry.weight;
+            if (roll <= 0) {
+                console.log('Skin sélectionné:', entry.skin.weapon, '|', entry.skin.name, '(', entry.skin.rarity, ')');
+                return entry.skin;
+            }
+        }
+
+        const fallback = weightedSkins[weightedSkins.length - 1].skin;
+        console.warn('Retour au skin de secours après pondération:', fallback.id);
+        return fallback;
     },
 
     closeCaseOpeningModal() {
@@ -1825,8 +1903,18 @@ const StoreSystem = {
                 <div style="display: grid; gap: 10px; max-height: 400px; overflow-y: auto;">
         `;
 
+        const previewRarityCounts = caseContents.reduce((acc, skin) => {
+            acc[skin.rarity] = (acc[skin.rarity] || 0) + 1;
+            return acc;
+        }, {});
+
         caseContents.forEach(skin => {
             const rarity = RARITIES[skin.rarity];
+            const configuredRate = weaponCase.dropRates && weaponCase.dropRates[skin.rarity];
+            const baseRate = rarity?.probability ?? 0;
+            const totalRate = configuredRate !== undefined ? configuredRate : baseRate;
+            const rarityCount = previewRarityCounts[skin.rarity] || 1;
+            const dropRate = totalRate > 0 ? totalRate / rarityCount : 0;
             const skinImageHTML = skin.image
                 ? `<img src="${skin.image}" alt="${skin.weapon}" style="width: 50px; height: 50px; object-fit: contain;">`
                 : `<div style="font-size: 12px; color: rgba(255,255,255,0.5);">${skin.weapon}</div>`;
@@ -1838,7 +1926,7 @@ const StoreSystem = {
                         <div style="font-weight: bold; color: white;">${skin.weapon} | ${skin.name}</div>
                         <div style="font-size: 12px; color: ${rarity.color}; font-weight: bold;">${rarity.name}</div>
                     </div>
-                    <div style="font-size: 12px; opacity: 0.7;">${(rarity.probability * 100).toFixed(2)}%</div>
+                    <div style="font-size: 12px; opacity: 0.7;">${dropRate > 0 ? (dropRate * 100).toFixed(2) + '%' : '—'}</div>
                 </div>
             `;
         });
