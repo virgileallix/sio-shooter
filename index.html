@@ -897,8 +897,9 @@
                             </button>
                         </div>
 
+                        <!-- Options d'entraînement (uniquement en mode training) -->
                         <div class="pause-section training-options hidden">
-                            <h3>Paramètres d'entraînement</h3>
+                            <h3><i class="fas fa-graduation-cap"></i> Entraînement</h3>
                             <label class="toggle-row">
                                 <input type="checkbox" id="training-bots-moving" checked>
                                 <span>Bots en mouvement</span>
@@ -910,6 +911,14 @@
                             <label class="toggle-row">
                                 <span>Nombre de bots</span>
                                 <input type="number" id="training-bots-count" value="5" min="1" max="20">
+                            </label>
+                            <label class="toggle-row">
+                                <input type="checkbox" id="training-infinite-money">
+                                <span>Argent infini</span>
+                            </label>
+                            <label class="toggle-row">
+                                <input type="checkbox" id="training-infinite-ammo">
+                                <span>Munitions infinies</span>
                             </label>
 
                             <div class="training-stats">
@@ -928,8 +937,31 @@
                             </div>
                         </div>
 
+                        <!-- Paramètres graphiques (toujours disponibles) -->
                         <div class="pause-section">
-                            <h3>Touches</h3>
+                            <h3><i class="fas fa-cog"></i> Paramètres</h3>
+                            <label class="toggle-row">
+                                <span>Afficher FPS</span>
+                                <input type="checkbox" id="setting-show-fps">
+                            </label>
+                            <label class="toggle-row">
+                                <span>Qualité graphique</span>
+                                <select id="setting-graphics-quality" class="setting-select">
+                                    <option value="low">Basse</option>
+                                    <option value="medium" selected>Moyenne</option>
+                                    <option value="high">Haute</option>
+                                </select>
+                            </label>
+                            <label class="toggle-row">
+                                <span>Sensibilité souris</span>
+                                <input type="range" id="setting-mouse-sensitivity" min="1" max="20" value="10" step="1">
+                                <span id="sensitivity-value">10</span>
+                            </label>
+                        </div>
+
+                        <!-- Touches (toujours disponibles) -->
+                        <div class="pause-section">
+                            <h3><i class="fas fa-keyboard"></i> Touches</h3>
                             <div class="binding-list">
                                 <div class="binding-row">
                                     <span>Capacité 1</span>

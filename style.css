@@ -2354,6 +2354,19 @@ body {
     text-align: center;
 }
 
+.pause-menu-content h3 {
+    margin: 0 0 12px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pause-menu-content h3 i {
+    color: #00d4ff;
+}
+
 .pause-section {
     margin-bottom: 24px;
 }
@@ -2388,6 +2401,29 @@ body {
     background: rgba(10, 14, 20, 0.75);
     color: #fff;
     margin-left: auto;
+}
+
+.toggle-row .setting-select {
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(10, 14, 20, 0.75);
+    color: #fff;
+    margin-left: auto;
+    cursor: pointer;
+}
+
+.toggle-row input[type="range"] {
+    flex: 1;
+    margin: 0 10px;
+    accent-color: #00d4ff;
+}
+
+.toggle-row #sensitivity-value {
+    min-width: 30px;
+    text-align: center;
+    color: #00d4ff;
+    font-weight: bold;
 }
 
 .toggle-row span {

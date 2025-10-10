@@ -1880,7 +1880,12 @@ function shoot() {
     }
 
     player.lastShot = now;
-    player.weapon.ammo--;
+
+    // Munitions infinies en mode entraînement
+    const hasInfiniteAmmo = trainingState.active && trainingState.settings.infiniteAmmo;
+    if (!hasInfiniteAmmo) {
+        player.weapon.ammo--;
+    }
 
     // Recul progressif
     const recoilStep = player.weapon.recoilStep || 0;
@@ -4714,9 +4719,14 @@ function refreshPauseMenuUI() {
             const movingCheckbox = pauseMenu.querySelector('#training-bots-moving');
             const respawnCheckbox = pauseMenu.querySelector('#training-bots-respawn');
             const countInput = pauseMenu.querySelector('#training-bots-count');
+            const infiniteMoneyCheckbox = pauseMenu.querySelector('#training-infinite-money');
+            const infiniteAmmoCheckbox = pauseMenu.querySelector('#training-infinite-ammo');
+
             if (movingCheckbox) movingCheckbox.checked = !!trainingState.settings.movingBots;
             if (respawnCheckbox) respawnCheckbox.checked = !!trainingState.settings.respawnBots;
             if (countInput) countInput.value = trainingState.settings.botCount;
+            if (infiniteMoneyCheckbox) infiniteMoneyCheckbox.checked = !!trainingState.settings.infiniteMoney;
+            if (infiniteAmmoCheckbox) infiniteAmmoCheckbox.checked = !!trainingState.settings.infiniteAmmo;
 
             const statsKills = pauseMenu.querySelector('#training-stats-kills');
             const statsShots = pauseMenu.querySelector('#training-stats-shots');
@@ -4858,6 +4868,7 @@ function setupPauseMenuControls() {
     const pauseMenu = document.getElementById('pause-menu');
     if (!pauseMenu) return;
 
+    // Boutons d'entraînement
     const applyBtn = pauseMenu.querySelector('#training-apply-settings');
     if (applyBtn) {
         applyBtn.addEventListener('click', () => applyTrainingSettingsFromMenu(pauseMenu));
@@ -4868,6 +4879,7 @@ function setupPauseMenuControls() {
         resetBtn.addEventListener('click', () => resetTrainingBotsFromMenu());
     }
 
+    // Touches
     pauseMenu.querySelectorAll('.binding-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const action = btn.dataset.action;
@@ -4878,9 +4890,74 @@ function setupPauseMenuControls() {
         });
     });
 
+    // Reprendre
     const resumeBtn = pauseMenu.querySelector('#pause-resume');
     if (resumeBtn) {
         resumeBtn.addEventListener('click', () => togglePauseMenu(false));
+    }
+
+    // Paramètres globaux
+    setupGlobalSettings(pauseMenu);
+}
+
+function setupGlobalSettings(pauseMenu) {
+    // Afficher FPS
+    const showFpsCheckbox = pauseMenu.querySelector('#setting-show-fps');
+    if (showFpsCheckbox) {
+        showFpsCheckbox.checked = localStorage.getItem('sio_show_fps') === 'true';
+        showFpsCheckbox.addEventListener('change', (e) => {
+            localStorage.setItem('sio_show_fps', e.target.checked);
+            toggleFpsDisplay(e.target.checked);
+        });
+    }
+
+    // Qualité graphique
+    const graphicsSelect = pauseMenu.querySelector('#setting-graphics-quality');
+    if (graphicsSelect) {
+        graphicsSelect.value = localStorage.getItem('sio_graphics_quality') || 'medium';
+        graphicsSelect.addEventListener('change', (e) => {
+            localStorage.setItem('sio_graphics_quality', e.target.value);
+            applyGraphicsQuality(e.target.value);
+        });
+    }
+
+    // Sensibilité souris
+    const sensitivitySlider = pauseMenu.querySelector('#setting-mouse-sensitivity');
+    const sensitivityValue = pauseMenu.querySelector('#sensitivity-value');
+    if (sensitivitySlider && sensitivityValue) {
+        const savedSensitivity = localStorage.getItem('sio_mouse_sensitivity') || '10';
+        sensitivitySlider.value = savedSensitivity;
+        sensitivityValue.textContent = savedSensitivity;
+
+        sensitivitySlider.addEventListener('input', (e) => {
+            sensitivityValue.textContent = e.target.value;
+            localStorage.setItem('sio_mouse_sensitivity', e.target.value);
+            applyMouseSensitivity(parseFloat(e.target.value));
+        });
+    }
+}
+
+function toggleFpsDisplay(show) {
+    // À implémenter : afficher/masquer le FPS counter
+    if (show) {
+        console.log('Affichage FPS activé');
+    } else {
+        console.log('Affichage FPS désactivé');
+    }
+}
+
+function applyGraphicsQuality(quality) {
+    // À implémenter : ajuster la qualité graphique
+    console.log('Qualité graphique:', quality);
+    if (window.NotificationSystem) {
+        window.NotificationSystem.show('Paramètres', `Qualité: ${quality}`, 'info', 2000);
+    }
+}
+
+function applyMouseSensitivity(value) {
+    // Ajuster la sensibilité globale de la souris
+    if (typeof mouseSensitivity !== 'undefined') {
+        mouseSensitivity = value / 10; // Normaliser entre 0.1 et 2.0
     }
 }
 
@@ -4889,16 +4966,28 @@ function applyTrainingSettingsFromMenu(container = document.getElementById('paus
     const movingCheckbox = container.querySelector('#training-bots-moving');
     const respawnCheckbox = container.querySelector('#training-bots-respawn');
     const countInput = container.querySelector('#training-bots-count');
+    const infiniteMoneyCheckbox = container.querySelector('#training-infinite-money');
+    const infiniteAmmoCheckbox = container.querySelector('#training-infinite-ammo');
 
     trainingState.settings.movingBots = movingCheckbox ? movingCheckbox.checked : true;
     trainingState.settings.respawnBots = respawnCheckbox ? respawnCheckbox.checked : true;
+    trainingState.settings.infiniteMoney = infiniteMoneyCheckbox ? infiniteMoneyCheckbox.checked : false;
+    trainingState.settings.infiniteAmmo = infiniteAmmoCheckbox ? infiniteAmmoCheckbox.checked : false;
+
     const count = countInput ? parseInt(countInput.value, 10) : DEFAULT_TRAINING_SETTINGS.botCount;
     trainingState.settings.botCount = Math.max(1, Math.min(20, isNaN(count) ? DEFAULT_TRAINING_SETTINGS.botCount : count));
+
     saveTrainingSettings();
     setupTrainingBots(true);
 
+    // Appliquer l'argent infini immédiatement si activé
+    if (trainingState.settings.infiniteMoney && player) {
+        player.money = 99999;
+        updateMoneyDisplay();
+    }
+
     if (window.NotificationSystem) {
-        window.NotificationSystem.show('Paramètres appliqués', 'Les bots ont été mis à jour.', 'success', 2000);
+        window.NotificationSystem.show('Paramètres appliqués', 'Les paramètres d\'entraînement ont été mis à jour.', 'success', 2000);
     }
 }
 
@@ -4918,14 +5007,20 @@ function buyWeapon(weaponName, price) {
         return;
     }
 
-    if (player.money < price) {
+    // En mode entraînement avec argent infini, ne pas vérifier ni déduire l'argent
+    const hasInfiniteMoney = trainingState.active && trainingState.settings.infiniteMoney;
+
+    if (!hasInfiniteMoney && player.money < price) {
         if (window.NotificationSystem) {
             window.NotificationSystem.show('Fonds insuffisants', `Il vous faut ${price - player.money} crédits de plus`, 'error', 2000);
         }
         return;
     }
 
-    player.money -= price;
+    if (!hasInfiniteMoney) {
+        player.money -= price;
+    }
+
     equipWeapon(weaponName);
     updateMoneyDisplay(); // Mise à jour immédiate de l'affichage
     updateUI();
@@ -4943,14 +5038,19 @@ function buyArmor(type, price) {
         return;
     }
 
-    if (player.money < price) {
+    // En mode entraînement avec argent infini, ne pas vérifier ni déduire l'argent
+    const hasInfiniteMoney = trainingState.active && trainingState.settings.infiniteMoney;
+
+    if (!hasInfiniteMoney && player.money < price) {
         if (window.NotificationSystem) {
             window.NotificationSystem.show('Fonds insuffisants', `Il vous faut ${price - player.money} crédits de plus`, 'error', 2000);
         }
         return;
     }
 
-    player.money -= price;
+    if (!hasInfiniteMoney) {
+        player.money -= price;
+    }
 
     if (type === 'light') {
         player.armor = 25;

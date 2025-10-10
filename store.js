@@ -103,7 +103,7 @@ const WEAPON_SKINS = {
             pattern: 'asiimov',
             price: 9000,
             description: 'Design blanc et orange iconique.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_asimov_light_png.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4_asimov_light_png.png'
         },
         {
             id: 'm4a4_dragon_king',
@@ -113,7 +113,7 @@ const WEAPON_SKINS = {
             pattern: 'dragon',
             price: 3000,
             description: 'Dragon gravé avec détails dorés.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_dragon_king_light_png.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a4_ancestral_light_png.png'
         },
         {
             id: 'm4a4_howl',
@@ -133,7 +133,7 @@ const WEAPON_SKINS = {
             pattern: 'spray',
             price: 150,
             description: 'Motif tourbillon gris.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_sp_tornado_light_png.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_so_tornado_light_png.png'
         },
         {
             id: 'phantom_holocore',
@@ -183,7 +183,7 @@ const WEAPON_SKINS = {
             pattern: 'noir',
             price: 7200,
             description: 'Style noir et blanc avec éclaboussures rouges.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_neo_noir_light_png.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a4_neo_noir_light_png.png'
         },
         {
             id: 'm4a4_desolate_space',
@@ -193,7 +193,7 @@ const WEAPON_SKINS = {
             pattern: 'space',
             price: 3400,
             description: 'Thème spatial avec galaxies et étoiles.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a1_space_light_png.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_m4a1_cu_m4a4_desolate_space_light_png.png'
         },
         {
             id: 'phantom_oni',
@@ -415,7 +415,7 @@ const WEAPON_SKINS = {
             pattern: 'noir',
             price: 950,
             description: 'Style comic book noir et blanc.',
-            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_usp_silencer_cu_usp_neo_noir_light_png.png'
+            image: 'https://raw.githubusercontent.com/ByMykel/counter-strike-image-tracker/main/static/panorama/images/econ/default_generated/weapon_usp_silencer_cu_usp_noir_light_png.png'
         },
         {
             id: 'sheriff_ion',
@@ -1720,7 +1720,10 @@ const StoreSystem = {
         setTimeout(() => {
             // Calculer la position finale (item 65 = skin gagnant)
             const itemWidth = 165; // 150px + 15px gap
-            const targetPosition = -(65 * itemWidth);
+            // Centrer l'item 65 : on décale de 65 items, puis on compense pour centrer
+            // containerWidth / 2 pour avoir le centre, moins itemWidth / 2 pour centrer l'item
+            const containerWidth = rouletteContainer.offsetWidth;
+            const targetPosition = -(winningPosition * itemWidth) + (containerWidth / 2) - (itemWidth / 2);
 
             roulette.style.transform = `translateX(${targetPosition}px)`;
 
@@ -2099,10 +2102,26 @@ const StoreSystem = {
 
     equipSkin(skinId) {
         const skin = Object.values(WEAPON_SKINS).flat().find(s => s.id === skinId);
-        if (!skin) return;
+        if (!skin) {
+            console.error('Skin non trouvé:', skinId);
+            return;
+        }
 
         const weaponCategory = this.getWeaponCategory(skin.weapon);
         this.ensureInventoryStructure();
+
+        // Vérifier que le joueur possède ce skin
+        const ownsSkin = playerInventory.skins.some(s => s.id === skinId);
+        if (!ownsSkin) {
+            if (window.NotificationSystem) {
+                window.NotificationSystem.show(
+                    'Erreur',
+                    'Vous ne possédez pas ce skin.',
+                    'error'
+                );
+            }
+            return;
+        }
 
         // Vérifier si ce skin est déjà équipé sur cette arme
         const currentlyEquipped = playerInventory.equippedSkins[weaponCategory]?.[skin.weapon];
@@ -2125,6 +2144,8 @@ const StoreSystem = {
         playerInventory.equippedSkins[weaponCategory][skin.weapon] = skinId;
 
         this.savePlayerData();
+
+        // Recharger l'inventaire et le store
         this.loadInventorySkins();
         this.loadStoreSkins();
 
@@ -2185,8 +2206,6 @@ const StoreSystem = {
             return skin ? { ...skin, acquiredAt: skinData.acquiredAt } : null;
         }).filter(Boolean);
 
-        weaponsGrid.innerHTML = '';
-
         if (ownedSkins.length === 0) {
             weaponsGrid.innerHTML = `
                 <div class="empty-inventory">
@@ -2198,8 +2217,12 @@ const StoreSystem = {
             return;
         }
 
-        // Charger la catégorie rifles par défaut
-        showInventoryCategory('rifles');
+        // Déterminer la catégorie active actuelle
+        const activeBtn = document.querySelector('#inventory-weapons .weapon-cat.active');
+        const currentCategory = activeBtn ? activeBtn.getAttribute('onclick').match(/'([^']+)'/)[1] : 'rifles';
+
+        // Recharger la catégorie active
+        showInventoryCategory(currentCategory);
     },
 
     loadInventoryCases() {
@@ -2691,11 +2714,12 @@ function showInventoryCategory(category) {
     // Mettre à jour le bouton actif
     document.querySelectorAll('#inventory-weapons .weapon-cat').forEach(btn => {
         btn.classList.remove('active');
+        // Vérifier si ce bouton correspond à la catégorie actuelle
+        const btnOnclick = btn.getAttribute('onclick');
+        if (btnOnclick && btnOnclick.includes(`'${category}'`)) {
+            btn.classList.add('active');
+        }
     });
-    const activeBtn = document.querySelector(`[onclick="showInventoryCategory('${category}')"]`);
-    if (activeBtn) {
-        activeBtn.classList.add('active');
-    }
 }
 
 // ========================================
