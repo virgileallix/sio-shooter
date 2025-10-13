@@ -956,7 +956,9 @@ const WEAPON_CASES = [
         price: 1000,
         description: 'Les skins les plus rares et recherchés - Mythic garantis, couteau très difficile',
         contents: [
-            // Covert (~92%)
+            'usp_orion',
+            'awp_wildfire',
+            // Covert (~99%)
             'ak47_vulcan',
             'm4a4_howl',
             'awp_dragon_lore',
@@ -967,7 +969,7 @@ const WEAPON_CASES = [
             'spectre_elderflame',
             'm4a4_neo_noir',
             'deagle_kumicho_dragon',
-            // Knife (~8%)
+            // Knife (~1%)
             'karambit_fade',
             'karambit_doppler',
             'butterfly_fade',
@@ -978,8 +980,9 @@ const WEAPON_CASES = [
             'knife_flux'
         ],
         dropRates: {
-            covert: 0.92,
-            knife: 0.08
+            milspec: 0.60,
+            covert: 0.39,
+            knife: 0.01
         }
     }
 ];
@@ -1657,16 +1660,22 @@ const StoreSystem = {
 
         // Générer beaucoup d'items aléatoires + le skin gagnant loin dans la liste
         const items = [];
-        const totalItems = 100; // Total d'items (augmenté pour une animation plus longue)
+        const totalItems = 100; // Total d'items
         const winningPosition = 85; // Position du skin gagnant (proche de la fin)
+
+        console.log(`🎯 Le skin gagnant sera placé à la position ${winningPosition}:`, wonSkin.weapon, '|', wonSkin.name);
 
         for (let i = 0; i < totalItems; i++) {
             if (i === winningPosition) {
                 // Insérer le skin gagnant à cette position
                 items.push(wonSkin);
+                console.log(`✨ Position ${i}: SKIN GAGNANT -`, wonSkin.weapon, '|', wonSkin.name);
             } else {
-                // Ajouter un skin aléatoire
-                const randomSkin = caseSkins[Math.floor(Math.random() * caseSkins.length)];
+                // Ajouter un skin aléatoire (mais éviter le skin gagnant pour plus de clarté visuelle)
+                let randomSkin;
+                do {
+                    randomSkin = caseSkins[Math.floor(Math.random() * caseSkins.length)];
+                } while (caseSkins.length > 1 && randomSkin.id === wonSkin.id && Math.random() > 0.3); // 70% de chance d'éviter le skin gagnant
                 items.push(randomSkin);
             }
         }
@@ -1742,19 +1751,6 @@ const StoreSystem = {
         progressBar.appendChild(progressFill);
         container.appendChild(progressBar);
 
-        // Ajouter un texte d'animation
-        const animationText = document.createElement('div');
-        animationText.style.cssText = `
-            text-align: center;
-            margin-top: 15px;
-            font-size: 18px;
-            color: #00d4ff;
-            font-weight: bold;
-            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
-        `;
-        animationText.textContent = 'Ouverture en cours...';
-        container.appendChild(animationText);
-
         // Démarrer la barre de progression
         setTimeout(() => {
             progressFill.style.width = '100%';
@@ -1769,27 +1765,33 @@ const StoreSystem = {
             const containerWidth = rouletteContainer.offsetWidth;
             const targetPosition = -(winningPosition * itemWidth) + (containerWidth / 2) - (itemWidth / 2);
 
+            console.log(`📏 Calcul de position:
+                - Largeur d'un item: ${itemWidth}px
+                - Largeur du conteneur: ${containerWidth}px
+                - Position gagnante: ${winningPosition}
+                - Position cible: ${targetPosition}px`);
+
             roulette.style.transform = `translateX(${targetPosition}px)`;
+
+            // Marquer visuellement la carte gagnante après l'animation
+            setTimeout(() => {
+                const cards = roulette.querySelectorAll('.roulette-item');
+                if (cards[winningPosition]) {
+                    cards[winningPosition].style.boxShadow = `0 0 30px 5px ${RARITIES[wonSkin.rarity].color}`;
+                    cards[winningPosition].style.transform = 'scale(1.05)';
+                    console.log('🎯 Carte gagnante mise en évidence à la position', winningPosition);
+                }
+            }, 7500);
 
             // Jouer des sons pendant l'animation
             const soundInterval = setInterval(() => {
                 this.playSound('spin');
             }, 300);
 
-            // Mettre à jour le texte pendant l'animation
-            setTimeout(() => {
-                if (animationText) animationText.textContent = 'Ralentissement...';
-            }, 5000);
-
             // Arrêter les sons et jouer le son de révélation à la fin
             setTimeout(() => {
                 clearInterval(soundInterval);
                 this.playSound('reveal');
-                if (animationText) {
-                    animationText.textContent = '✨ Révélation! ✨';
-                    animationText.style.fontSize = '24px';
-                    animationText.style.color = RARITIES[wonSkin.rarity].color;
-                }
             }, 7500);
 
             // Révéler après l'animation (durée augmentée à 8 secondes + 0.5s de délai)
@@ -1802,6 +1804,9 @@ const StoreSystem = {
     },
 
     revealSkinCSGO(wonSkin) {
+        console.log('🎁 RÉVÉLATION DU SKIN:', wonSkin.weapon, '|', wonSkin.name, `(${wonSkin.rarity})`);
+        console.log('📦 Ajout à l\'inventaire avec l\'ID:', wonSkin.id);
+
         // Ajouter le skin à l'inventaire
         playerInventory.skins.push({
             id: wonSkin.id,
@@ -1964,10 +1969,13 @@ const StoreSystem = {
         }
 
         let roll = Math.random() * totalWeight;
+        console.log('🎲 Roll:', roll.toFixed(4), '/ Total weight:', totalWeight.toFixed(4));
+        console.log('📊 Skins disponibles:', weightedSkins.map(e => `${e.skin.weapon} | ${e.skin.name} (poids: ${e.weight.toFixed(4)})`).join('\n   '));
+
         for (const entry of weightedSkins) {
             roll -= entry.weight;
             if (roll <= 0) {
-                console.log('Skin sélectionné:', entry.skin.weapon, '|', entry.skin.name, '(', entry.skin.rarity, ')');
+                console.log('✅ Skin sélectionné:', entry.skin.weapon, '|', entry.skin.name, '(', entry.skin.rarity, ')');
                 return entry.skin;
             }
         }
