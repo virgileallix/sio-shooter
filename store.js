@@ -1561,6 +1561,13 @@ const StoreSystem = {
         modal.style.overflow = 'hidden';
         caseImage.style.overflow = 'hidden';
 
+        // Trouver le conteneur de la modal et masquer son scroll
+        const modalContainer = modal.querySelector('.case-opening-container');
+        if (modalContainer) {
+            modalContainer.style.overflow = 'hidden';
+            modalContainer.style.maxHeight = 'none';
+        }
+
         // Créer l'animation de défilement style CS:GO
         this.createCSGOAnimation(weaponCase, caseImage);
     },
@@ -1737,10 +1744,10 @@ const StoreSystem = {
         // Ajouter une barre de progression
         const progressBar = document.createElement('div');
         progressBar.style.cssText = `
-            width: 100%;
+            width: calc(100% - 40px);
             height: 4px;
             background: rgba(255, 255, 255, 0.1);
-            margin-top: 20px;
+            margin: 20px auto 0 auto;
             border-radius: 2px;
             overflow: hidden;
         `;
