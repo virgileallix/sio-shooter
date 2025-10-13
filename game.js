@@ -848,10 +848,10 @@ function handleGlobalKeyboard(e) {
     }
     
     // Raccourcis pour les invitations
-    if (e.key.toLowerCase() === 'y') {
+    if (e.key && e.key.toLowerCase() === 'y') {
         const acceptBtn = document.querySelector('.game-notification button[onclick*="accept"]');
         if (acceptBtn) acceptBtn.click();
-    } else if (e.key.toLowerCase() === 'n') {
+    } else if (e.key && e.key.toLowerCase() === 'n') {
         const declineBtn = document.querySelector('.game-notification button[onclick*="decline"]');
         if (declineBtn) declineBtn.click();
     }

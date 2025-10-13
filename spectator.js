@@ -21,7 +21,7 @@ const SpectatorSystem = {
 
         this.button?.addEventListener('click', () => this.toggle());
         document.addEventListener('keydown', (e) => {
-            if (e.key.toLowerCase() === 'f3') {
+            if (e.key && e.key.toLowerCase() === 'f3') {
                 this.toggle();
             }
         });
