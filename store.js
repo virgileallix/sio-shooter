@@ -1559,6 +1559,7 @@ const StoreSystem = {
 
         // Masquer la barre de défilement pour que l'animation prenne toute la place
         modal.style.overflow = 'hidden';
+        caseImage.style.overflow = 'hidden';
 
         // Créer l'animation de défilement style CS:GO
         this.createCSGOAnimation(weaponCase, caseImage);
@@ -1628,7 +1629,7 @@ const StoreSystem = {
         rouletteContainer.style.cssText = `
             width: 100%;
             height: 200px;
-            overflow: hidden;
+            overflow: hidden !important;
             position: relative;
             background: linear-gradient(90deg,
                 rgba(0,0,0,0.8) 0%,
@@ -1761,24 +1762,31 @@ const StoreSystem = {
 
         // Démarrer l'animation
         setTimeout(() => {
-            // Calculer la position finale pour centrer exactement le skin gagnant
-            const itemWidth = 165; // 150px min-width + 15px gap
+            // Mesurer la largeur réelle d'une carte après rendu
+            const firstCard = roulette.querySelector('.roulette-item');
+            const cardWidth = firstCard ? firstCard.offsetWidth : 150;
+            const gapWidth = 15;
+            const itemWidth = cardWidth + gapWidth;
+
             const containerWidth = rouletteContainer.offsetWidth;
 
             // Position du bord gauche du skin gagnant depuis le début de la roulette
             const winningItemLeftPosition = winningPosition * itemWidth;
 
             // Pour centrer : placer le milieu de l'item au milieu du container
-            // Le centre de l'item gagnant = winningItemLeftPosition + (150 / 2)
+            // Le centre de l'item gagnant = winningItemLeftPosition + (cardWidth / 2)
             // On veut le mettre au centre du container = containerWidth / 2
-            // Donc translateX = (containerWidth / 2) - (winningItemLeftPosition + 75)
-            const targetPosition = (containerWidth / 2) - (winningItemLeftPosition + 75);
+            // Donc translateX = (containerWidth / 2) - (winningItemLeftPosition + cardWidth / 2)
+            const targetPosition = (containerWidth / 2) - (winningItemLeftPosition + cardWidth / 2);
 
             console.log(`📏 Calcul de position:
-                - Largeur d'un item: ${itemWidth}px (150px + 15px gap)
+                - Largeur réelle d'une carte: ${cardWidth}px
+                - Largeur d'un item (carte + gap): ${itemWidth}px
                 - Largeur du conteneur: ${containerWidth}px
                 - Position gagnante: ${winningPosition}
                 - Position du bord gauche du skin gagnant: ${winningItemLeftPosition}px
+                - Centre du skin gagnant: ${winningItemLeftPosition + cardWidth / 2}px
+                - Centre du conteneur: ${containerWidth / 2}px
                 - Position cible (translateX): ${targetPosition}px`);
 
             roulette.style.transform = `translateX(${targetPosition}px)`;
